@@ -1,0 +1,646 @@
+/**
+ * Tauri Configuration Adapter
+ *
+ * Desktop-specific implementation using Tauri's filesystem plugin.
+ * Manages projects and field catalogs via JSON files in user home directory.
+ *
+ * Features:
+ * - Native file system access (not sandboxed like browser)
+ * - Configuration stored in ~/.meatycapture/
+ * - Auto-initialization with DEFAULT_FIELD_OPTIONS
+ * - Project and field catalog management with timestamps
+ *
+ * @example
+ * ```typescript
+ * import { createTauriProjectStore, createTauriFieldCatalogStore } from '@adapters/config-local/tauri-config-adapter';
+ *
+ * const projectStore = createTauriProjectStore();
+ * const projects = await projectStore.list();
+ *
+ * const fieldStore = createTauriFieldCatalogStore();
+ * const options = await fieldStore.getGlobal();
+ * ```
+ */
+
+import { readTextFile, writeTextFile, exists, mkdir } from '@tauri-apps/plugin-fs';
+import { join, homeDir } from '@tauri-apps/api/path';
+import type { ProjectStore, FieldCatalogStore } from '@core/ports';
+import type { Project, FieldOption, FieldName } from '@core/models';
+import { DEFAULT_FIELD_OPTIONS } from '@core/models';
+import { slugify } from '@core/validation';
+
+/**
+ * Configuration directory name within user home.
+ * Full path: ~/.meatycapture/
+ */
+const CONFIG_DIR_NAME = '.meatycapture';
+
+/**
+ * Gets the configuration directory path.
+ *
+ * Returns ~/.meatycapture/
+ * Note: Environment variable overrides not supported in Tauri version.
+ *
+ * @returns Absolute path to the configuration directory
+ */
+async function getConfigDir(): Promise<string> {
+  const home = await homeDir();
+  return join(home, CONFIG_DIR_NAME);
+}
+
+/**
+ * Ensures the configuration directory exists.
+ *
+ * Creates the directory with recursive: true if it doesn't exist.
+ * This is called before any read/write operations on config files.
+ *
+ * @param configDir - Path to the configuration directory
+ */
+async function ensureConfigDir(configDir: string): Promise<void> {
+  try {
+    const dirExists = await exists(configDir);
+    if (!dirExists) {
+      await mkdir(configDir, { recursive: true });
+    }
+  } catch (error) {
+    throw new Error(
+      `Failed to create config directory ${configDir}: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+// ============================================================================
+// ProjectStore Implementation
+// ============================================================================
+
+/**
+ * Projects JSON file structure.
+ */
+interface ProjectsFile {
+  projects: Project[];
+}
+
+/**
+ * Tauri desktop implementation of ProjectStore.
+ *
+ * Stores projects in a JSON file at ~/.meatycapture/projects.json
+ * Automatically generates IDs using slugify and manages timestamps.
+ *
+ * @example
+ * ```typescript
+ * import { createTauriProjectStore } from '@adapters/config-local/tauri-config-adapter';
+ *
+ * const store = createTauriProjectStore();
+ * const projects = await store.list();
+ * const project = await store.create({
+ *   name: 'My Project',
+ *   default_path: '/path/to/docs',
+ *   enabled: true
+ * });
+ * ```
+ */
+export class TauriProjectStore implements ProjectStore {
+  private readonly configDirPromise: Promise<string>;
+  private readonly projectsFilePromise: Promise<string>;
+
+  constructor() {
+    // Cache the async path resolution
+    this.configDirPromise = getConfigDir();
+    this.projectsFilePromise = this.configDirPromise.then((dir) => join(dir, 'projects.json'));
+  }
+
+  /**
+   * Reads the projects file from disk.
+   *
+   * Returns empty array if file doesn't exist yet.
+   * Creates config directory if needed.
+   *
+   * @returns Array of all projects
+   */
+  private async readProjects(): Promise<Project[]> {
+    const configDir = await this.configDirPromise;
+    const projectsFile = await this.projectsFilePromise;
+
+    await ensureConfigDir(configDir);
+
+    try {
+      const fileExists = await exists(projectsFile);
+      if (!fileExists) {
+        // File doesn't exist yet
+        return [];
+      }
+
+      const content = await readTextFile(projectsFile);
+      const data = JSON.parse(content) as ProjectsFile;
+
+      // Deserialize Date objects
+      return data.projects.map((p) => ({
+        ...p,
+        created_at: new Date(p.created_at),
+        updated_at: new Date(p.updated_at),
+      }));
+    } catch (error) {
+      // Check if error is ENOENT-like (file not found)
+      if (error instanceof Error && error.message.includes('No such file')) {
+        return [];
+      }
+      throw new Error(
+        `Failed to read projects file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Writes projects to disk.
+   *
+   * @param projects - Array of projects to write
+   */
+  private async writeProjects(projects: Project[]): Promise<void> {
+    const configDir = await this.configDirPromise;
+    const projectsFile = await this.projectsFilePromise;
+
+    await ensureConfigDir(configDir);
+
+    const data: ProjectsFile = { projects };
+    const content = JSON.stringify(data, null, 2);
+
+    try {
+      await writeTextFile(projectsFile, content);
+    } catch (error) {
+      throw new Error(
+        `Failed to write projects file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Lists all projects.
+   *
+   * @returns Array of all projects (enabled and disabled)
+   */
+  async list(): Promise<Project[]> {
+    return this.readProjects();
+  }
+
+  /**
+   * Gets a single project by ID.
+   *
+   * @param id - Project identifier (slug format)
+   * @returns Project if found, null otherwise
+   */
+  async get(id: string): Promise<Project | null> {
+    const projects = await this.readProjects();
+    return projects.find((p) => p.id === id) || null;
+  }
+
+  /**
+   * Creates a new project.
+   *
+   * Automatically generates:
+   * - ID from name using slugify
+   * - created_at timestamp
+   * - updated_at timestamp
+   *
+   * @param project - Project data without generated fields
+   * @returns Newly created project with all fields populated
+   * @throws Error if a project with the generated ID already exists
+   */
+  async create(project: Omit<Project, 'id' | 'created_at' | 'updated_at'>): Promise<Project> {
+    const projects = await this.readProjects();
+
+    // Generate ID from name
+    const id = slugify(project.name);
+    if (!id) {
+      throw new Error(`Invalid project name: cannot generate ID from "${project.name}"`);
+    }
+
+    // Check for duplicate ID
+    if (projects.some((p) => p.id === id)) {
+      throw new Error(`Project with ID "${id}" already exists`);
+    }
+
+    // Create new project with generated fields
+    const now = new Date();
+    const newProject: Project = {
+      ...project,
+      id,
+      created_at: now,
+      updated_at: now,
+    };
+
+    // Add to projects array and write
+    projects.push(newProject);
+    await this.writeProjects(projects);
+
+    return newProject;
+  }
+
+  /**
+   * Updates an existing project.
+   *
+   * Automatically updates the updated_at timestamp.
+   *
+   * @param id - Project identifier
+   * @param updates - Partial project data to merge
+   * @returns Updated project
+   * @throws Error if project not found
+   */
+  async update(
+    id: string,
+    updates: Partial<Omit<Project, 'id' | 'created_at' | 'updated_at'>>
+  ): Promise<Project> {
+    const projects = await this.readProjects();
+    const index = projects.findIndex((p) => p.id === id);
+
+    if (index === -1) {
+      throw new Error(`Project not found: ${id}`);
+    }
+
+    const existing = projects[index];
+    if (!existing) {
+      throw new Error(`Project not found: ${id}`);
+    }
+
+    // Merge updates and set updated_at
+    const updated: Project = {
+      ...existing,
+      ...updates,
+      id, // Ensure ID is not changed
+      created_at: existing.created_at, // Preserve creation timestamp
+      updated_at: new Date(),
+    };
+
+    projects[index] = updated;
+    await this.writeProjects(projects);
+
+    return updated;
+  }
+
+  /**
+   * Deletes a project.
+   *
+   * Note: Does not cascade delete field options or documents.
+   *
+   * @param id - Project identifier
+   * @throws Error if project not found
+   */
+  async delete(id: string): Promise<void> {
+    const projects = await this.readProjects();
+    const index = projects.findIndex((p) => p.id === id);
+
+    if (index === -1) {
+      throw new Error(`Project not found: ${id}`);
+    }
+
+    projects.splice(index, 1);
+    await this.writeProjects(projects);
+  }
+}
+
+// ============================================================================
+// FieldCatalogStore Implementation
+// ============================================================================
+
+/**
+ * Fields JSON file structure.
+ */
+interface FieldsFile {
+  global: FieldOption[];
+  projects: Record<string, FieldOption[]>;
+}
+
+/**
+ * Tauri desktop implementation of FieldCatalogStore.
+ *
+ * Stores field options in a JSON file at ~/.meatycapture/fields.json
+ * Manages both global and project-scoped field options.
+ * Initializes with DEFAULT_FIELD_OPTIONS on first access.
+ *
+ * @example
+ * ```typescript
+ * import { createTauriFieldCatalogStore } from '@adapters/config-local/tauri-config-adapter';
+ *
+ * const store = createTauriFieldCatalogStore();
+ * const globalOptions = await store.getGlobal();
+ * const projectOptions = await store.getForProject('my-project');
+ * await store.addOption({
+ *   field: 'type',
+ *   value: 'spike',
+ *   scope: 'global'
+ * });
+ * ```
+ */
+export class TauriFieldCatalogStore implements FieldCatalogStore {
+  private readonly configDirPromise: Promise<string>;
+  private readonly fieldsFilePromise: Promise<string>;
+
+  constructor() {
+    // Cache the async path resolution
+    this.configDirPromise = getConfigDir();
+    this.fieldsFilePromise = this.configDirPromise.then((dir) => join(dir, 'fields.json'));
+  }
+
+  /**
+   * Generates a unique ID for a field option.
+   *
+   * Format: {field}-{value-slug}-{timestamp}
+   * Example: type-enhancement-1701619200000
+   *
+   * @param field - Field name
+   * @param value - Field value
+   * @returns Generated ID
+   */
+  private generateOptionId(field: string, value: string): string {
+    const valueSlug = slugify(value);
+    const timestamp = Date.now();
+    return `${field}-${valueSlug}-${timestamp}`;
+  }
+
+  /**
+   * Reads the fields file from disk.
+   *
+   * Initializes with DEFAULT_FIELD_OPTIONS if file doesn't exist.
+   *
+   * @returns Fields file data
+   */
+  private async readFields(): Promise<FieldsFile> {
+    const configDir = await this.configDirPromise;
+    const fieldsFile = await this.fieldsFilePromise;
+
+    await ensureConfigDir(configDir);
+
+    try {
+      const fileExists = await exists(fieldsFile);
+      if (!fileExists) {
+        // File doesn't exist - initialize with defaults
+        return this.initializeDefaults();
+      }
+
+      const content = await readTextFile(fieldsFile);
+      const data = JSON.parse(content) as FieldsFile;
+
+      // Deserialize Date objects in global options
+      data.global = data.global.map((opt) => ({
+        ...opt,
+        created_at: new Date(opt.created_at),
+      }));
+
+      // Deserialize Date objects in project options
+      for (const projectId in data.projects) {
+        const projectOptions = data.projects[projectId];
+        if (projectOptions) {
+          data.projects[projectId] = projectOptions.map((opt) => ({
+            ...opt,
+            created_at: new Date(opt.created_at),
+          }));
+        }
+      }
+
+      return data;
+    } catch (error) {
+      // Check if error is ENOENT-like (file not found)
+      if (error instanceof Error && error.message.includes('No such file')) {
+        return this.initializeDefaults();
+      }
+      throw new Error(
+        `Failed to read fields file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Initializes the fields file with DEFAULT_FIELD_OPTIONS.
+   *
+   * Creates global options for type, priority, and status.
+   * Writes the initial data to disk.
+   *
+   * @returns Initialized fields file data
+   */
+  private async initializeDefaults(): Promise<FieldsFile> {
+    const now = new Date();
+    const global: FieldOption[] = [];
+
+    // Create global options from DEFAULT_FIELD_OPTIONS
+    for (const [field, values] of Object.entries(DEFAULT_FIELD_OPTIONS)) {
+      for (const value of values) {
+        global.push({
+          id: this.generateOptionId(field, value),
+          field: field as FieldName,
+          value,
+          scope: 'global',
+          created_at: now,
+        });
+      }
+    }
+
+    const data: FieldsFile = {
+      global,
+      projects: {},
+    };
+
+    await this.writeFields(data);
+    return data;
+  }
+
+  /**
+   * Writes fields data to disk.
+   *
+   * @param data - Fields file data to write
+   */
+  private async writeFields(data: FieldsFile): Promise<void> {
+    const configDir = await this.configDirPromise;
+    const fieldsFile = await this.fieldsFilePromise;
+
+    await ensureConfigDir(configDir);
+
+    const content = JSON.stringify(data, null, 2);
+
+    try {
+      await writeTextFile(fieldsFile, content);
+    } catch (error) {
+      throw new Error(
+        `Failed to write fields file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Gets all global field options.
+   *
+   * Returns only options with scope='global'.
+   *
+   * @returns Array of global field options across all fields
+   */
+  async getGlobal(): Promise<FieldOption[]> {
+    const data = await this.readFields();
+    return data.global;
+  }
+
+  /**
+   * Gets effective field options for a specific project.
+   *
+   * Returns merged set: global options + project-specific options.
+   * This is the resolved view that UI components should use.
+   *
+   * @param projectId - Project identifier
+   * @returns Array of all applicable field options for the project
+   */
+  async getForProject(projectId: string): Promise<FieldOption[]> {
+    const data = await this.readFields();
+    const projectOptions = data.projects[projectId] || [];
+
+    // Merge global and project options
+    return [...data.global, ...projectOptions];
+  }
+
+  /**
+   * Gets options for a specific field, optionally filtered by project.
+   *
+   * If projectId is provided, returns global + project-specific options
+   * for that field. Otherwise, returns only global options for the field.
+   *
+   * @param field - Field name (type, domain, context, priority, status, tags)
+   * @param projectId - Optional project ID for project-specific filtering
+   * @returns Array of field options for the specified field
+   */
+  async getByField(field: FieldName, projectId?: string): Promise<FieldOption[]> {
+    if (projectId) {
+      const allOptions = await this.getForProject(projectId);
+      return allOptions.filter((opt) => opt.field === field);
+    }
+
+    const data = await this.readFields();
+    return data.global.filter((opt) => opt.field === field);
+  }
+
+  /**
+   * Adds a new field option (global or project-scoped).
+   *
+   * Automatically generates ID and created_at timestamp.
+   *
+   * @param option - Field option data without generated fields
+   * @returns Newly created field option with all fields populated
+   * @throws Error if project_id required but missing (when scope='project')
+   * @throws Error if duplicate option exists for the same field/value/scope combination
+   */
+  async addOption(option: Omit<FieldOption, 'id' | 'created_at'>): Promise<FieldOption> {
+    const data = await this.readFields();
+
+    // Validate project scope requirements
+    if (option.scope === 'project' && !option.project_id) {
+      throw new Error('project_id is required for project-scoped options');
+    }
+
+    // Generate ID and timestamp
+    const newOption: FieldOption = {
+      ...option,
+      id: this.generateOptionId(option.field, option.value),
+      created_at: new Date(),
+    };
+
+    // Add to appropriate scope
+    if (option.scope === 'global') {
+      // Check for duplicates in global scope
+      const duplicate = data.global.find(
+        (opt) => opt.field === option.field && opt.value === option.value
+      );
+      if (duplicate) {
+        throw new Error(`Global option already exists for ${option.field}: ${option.value}`);
+      }
+
+      data.global.push(newOption);
+    } else if (option.scope === 'project' && option.project_id) {
+      // Initialize project options array if needed
+      if (!data.projects[option.project_id]) {
+        data.projects[option.project_id] = [];
+      }
+
+      const projectOptions = data.projects[option.project_id];
+      if (!projectOptions) {
+        throw new Error(`Failed to initialize project options for ${option.project_id}`);
+      }
+
+      // Check for duplicates in project scope
+      const duplicate = projectOptions.find(
+        (opt) => opt.field === option.field && opt.value === option.value
+      );
+      if (duplicate) {
+        throw new Error(`Project option already exists for ${option.field}: ${option.value}`);
+      }
+
+      projectOptions.push(newOption);
+    }
+
+    await this.writeFields(data);
+    return newOption;
+  }
+
+  /**
+   * Removes a field option by ID.
+   *
+   * Searches both global and project-scoped options.
+   *
+   * @param id - Field option identifier
+   * @throws Error if option not found
+   */
+  async removeOption(id: string): Promise<void> {
+    const data = await this.readFields();
+
+    // Try to remove from global options
+    const globalIndex = data.global.findIndex((opt) => opt.id === id);
+    if (globalIndex !== -1) {
+      data.global.splice(globalIndex, 1);
+      await this.writeFields(data);
+      return;
+    }
+
+    // Try to remove from project options
+    for (const projectId in data.projects) {
+      const projectOptions = data.projects[projectId];
+      if (!projectOptions) continue;
+
+      const projectIndex = projectOptions.findIndex((opt) => opt.id === id);
+      if (projectIndex !== -1) {
+        projectOptions.splice(projectIndex, 1);
+        await this.writeFields(data);
+        return;
+      }
+    }
+
+    throw new Error(`Field option not found: ${id}`);
+  }
+}
+
+// ============================================================================
+// Factory Functions
+// ============================================================================
+
+/**
+ * Creates a new TauriProjectStore instance.
+ *
+ * @returns A new TauriProjectStore instance
+ *
+ * @example
+ * ```typescript
+ * const store = createTauriProjectStore();
+ * const projects = await store.list();
+ * ```
+ */
+export function createTauriProjectStore(): ProjectStore {
+  return new TauriProjectStore();
+}
+
+/**
+ * Creates a new TauriFieldCatalogStore instance.
+ *
+ * @returns A new TauriFieldCatalogStore instance
+ *
+ * @example
+ * ```typescript
+ * const store = createTauriFieldCatalogStore();
+ * const options = await store.getGlobal();
+ * ```
+ */
+export function createTauriFieldCatalogStore(): FieldCatalogStore {
+  return new TauriFieldCatalogStore();
+}

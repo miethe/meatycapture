@@ -85,3 +85,48 @@ code {
   outline: 2px solid rgba(37, 99, 235, 0.8);
   outline-offset: 2px;
 }
+
+/* App navigation */
+.app-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  justify-content: center;
+}
+
+.nav-button {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  box-shadow: var(--shadow-glass);
+}
+
+.nav-button:hover {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--color-text);
+  border-color: rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.nav-button:active {
+  transform: translateY(0);
+}
+
+.nav-button.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.nav-button.active:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
