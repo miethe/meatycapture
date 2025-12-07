@@ -27,12 +27,51 @@ function App() {
 function AppContent() {
   const { toasts, dismissToast } = useToast();
   const [view, setView] = useState<View>('wizard');
+  const [initError, setInitError] = useState<string | null>(null);
 
   // Initialize stores once using useMemo to prevent recreation on re-renders
-  const projectStore = useMemo(() => createProjectStore(), []);
-  const fieldCatalogStore = useMemo(() => createFieldCatalogStore(), []);
-  const docStore = useMemo(() => createDocStore(), []);
-  const clock = useMemo(() => realClock, []);
+  // Wrap in try/catch to gracefully handle browser environment (non-Tauri)
+  const stores = useMemo(() => {
+    try {
+      return {
+        projectStore: createProjectStore(),
+        fieldCatalogStore: createFieldCatalogStore(),
+        docStore: createDocStore(),
+        clock: realClock,
+      };
+    } catch (error) {
+      setInitError(error instanceof Error ? error.message : 'Failed to initialize stores');
+      return null;
+    }
+  }, []);
+
+  // Show error UI if initialization failed
+  if (initError || !stores) {
+    return (
+      <>
+        <a href="#main-content" className="skip-to-main">
+          Skip to main content
+        </a>
+        <div className="app">
+          <header>
+            <h1>MeatyCapture</h1>
+            <p>Lightweight capture app for request logs</p>
+          </header>
+
+          <main id="main-content">
+            <div className="error-panel" role="alert" aria-live="polite">
+              <h2>Platform Not Supported</h2>
+              <p className="error-message">{initError || 'Unable to initialize storage.'}</p>
+              <p>MeatyCapture requires the Tauri desktop application for file system access.</p>
+              <p>
+                Please run the app using <code>pnpm tauri dev</code> instead of <code>pnpm dev</code>.
+              </p>
+            </div>
+          </main>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -69,15 +108,15 @@ function AppContent() {
         <main id="main-content">
           {view === 'wizard' ? (
             <WizardFlow
-              projectStore={projectStore}
-              fieldCatalogStore={fieldCatalogStore}
-              docStore={docStore}
-              clock={clock}
+              projectStore={stores.projectStore}
+              fieldCatalogStore={stores.fieldCatalogStore}
+              docStore={stores.docStore}
+              clock={stores.clock}
             />
           ) : (
             <AdminContainer
-              projectStore={projectStore}
-              fieldCatalogStore={fieldCatalogStore}
+              projectStore={stores.projectStore}
+              fieldCatalogStore={stores.fieldCatalogStore}
             />
           )}
         </main>

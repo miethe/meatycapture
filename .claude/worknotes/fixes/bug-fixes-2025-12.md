@@ -21,3 +21,43 @@
   7. Added navigation CSS with glass morphism styling
 - **Commit(s)**: e24c3b6
 - **Status**: RESOLVED
+
+---
+
+## Tauri Build Fails - Invalid #[cfg] Attribute Placement
+
+**Issue**: Tauri build fails with Rust syntax errors: `expected ';', found '#'` and `expected expression, found '.'`
+
+- **Location**: `src-tauri/src/lib.rs:11-13`
+- **Root Cause**: The `#[cfg(...)]` attribute was placed inline within a method chain, which is invalid Rust syntax. Attributes can only be applied to items (functions, structs, blocks), not expressions within a chain.
+- **Fix**: Refactored to use a mutable builder pattern with a conditional block
+
+  ```rust
+  let mut builder = tauri::Builder::default()
+      .plugin(tauri_plugin_fs::init());
+  #[cfg(not(any(target_os = "android", target_os = "ios")))]
+  {
+      builder = builder.plugin(tauri_plugin_shell::init());
+  }
+  builder.run(tauri::generate_context!())...
+  ```
+
+- **Commit(s)**: c1cc74a
+- **Status**: RESOLVED
+
+---
+
+## Browser Shows Blank Page - Platform Factory Errors Not Handled
+
+**Issue**: When running `pnpm dev` in a browser (not Tauri), the app shows a blank page instead of the UI.
+
+- **Location**: `src/App.tsx` - Store initialization in `useMemo`
+- **Root Cause**: The platform factories throw errors in browser context (file system access not available), which crashes the React component during initialization with no error boundary.
+- **Fix**:
+  1. Added `initError` state to track initialization failures
+  2. Wrapped store creation in try/catch within useMemo
+  3. Added graceful error UI with "Platform Not Supported" message
+  4. Styled error panel with glass morphism design
+  5. Included helpful instructions to use `pnpm tauri dev`
+- **Commit(s)**: c1cc74a
+- **Status**: RESOLVED

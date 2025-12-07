@@ -130,3 +130,53 @@ code {
   background: #1d4ed8;
   border-color: #1d4ed8;
 }
+
+/* Error panel for platform compatibility issues */
+.error-panel {
+  background: var(--color-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  max-width: 600px;
+  margin: 2rem auto;
+  text-align: center;
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  box-shadow: var(--shadow-glass);
+}
+
+.error-panel h2 {
+  color: var(--color-text);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.error-panel p {
+  color: var(--color-text-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+.error-panel p:last-child {
+  margin-bottom: 0;
+}
+
+.error-panel .error-message {
+  color: #fca5a5;
+  font-weight: 500;
+  background: rgba(220, 38, 38, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  margin: 1.5rem 0;
+}
+
+.error-panel code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: var(--color-text);
+  font-weight: 500;
+}
