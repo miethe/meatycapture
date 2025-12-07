@@ -2,10 +2,10 @@
 prd_name: initialization
 phase: "2-3"
 title: "Wizard UI + Admin UI"
-status: in_progress
-completion: 0%
+status: completed
+completion: 100%
 started_at: 2025-12-06
-completed_at: null
+completed_at: 2025-12-06
 tasks:
   - id: TASK-2.0
     title: "Shared UI components"
