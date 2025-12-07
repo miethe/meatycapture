@@ -3,12 +3,14 @@
  *
  * Main capture form step for entering request item details.
  * Third step in the wizard flow (Project -> Doc -> Item -> Review).
+ * Enhanced with real-time validation and contextual help tooltips.
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StepShell } from '../shared/StepShell';
 import { DropdownWithAdd } from '../shared/DropdownWithAdd';
 import { MultiSelectWithAdd } from '../shared/MultiSelectWithAdd';
+import { FormField, type ValidationState } from '../shared/FormField';
 import type { ItemDraft, FieldOption, FieldName } from '../../core/models';
 import './ItemStep.css';
 
@@ -38,6 +40,9 @@ export function ItemStep({
   onNext,
   isLoading = false,
 }: ItemStepProps): React.JSX.Element {
+  // Track validation states for fields
+  const [titleValidation, setTitleValidation] = useState<ValidationState>('idle');
+
   // Convert FieldOption[] to dropdown format
   const convertOptions = useCallback((options: FieldOption[]) => {
     return options.map((opt) => ({
@@ -72,13 +77,27 @@ export function ItemStep({
     [fieldOptions.tags, convertOptions]
   );
 
-  // Field change handlers
+  // Field change handlers with validation
   const handleTitleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onDraftChange({ ...draft, title: event.target.value });
+      const value = event.target.value;
+      onDraftChange({ ...draft, title: value });
+
+      // Real-time validation
+      if (value.trim()) {
+        setTitleValidation('valid');
+      } else {
+        setTitleValidation('idle');
+      }
     },
     [draft, onDraftChange]
   );
+
+  const handleTitleBlur = useCallback(() => {
+    if (!draft.title.trim()) {
+      setTitleValidation('error');
+    }
+  }, [draft.title]);
 
   const handleTypeChange = useCallback(
     (value: string) => {
@@ -178,7 +197,13 @@ export function ItemStep({
     [draft, onAddFieldOption, onDraftChange]
   );
 
-  // Validation - required fields
+  // Validation - required fields with error messages
+  const titleError = useMemo(() => {
+    if (titleValidation === 'error' && !draft.title.trim()) {
+      return 'Title is required';
+    }
+  }, [titleValidation, draft.title]);
+
   const isNextDisabled = useMemo(() => {
     return !draft.title.trim() || !draft.type || !draft.priority || !draft.status || isLoading;
   }, [draft.title, draft.type, draft.priority, draft.status, isLoading]);
@@ -194,23 +219,31 @@ export function ItemStep({
       nextDisabled={isNextDisabled}
       nextLabel="Review"
     >
-      <form className="item-form">
+      <form className="item-form" aria-label="Item details form">
         {/* Title - Required */}
-        <div className="field-container">
-          <label className="field-label required" htmlFor="item-title">
-            Title
-          </label>
+        <FormField
+          label="Title"
+          id="item-title"
+          required
+          {...(titleError ? { error: titleError } : {})}
+          validationState={titleValidation}
+          helperText="Brief summary of the request"
+          tooltip="A concise title that describes what you're requesting"
+        >
           <input
             id="item-title"
             type="text"
             className="input-base"
             value={draft.title}
             onChange={handleTitleChange}
+            onBlur={handleTitleBlur}
             placeholder="Brief description of the request"
             required
             aria-label="Item title"
+            aria-invalid={!!titleError}
+            aria-describedby={titleError ? 'item-title-error' : 'item-title-helper'}
           />
-        </div>
+        </FormField>
 
         {/* Two-column layout for dropdowns */}
         <div className="item-form-grid">
@@ -222,6 +255,8 @@ export function ItemStep({
             onChange={handleTypeChange}
             onAddNew={handleAddType}
             placeholder="Select type..."
+            helperText="What kind of request is this?"
+            tooltip="Choose the category that best describes this request (enhancement, bug, feature, etc.)"
             required
           />
 
@@ -233,6 +268,8 @@ export function ItemStep({
             onChange={handleDomainChange}
             onAddNew={handleAddDomain}
             placeholder="Select domain..."
+            helperText="Which area of the product?"
+            tooltip="The functional area or module this request applies to (web, mobile, api, etc.)"
           />
 
           {/* Context - Optional */}
@@ -243,6 +280,8 @@ export function ItemStep({
             onChange={handleContextChange}
             onAddNew={handleAddContext}
             placeholder="Select context..."
+            helperText="Additional context or category"
+            tooltip="Specific context or subcategory for this request"
           />
 
           {/* Priority - Required */}
@@ -253,6 +292,8 @@ export function ItemStep({
             onChange={handlePriorityChange}
             onAddNew={handleAddPriority}
             placeholder="Select priority..."
+            helperText="How urgent is this?"
+            tooltip="Set the priority level: high (urgent), medium (normal), or low (can wait)"
             required
           />
 
@@ -264,6 +305,8 @@ export function ItemStep({
             onChange={handleStatusChange}
             onAddNew={handleAddStatus}
             placeholder="Select status..."
+            helperText="Current state of the request"
+            tooltip="Workflow status: triage (new), backlog (accepted), in-progress, done, etc."
             required
           />
         </div>
@@ -276,13 +319,17 @@ export function ItemStep({
           onChange={handleTagsChange}
           onAddNew={handleAddTag}
           placeholder="Select tags..."
+          helperText="Keywords for categorization"
+          tooltip="Add relevant tags to help organize and filter requests (ux, api, security, etc.)"
         />
 
         {/* Notes - Full width textarea */}
-        <div className="field-container">
-          <label className="field-label" htmlFor="item-notes">
-            Notes
-          </label>
+        <FormField
+          label="Notes"
+          id="item-notes"
+          helperText="Describe the problem, goal, or provide additional context"
+          tooltip="Detailed description of the request - explain what needs to be done and why"
+        >
           <textarea
             id="item-notes"
             className="input-base item-notes-textarea"
@@ -291,8 +338,9 @@ export function ItemStep({
             placeholder="Problem/goal description, context, or additional details"
             rows={6}
             aria-label="Item notes"
+            aria-describedby="item-notes-helper"
           />
-        </div>
+        </FormField>
       </form>
     </StepShell>
   );

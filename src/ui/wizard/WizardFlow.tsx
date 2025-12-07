@@ -434,7 +434,7 @@ export function WizardFlow({
 
   if (error) {
     return (
-      <div className="wizard-error">
+      <div className="wizard-error" role="alert" aria-live="assertive">
         <h2>Error</h2>
         <p>{error}</p>
         <button type="button" className="button primary" onClick={() => setError(null)}>

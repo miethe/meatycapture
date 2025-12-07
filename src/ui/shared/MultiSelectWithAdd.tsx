@@ -3,9 +3,11 @@
  *
  * Multi-select component for tags with Add+ capability.
  * Shows selected values as removable chips and provides suggestions dropdown.
+ * Enhanced with tooltip and helper text support.
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Tooltip } from './Tooltip';
 import './shared.css';
 
 interface MultiSelectOption {
@@ -28,6 +30,10 @@ interface MultiSelectWithAddProps {
   label: string;
   /** Optional error message */
   error?: string;
+  /** Helper text explaining the field's purpose */
+  helperText?: string;
+  /** Tooltip content for contextual help */
+  tooltip?: string;
 }
 
 export function MultiSelectWithAdd({
@@ -38,6 +44,8 @@ export function MultiSelectWithAdd({
   placeholder = 'Select tags...',
   label,
   error,
+  helperText,
+  tooltip,
 }: MultiSelectWithAddProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
@@ -124,9 +132,31 @@ export function MultiSelectWithAdd({
 
   return (
     <div className="field-container">
-      <label className="field-label" htmlFor={`multiselect-${label}`}>
-        {label}
-      </label>
+      {/* Label with optional tooltip */}
+      <div className="form-field-label-row">
+        <label className="field-label" htmlFor={`multiselect-${label}`}>
+          {label}
+        </label>
+        {tooltip && (
+          <Tooltip content={tooltip} position="right">
+            <button
+              type="button"
+              className="tooltip-trigger"
+              aria-label={`Help for ${label}`}
+              tabIndex={0}
+            >
+              ?
+            </button>
+          </Tooltip>
+        )}
+      </div>
+
+      {/* Helper text */}
+      {helperText && !error && (
+        <div className="form-field-helper" id={`multiselect-${label}-helper`}>
+          {helperText}
+        </div>
+      )}
 
       <div className="multiselect-container" ref={containerRef}>
         {/* Selected chips */}
@@ -134,11 +164,12 @@ export function MultiSelectWithAdd({
           <div className="multiselect-chips" role="list" aria-label="Selected tags">
             {selectedOptions.map((option) => (
               <div key={option.id} className="chip" role="listitem">
-                <span>{option.label}</span>
+                <span aria-label={`Selected: ${option.label}`}>{option.label}</span>
                 <button
                   type="button"
                   onClick={() => removeValue(option.id)}
                   aria-label={`Remove ${option.label}`}
+                  title={`Remove ${option.label}`}
                 >
                   ×
                 </button>
@@ -182,8 +213,9 @@ export function MultiSelectWithAdd({
                       }
                     }}
                     tabIndex={0}
+                    aria-label={`${option.label}${isSelected ? ', selected' : ''}`}
                   >
-                    <div className={`multiselect-checkbox ${isSelected ? 'checked' : ''}`}>
+                    <div className={`multiselect-checkbox ${isSelected ? 'checked' : ''}`} aria-hidden="true">
                       {isSelected && '✓'}
                     </div>
                     <span>{option.label}</span>

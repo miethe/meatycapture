@@ -76,7 +76,7 @@ export function AdminPage({
         </p>
       </header>
 
-      <div className="admin-scope-selector glass">
+      <nav className="admin-scope-selector glass" aria-label="Scope selector">
         <div className="scope-mode-selector">
           <label htmlFor="scope-mode" className="scope-label">
             Scope:
@@ -120,14 +120,16 @@ export function AdminPage({
         )}
 
         {scopeMode === 'project' && selectedProject && (
-          <div className="scope-info">
+          <div className="scope-info" aria-label="Selected project path">
             <span className="scope-info-label">Path:</span>
             <code className="scope-info-value">{selectedProject.default_path}</code>
           </div>
         )}
-      </div>
+      </nav>
 
-      <div className="admin-content">{children}</div>
+      <main className="admin-content" id="main-content">
+        {children}
+      </main>
     </div>
   );
 }

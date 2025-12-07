@@ -58,8 +58,8 @@ export function ReviewStep({
         subtitle="Your request has been saved"
         showBack={false}
       >
-        <div className="review-success">
-          <div className="success-icon">
+        <div className="review-success" role="status" aria-live="polite">
+          <div className="success-icon" role="img" aria-label="Success checkmark">
             <svg
               width="64"
               height="64"
@@ -86,7 +86,7 @@ export function ReviewStep({
             </svg>
           </div>
           <p className="success-message">Your request has been successfully saved to:</p>
-          <div className="success-path">
+          <div className="success-path" aria-label={`Saved to ${docPath}`}>
             <code>{docPath}</code>
           </div>
           <div className="success-actions">

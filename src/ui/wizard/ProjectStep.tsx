@@ -274,12 +274,14 @@ export function ProjectStep({
 
               {/* Enabled Checkbox */}
               <div className="field-container">
-                <label className="checkbox-label">
+                <label htmlFor="project-enabled" className="checkbox-label">
                   <input
+                    id="project-enabled"
                     type="checkbox"
                     checked={formData.enabled}
                     onChange={(e) => handleFieldChange('enabled')(e.target.checked)}
                     disabled={isCreating}
+                    aria-label="Enable project"
                   />
                   <span>Enable project</span>
                 </label>

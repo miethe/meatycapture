@@ -3,9 +3,11 @@
  *
  * A select dropdown with an inline "+ Add new..." option.
  * When selected, shows a mini-form to add a new option.
+ * Enhanced with tooltip and helper text support.
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Tooltip } from './Tooltip';
 import './shared.css';
 
 interface DropdownOption {
@@ -32,6 +34,10 @@ interface DropdownWithAddProps {
   required?: boolean;
   /** Optional error message */
   error?: string;
+  /** Helper text explaining the field's purpose */
+  helperText?: string;
+  /** Tooltip content for contextual help */
+  tooltip?: string;
 }
 
 const ADD_NEW_ID = '__add_new__';
@@ -46,6 +52,8 @@ export function DropdownWithAdd({
   disabled = false,
   required = false,
   error,
+  helperText,
+  tooltip,
 }: DropdownWithAddProps): React.JSX.Element {
   const [isAdding, setIsAdding] = useState(false);
   const [newValue, setNewValue] = useState('');
@@ -110,9 +118,31 @@ export function DropdownWithAdd({
 
   return (
     <div className="field-container">
-      <label className={`field-label ${required ? 'required' : ''}`} htmlFor={`dropdown-${label}`}>
-        {label}
-      </label>
+      {/* Label with optional tooltip */}
+      <div className="form-field-label-row">
+        <label className={`field-label ${required ? 'required' : ''}`} htmlFor={`dropdown-${label}`}>
+          {label}
+        </label>
+        {tooltip && (
+          <Tooltip content={tooltip} position="right">
+            <button
+              type="button"
+              className="tooltip-trigger"
+              aria-label={`Help for ${label}`}
+              tabIndex={0}
+            >
+              ?
+            </button>
+          </Tooltip>
+        )}
+      </div>
+
+      {/* Helper text */}
+      {helperText && !error && (
+        <div className="form-field-helper" id={`dropdown-${label}-helper`}>
+          {helperText}
+        </div>
+      )}
 
       <div className="dropdown-container">
         <select

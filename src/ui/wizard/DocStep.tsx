@@ -11,6 +11,7 @@ import { StepShell } from '../shared/StepShell';
 import { PathField } from '../shared/PathField';
 import '../shared/shared.css';
 import './wizard.css';
+import '../../index.css';
 
 interface DocStepProps {
   /** Default path from selected project */
@@ -99,9 +100,11 @@ export function DocStep({
       ) : (
         <>
           {/* Mode Selection */}
-          <div className="doc-mode-selection">
-            <label className="doc-mode-option">
+          <fieldset className="doc-mode-selection" role="radiogroup" aria-label="Document mode">
+            <legend className="sr-only">Select document mode</legend>
+            <label htmlFor="doc-mode-new" className="doc-mode-option">
               <input
+                id="doc-mode-new"
                 type="radio"
                 name="doc-mode"
                 value="new"
@@ -112,8 +115,9 @@ export function DocStep({
               <span className="doc-mode-label">Create new document</span>
             </label>
 
-            <label className="doc-mode-option">
+            <label htmlFor="doc-mode-existing" className="doc-mode-option">
               <input
+                id="doc-mode-existing"
                 type="radio"
                 name="doc-mode"
                 value="existing"
@@ -123,7 +127,7 @@ export function DocStep({
               />
               <span className="doc-mode-label">Add to existing document</span>
             </label>
-          </div>
+          </fieldset>
 
           {/* New Document Mode */}
           {mode === 'new' && (
@@ -137,8 +141,9 @@ export function DocStep({
               </div>
 
               <div className="path-override-toggle">
-                <label>
+                <label htmlFor="path-override-checkbox">
                   <input
+                    id="path-override-checkbox"
                     type="checkbox"
                     checked={showPathOverride}
                     onChange={handlePathOverrideToggle}
