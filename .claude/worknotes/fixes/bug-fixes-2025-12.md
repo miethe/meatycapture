@@ -127,3 +127,18 @@
   - Scoped to `$HOME/.meatycapture` and `$HOME/**` paths
 - **Commit(s)**: 712b725
 - **Status**: RESOLVED
+
+---
+
+### Writing Projects/Fields Files Fails with "Unknown error"
+
+**Issue**: Creating a new project fails with "Failed to write projects file: Unknown error". Admin tab fails with "Failed to write fields file: Unknown error".
+
+- **Location**: `src-tauri/capabilities/default.json` - wrong permission identifiers
+- **Root Cause**: Tauri v2 has operation-specific permissions. `fs:allow-write` doesn't cover `writeTextFile()` - need `fs:allow-write-text-file` specifically. Same for read operations.
+- **Fix**: Updated capabilities with correct operation-specific permissions:
+  - `fs:allow-write-text-file` (instead of generic `fs:allow-write`)
+  - `fs:allow-read-text-file` (instead of generic `fs:allow-read`)
+  - `fs:allow-copy-file` (for backup operations)
+- **Commit(s)**: 0de9e02
+- **Status**: RESOLVED
