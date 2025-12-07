@@ -85,3 +85,15 @@
 - **Fix**: Moved store initialization to a separate function `initializeStores()` that returns a discriminated union `{ stores, error }` instead of calling setState. The error is now part of the return value, not a side effect.
 - **Commit(s)**: 2da4613
 - **Status**: RESOLVED
+
+---
+
+### Tauri Startup Fails - Invalid fs Plugin Configuration Schema
+
+**Issue**: Tauri application panics on startup with `Error deserializing 'plugins.fs': unknown field 'scope', expected 'requireLiteralLeadingDot'`
+
+- **Location**: `src-tauri/tauri.conf.json:57-64`
+- **Root Cause**: Tauri v2's fs plugin configuration schema expects `allow` and `deny` as direct children of `fs`, not wrapped in a `scope` object. The original config used the Tauri v1 schema pattern.
+- **Fix**: Removed the `scope` wrapper, moved `allow` and `deny` directly under `plugins.fs`
+- **Commit(s)**: dc164ca
+- **Status**: RESOLVED
