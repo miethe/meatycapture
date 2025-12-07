@@ -61,3 +61,27 @@
   5. Included helpful instructions to use `pnpm tauri dev`
 - **Commit(s)**: c1cc74a
 - **Status**: RESOLVED
+
+---
+
+## Tauri Build Fails - Missing Icon Files
+
+**Issue**: Tauri build fails with `failed to open icon icons/32x32.png: No such file or directory`
+
+- **Location**: `src-tauri/icons/` directory
+- **Root Cause**: The `tauri.conf.json` references icon files that were never created. Only a README.md existed in the icons directory.
+- **Fix**: Created placeholder icons using ImageMagick with "MC" text on indigo background for all required formats (32x32.png, 128x128.png, 128x128@2x.png, icon.ico, icon.icns, icon.png)
+- **Commit(s)**: 2da4613
+- **Status**: RESOLVED
+
+---
+
+## React Error - setState Called During Render
+
+**Issue**: Browser shows uncaught error instead of graceful error UI because `setInitError()` was called inside `useMemo`
+
+- **Location**: `src/App.tsx` - AppContent component
+- **Root Cause**: Calling `setState` during render is not allowed in React. The previous fix attempted to call `setInitError()` inside `useMemo`, which throws before the error can be handled.
+- **Fix**: Moved store initialization to a separate function `initializeStores()` that returns a discriminated union `{ stores, error }` instead of calling setState. The error is now part of the return value, not a side effect.
+- **Commit(s)**: 2da4613
+- **Status**: RESOLVED

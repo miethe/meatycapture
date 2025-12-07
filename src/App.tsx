@@ -24,26 +24,43 @@ function App() {
   );
 }
 
-function AppContent() {
-  const { toasts, dismissToast } = useToast();
-  const [view, setView] = useState<View>('wizard');
-  const [initError, setInitError] = useState<string | null>(null);
+// Store types for initialization
+interface Stores {
+  projectStore: ReturnType<typeof createProjectStore>;
+  fieldCatalogStore: ReturnType<typeof createFieldCatalogStore>;
+  docStore: ReturnType<typeof createDocStore>;
+  clock: typeof realClock;
+}
 
-  // Initialize stores once using useMemo to prevent recreation on re-renders
-  // Wrap in try/catch to gracefully handle browser environment (non-Tauri)
-  const stores = useMemo(() => {
-    try {
-      return {
+type StoreResult = { stores: Stores; error: null } | { stores: null; error: string };
+
+// Initialize stores outside component to avoid React render issues
+function initializeStores(): StoreResult {
+  try {
+    return {
+      stores: {
         projectStore: createProjectStore(),
         fieldCatalogStore: createFieldCatalogStore(),
         docStore: createDocStore(),
         clock: realClock,
-      };
-    } catch (error) {
-      setInitError(error instanceof Error ? error.message : 'Failed to initialize stores');
-      return null;
-    }
-  }, []);
+      },
+      error: null,
+    };
+  } catch (error) {
+    return {
+      stores: null,
+      error: error instanceof Error ? error.message : 'Failed to initialize stores',
+    };
+  }
+}
+
+function AppContent() {
+  const { toasts, dismissToast } = useToast();
+  const [view, setView] = useState<View>('wizard');
+
+  // Initialize stores once using useMemo to prevent recreation on re-renders
+  // Error handling is done in initializeStores to avoid setState during render
+  const { stores, error: initError } = useMemo(() => initializeStores(), []);
 
   // Show error UI if initialization failed
   if (initError || !stores) {
