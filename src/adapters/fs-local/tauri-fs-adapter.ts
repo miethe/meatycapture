@@ -28,7 +28,7 @@ import {
   mkdir,
   copyFile,
 } from '@tauri-apps/plugin-fs';
-import { join } from '@tauri-apps/api/path';
+import { join, homeDir } from '@tauri-apps/api/path';
 import type { DocStore, DocMeta, Clock } from '@core/ports';
 import type { RequestLogDoc, ItemDraft } from '@core/models';
 import { serialize, parse, aggregateTags, updateItemsIndex } from '@core/serializer';
@@ -42,9 +42,13 @@ import { logger } from '@core/logging';
  * @returns Absolute path
  */
 async function expandPath(path: string): Promise<string> {
-  // Tauri handles ~/ expansion automatically when using BaseDirectory.Home
-  // For now, just return the path as-is
-  // Future: Add support for environment variable expansion
+  if (path.startsWith('~/')) {
+    const home = await homeDir();
+    return path.replace('~/', home);
+  }
+  if (path === '~') {
+    return await homeDir();
+  }
   return path;
 }
 
