@@ -1,0 +1,47 @@
+/**
+ * ItemStep Component Styles
+ * Form layout for item capture step
+ */
+
+.item-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Two-column grid for dropdowns */
+.item-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+}
+
+/* Notes textarea styling */
+.item-notes-textarea {
+  resize: vertical;
+  min-height: 8rem;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.item-notes-textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+/* Responsive layout - stack on mobile */
+@media (max-width: 768px) {
+  .item-form-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .item-notes-textarea {
+    min-height: 6rem;
+  }
+}
+
+/* Additional spacing for better visual hierarchy */
+.item-form .field-container:last-child {
+  margin-bottom: 0;
+}

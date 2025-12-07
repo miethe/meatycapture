@@ -10,13 +10,7 @@
  * Implementations live in adapters/ (fs-local, config-local)
  */
 
-import type {
-  Project,
-  FieldOption,
-  FieldName,
-  ItemDraft,
-  RequestLogDoc,
-} from '@core/models';
+import type { Project, FieldOption, FieldName, ItemDraft, RequestLogDoc } from '@core/models';
 
 /**
  * Clock abstraction for time-dependent operations
@@ -55,9 +49,7 @@ export interface ProjectStore {
    * @param project - Project data without generated fields
    * @returns Newly created project with all fields populated
    */
-  create(
-    project: Omit<Project, 'id' | 'created_at' | 'updated_at'>
-  ): Promise<Project>;
+  create(project: Omit<Project, 'id' | 'created_at' | 'updated_at'>): Promise<Project>;
 
   /**
    * Update an existing project

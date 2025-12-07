@@ -1,0 +1,339 @@
+/**
+ * Admin Page Styles
+ * Glass/morphism aesthetic for field options management
+ */
+
+/* Admin Page Layout */
+.admin-page {
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.admin-header {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.admin-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.admin-subtitle {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Scope Selector */
+.admin-scope-selector {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.scope-mode-selector,
+.project-selector {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex: 0 0 auto;
+}
+
+.scope-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.scope-mode-selector select,
+.project-selector select {
+  min-width: 12rem;
+}
+
+.scope-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.scope-info-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.scope-info-value {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  background: var(--color-bg-glass-active);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Admin Content */
+.admin-content {
+  flex: 1;
+}
+
+/* Tabs Navigation */
+.admin-tabs {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-xs);
+}
+
+.admin-tab {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: var(--color-bg-glass);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  outline: none;
+}
+
+.admin-tab:hover:not(.active):not(:disabled) {
+  background: var(--color-bg-glass-hover);
+  color: var(--color-text);
+  transform: translateY(-1px);
+}
+
+.admin-tab.active {
+  background: var(--color-bg-glass-active);
+  border-color: var(--color-border-focus);
+  color: var(--color-text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.admin-tab:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.admin-tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Field Group Tab */
+.field-group-tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.field-group-header {
+  margin-bottom: var(--spacing-md);
+}
+
+.field-group-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.field-group-description {
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Options List */
+.field-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--color-text-muted);
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+/* Option Card */
+.option-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  gap: var(--spacing-md);
+  transition: all var(--transition-fast);
+  animation: fadeIn var(--transition-fast);
+}
+
+.option-card:hover {
+  background: var(--color-bg-glass-hover);
+  transform: translateX(4px);
+}
+
+.option-card.greyed {
+  opacity: 0.6;
+}
+
+.option-card.greyed:hover {
+  opacity: 0.8;
+}
+
+.option-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex: 1;
+  min-width: 0;
+}
+
+.option-value {
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.option-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: var(--color-bg-glass-active);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.option-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+/* Add Option Section */
+.add-option-section {
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.add-option-form {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  align-items: center;
+}
+
+.add-option-form input {
+  flex: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin-page {
+    padding: var(--spacing-lg);
+  }
+
+  .admin-title {
+    font-size: 1.5rem;
+  }
+
+  .admin-scope-selector {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .scope-mode-selector,
+  .project-selector {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .scope-mode-selector select,
+  .project-selector select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .scope-info {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-tabs {
+    flex-wrap: wrap;
+  }
+
+  .option-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .option-content {
+    justify-content: space-between;
+  }
+
+  .option-actions {
+    justify-content: flex-end;
+  }
+
+  .add-option-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .add-option-form button {
+    width: 100%;
+  }
+}
+
+/* Keyboard Navigation Focus */
+.option-card:focus-within {
+  border-color: var(--color-border-focus);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Accessibility: Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

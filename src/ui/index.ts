@@ -9,4 +9,8 @@
  * Design: Glass/x-morphism styling, accessibility-first
  */
 
-export {};
+// Export shared components
+export * from './shared';
+
+// Export admin components
+export * from './admin';

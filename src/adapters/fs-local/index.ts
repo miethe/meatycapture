@@ -73,7 +73,9 @@ export class FsDocStore implements DocStore {
           }
         } catch (error) {
           // Skip files that fail to parse (not request-log format)
-          console.warn(`Skipping file ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          console.warn(
+            `Skipping file ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
           continue;
         }
       }
@@ -85,7 +87,9 @@ export class FsDocStore implements DocStore {
         // Directory doesn't exist - return empty array
         return [];
       }
-      throw new Error(`Failed to list documents in ${directory}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to list documents in ${directory}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -104,7 +108,9 @@ export class FsDocStore implements DocStore {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
         throw new Error(`Document not found: ${path}`);
       }
-      throw new Error(`Failed to read document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to read document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -136,7 +142,9 @@ export class FsDocStore implements DocStore {
       const content = serialize(doc);
       await fs.writeFile(path, content, 'utf-8');
     } catch (error) {
-      throw new Error(`Failed to write document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to write document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -193,7 +201,9 @@ export class FsDocStore implements DocStore {
 
       return updatedDoc;
     } catch (error) {
-      throw new Error(`Failed to append item to ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to append item to ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -214,7 +224,9 @@ export class FsDocStore implements DocStore {
       await fs.copyFile(path, backupPath);
       return backupPath;
     } catch (error) {
-      throw new Error(`Failed to create backup of ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to create backup of ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 

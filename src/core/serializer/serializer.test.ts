@@ -572,7 +572,9 @@ describe('updateItemsIndex', () => {
 
     const index = updateItemsIndex(items);
 
-    expect(index).toEqual([{ id: 'REQ-20251203-test-01', type: 'enhancement', title: 'Test Item' }]);
+    expect(index).toEqual([
+      { id: 'REQ-20251203-test-01', type: 'enhancement', title: 'Test Item' },
+    ]);
 
     // Verify no extra fields
     expect(Object.keys(index[0] || {})).toEqual(['id', 'type', 'title']);

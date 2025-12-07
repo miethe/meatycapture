@@ -166,11 +166,7 @@ export function parseDocId(docId: string): ParsedDocId | null {
   const date = new Date(year, month - 1, day);
 
   // Verify the date is valid (handles invalid dates like Feb 31)
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
     return null;
   }
 
@@ -265,17 +261,19 @@ export function slugify(text: string): string {
     return '';
   }
 
-  return text
-    .toLowerCase()
-    .trim()
-    // Replace spaces and underscores with hyphens
-    .replace(/[\s_]+/g, '-')
-    // Remove all non-alphanumeric characters except hyphens
-    .replace(/[^a-z0-9-]/g, '')
-    // Collapse multiple hyphens into one
-    .replace(/-+/g, '-')
-    // Remove leading/trailing hyphens
-    .replace(/^-+|-+$/g, '');
+  return (
+    text
+      .toLowerCase()
+      .trim()
+      // Replace spaces and underscores with hyphens
+      .replace(/[\s_]+/g, '-')
+      // Remove all non-alphanumeric characters except hyphens
+      .replace(/[^a-z0-9-]/g, '')
+      // Collapse multiple hyphens into one
+      .replace(/-+/g, '-')
+      // Remove leading/trailing hyphens
+      .replace(/^-+|-+$/g, '')
+  );
 }
 
 /**

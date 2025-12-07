@@ -41,7 +41,9 @@ async function ensureConfigDir(configDir: string): Promise<void> {
   try {
     await fs.mkdir(configDir, { recursive: true });
   } catch (error) {
-    throw new Error(`Failed to create config directory ${configDir}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to create config directory ${configDir}: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
@@ -110,7 +112,9 @@ export class LocalProjectStore implements ProjectStore {
         // File doesn't exist yet
         return [];
       }
-      throw new Error(`Failed to read projects file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to read projects file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -128,7 +132,9 @@ export class LocalProjectStore implements ProjectStore {
     try {
       await fs.writeFile(this.projectsFile, content, 'utf-8');
     } catch (error) {
-      throw new Error(`Failed to write projects file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to write projects file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -351,7 +357,9 @@ export class LocalFieldCatalogStore implements FieldCatalogStore {
         // File doesn't exist - initialize with defaults
         return this.initializeDefaults();
       }
-      throw new Error(`Failed to read fields file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to read fields file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -402,7 +410,9 @@ export class LocalFieldCatalogStore implements FieldCatalogStore {
     try {
       await fs.writeFile(this.fieldsFile, content, 'utf-8');
     } catch (error) {
-      throw new Error(`Failed to write fields file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to write fields file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
