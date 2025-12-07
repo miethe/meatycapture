@@ -14,6 +14,7 @@ import type { DocStore, DocMeta, Clock } from '@core/ports';
 import type { RequestLogDoc, ItemDraft } from '@core/models';
 import { serialize, parse, aggregateTags, updateItemsIndex } from '@core/serializer';
 import { generateItemId, getNextItemNumber } from '@core/validation';
+import { logger } from '@core/logging';
 
 /**
  * Local filesystem implementation of DocStore.
@@ -44,6 +45,8 @@ export class FsDocStore implements DocStore {
    * @throws Error if directory cannot be read
    */
   async list(directory: string): Promise<DocMeta[]> {
+    logger.debug('Listing documents in directory', { directory });
+
     try {
       // Read all files in the directory
       const entries = await fs.readdir(directory, { withFileTypes: true });
@@ -52,6 +55,8 @@ export class FsDocStore implements DocStore {
       const mdFiles = entries
         .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
         .map((entry) => join(directory, entry.name));
+
+      logger.debug('Found markdown files', { count: mdFiles.length, directory });
 
       // Read and parse each file to extract metadata
       const docMetas: DocMeta[] = [];
@@ -73,20 +78,35 @@ export class FsDocStore implements DocStore {
           }
         } catch (error) {
           // Skip files that fail to parse (not request-log format)
-          console.warn(
-            `Skipping file ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`
-          );
+          logger.warn('Skipping file - parse failed', {
+            path: filePath,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
           continue;
         }
       }
 
       // Sort by updated_at descending (most recent first)
-      return docMetas.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime());
+      const sorted = docMetas.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime());
+
+      logger.info('Listed documents successfully', {
+        directory,
+        count: sorted.length,
+      });
+
+      return sorted;
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
         // Directory doesn't exist - return empty array
+        logger.debug('Directory does not exist', { directory });
         return [];
       }
+
+      logger.error('Failed to list documents', {
+        directory,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
       throw new Error(
         `Failed to list documents in ${directory}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -101,13 +121,30 @@ export class FsDocStore implements DocStore {
    * @throws Error if file not found or parsing fails
    */
   async read(path: string): Promise<RequestLogDoc> {
+    logger.debug('Reading document', { path });
+
     try {
       const content = await fs.readFile(path, 'utf-8');
-      return parse(content);
+      const doc = parse(content);
+
+      logger.info('Document read successfully', {
+        path,
+        doc_id: doc.doc_id,
+        item_count: doc.item_count,
+      });
+
+      return doc;
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        logger.error('Document not found', { path });
         throw new Error(`Document not found: ${path}`);
       }
+
+      logger.error('Failed to read document', {
+        path,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
       throw new Error(
         `Failed to read document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -125,23 +162,46 @@ export class FsDocStore implements DocStore {
    * @throws Error if write fails or path not writable
    */
   async write(path: string, doc: RequestLogDoc): Promise<void> {
+    logger.debug('Writing document', {
+      path,
+      doc_id: doc.doc_id,
+      item_count: doc.item_count,
+    });
+
     try {
       // Ensure parent directory exists
       const dir = dirname(path);
       await fs.mkdir(dir, { recursive: true });
 
       // Create backup if file exists
+      let backupCreated = false;
       try {
         await fs.access(path);
         await this.backup(path);
+        backupCreated = true;
+        logger.debug('Backup created before write', { path, backup: `${path}.bak` });
       } catch {
         // File doesn't exist yet, no backup needed
+        logger.debug('No existing file, skipping backup', { path });
       }
 
       // Serialize and write
       const content = serialize(doc);
       await fs.writeFile(path, content, 'utf-8');
+
+      logger.info('Document written successfully', {
+        path,
+        doc_id: doc.doc_id,
+        item_count: doc.item_count,
+        backup_created: backupCreated,
+      });
     } catch (error) {
+      logger.error('Failed to write document', {
+        path,
+        doc_id: doc.doc_id,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
       throw new Error(
         `Failed to write document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -168,6 +228,12 @@ export class FsDocStore implements DocStore {
    * @throws Error if document not found or append fails
    */
   async append(path: string, item: ItemDraft, clock: Clock): Promise<RequestLogDoc> {
+    logger.debug('Appending item to document', {
+      path,
+      item_type: item.type,
+      item_title: item.title,
+    });
+
     try {
       // Read existing document
       const doc = await this.read(path);
@@ -199,8 +265,21 @@ export class FsDocStore implements DocStore {
       // Write updated document (includes automatic backup)
       await this.write(path, updatedDoc);
 
+      logger.info('Item appended successfully', {
+        path,
+        item_id: itemId,
+        doc_id: doc.doc_id,
+        new_item_count: updatedDoc.item_count,
+      });
+
       return updatedDoc;
     } catch (error) {
+      logger.error('Failed to append item', {
+        path,
+        item_type: item.type,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
       throw new Error(
         `Failed to append item to ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -220,10 +299,25 @@ export class FsDocStore implements DocStore {
   async backup(path: string): Promise<string> {
     const backupPath = `${path}.bak`;
 
+    logger.debug('Creating backup', { path, backup: backupPath });
+
     try {
+      // Check if source file exists
+      await fs.access(path);
+
+      // Copy to backup (overwrites existing .bak)
       await fs.copyFile(path, backupPath);
+
+      logger.info('Backup created successfully', { path, backup: backupPath });
+
       return backupPath;
     } catch (error) {
+      logger.error('Failed to create backup', {
+        path,
+        backup: backupPath,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
       throw new Error(
         `Failed to create backup of ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -240,6 +334,8 @@ export class FsDocStore implements DocStore {
    * @returns True if writable, false otherwise
    */
   async isWritable(path: string): Promise<boolean> {
+    logger.debug('Checking path writability', { path });
+
     try {
       // Check if file exists
       await fs.access(path);
@@ -247,8 +343,10 @@ export class FsDocStore implements DocStore {
       // File exists - check if writable
       try {
         await fs.access(path, fs.constants.W_OK);
+        logger.debug('Path is writable (existing file)', { path });
         return true;
       } catch {
+        logger.debug('Path is not writable (existing file, no write permission)', { path });
         return false;
       }
     } catch {
@@ -257,6 +355,7 @@ export class FsDocStore implements DocStore {
 
       try {
         await fs.access(dir, fs.constants.W_OK);
+        logger.debug('Path is writable (parent directory exists)', { path, dir });
         return true;
       } catch {
         // Parent directory doesn't exist or isn't writable
@@ -264,8 +363,10 @@ export class FsDocStore implements DocStore {
         try {
           const parentDir = dirname(dir);
           await fs.access(parentDir, fs.constants.W_OK);
+          logger.debug('Path is writable (can create parent directory)', { path, parentDir });
           return true;
         } catch {
+          logger.debug('Path is not writable (cannot create directory)', { path, dir });
           return false;
         }
       }

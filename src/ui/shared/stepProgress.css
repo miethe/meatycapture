@@ -1,0 +1,252 @@
+/**
+ * StepProgress Component Styles
+ * Visual progress indicator with glass/morphism aesthetic
+ */
+
+/* Container */
+.step-progress-container {
+  width: 100%;
+  padding: var(--spacing-lg) 0;
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Track - Horizontal Layout */
+.step-progress-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+}
+
+/* Individual Step Item */
+.step-progress-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  z-index: 1;
+  position: relative;
+}
+
+/* Connecting Line */
+.step-progress-line {
+  flex: 1;
+  height: 2px;
+  background: var(--color-border);
+  position: relative;
+  transition: background var(--transition-normal);
+  margin: 0 var(--spacing-xs);
+  min-width: 2rem;
+}
+
+.step-progress-line.completed {
+  background: rgba(99, 150, 255, 0.5);
+}
+
+/* Animated line fill */
+.step-progress-line.completed::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(99, 150, 255, 0.7);
+  animation: lineExpand var(--transition-normal) ease-out;
+}
+
+@keyframes lineExpand {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Step Dot/Circle */
+.step-progress-dot {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-glass);
+  border: 2px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+/* Future Step (not yet reached) */
+.step-progress-dot.future {
+  background: var(--color-bg-glass);
+  border-color: var(--color-border);
+  color: var(--color-text-disabled);
+}
+
+/* Active Step (current) */
+.step-progress-dot.active {
+  background: rgba(99, 150, 255, 0.2);
+  border-color: rgba(99, 150, 255, 0.6);
+  color: rgba(99, 150, 255, 0.95);
+  box-shadow: 0 0 0 4px rgba(99, 150, 255, 0.15);
+  transform: scale(1.1);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(99, 150, 255, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(99, 150, 255, 0.1);
+  }
+}
+
+/* Completed Step */
+.step-progress-dot.completed {
+  background: rgba(99, 255, 150, 0.2);
+  border-color: rgba(99, 255, 150, 0.6);
+  color: rgba(99, 255, 150, 0.95);
+  animation: dotComplete var(--transition-normal) ease-out;
+}
+
+@keyframes dotComplete {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Step Number */
+.step-progress-number {
+  display: block;
+  line-height: 1;
+}
+
+/* Checkmark Icon */
+.step-progress-checkmark {
+  width: 1rem;
+  height: 1rem;
+  color: rgba(99, 255, 150, 0.95);
+  animation: checkmarkDraw var(--transition-normal) ease-out;
+}
+
+@keyframes checkmarkDraw {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-45deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Step Label */
+.step-progress-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text);
+  text-align: center;
+  transition: color var(--transition-fast);
+  white-space: nowrap;
+  max-width: 6rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.step-progress-label.active {
+  color: rgba(99, 150, 255, 0.95);
+  font-weight: 600;
+}
+
+.step-progress-label.future {
+  color: var(--color-text-muted);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .step-progress-container {
+    padding: var(--spacing-md) 0;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .step-progress-track {
+    gap: 0;
+  }
+
+  .step-progress-line {
+    min-width: 1rem;
+    margin: 0 var(--spacing-xs);
+  }
+
+  .step-progress-dot {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.75rem;
+  }
+
+  .step-progress-dot.active {
+    box-shadow: 0 0 0 3px rgba(99, 150, 255, 0.15);
+  }
+
+  .step-progress-label {
+    font-size: 0.75rem;
+    max-width: 5rem;
+  }
+
+  .step-progress-checkmark {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+/* Extra small screens - stack labels below */
+@media (max-width: 480px) {
+  .step-progress-label {
+    font-size: 0.6875rem;
+    max-width: 4rem;
+  }
+
+  .step-progress-dot {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.6875rem;
+  }
+
+  .step-progress-line {
+    min-width: 0.5rem;
+    margin: 0 var(--spacing-xs);
+  }
+}
+
+/* Accessibility: Focus Styles */
+.step-progress-dot:focus-visible {
+  outline: 2px solid rgba(99, 150, 255, 0.7);
+  outline-offset: 4px;
+}
+
+/* Accessibility: Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .step-progress-dot.active {
+    animation: none;
+    transform: scale(1);
+  }
+
+  .step-progress-dot.completed,
+  .step-progress-checkmark,
+  .step-progress-line.completed::after {
+    animation: none;
+  }
+}

@@ -10,6 +10,7 @@ import type { Project } from '../../core/models';
 import { DropdownWithAdd } from '../shared/DropdownWithAdd';
 import { StepShell } from '../shared/StepShell';
 import { PathField } from '../shared/PathField';
+import { useFocusTrap } from '../shared/useFocusTrap';
 import './wizard.css';
 
 interface ProjectStepProps {
@@ -54,6 +55,7 @@ export function ProjectStep({
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof NewProjectForm, string>>>({});
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const modalRef = useFocusTrap<HTMLDivElement>(isModalOpen);
 
   // Convert projects to dropdown options
   const projectOptions = projects
@@ -197,6 +199,7 @@ export function ProjectStep({
           aria-labelledby="modal-title"
         >
           <div
+            ref={modalRef}
             className="modal-content glass"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={handleModalKeyDown}

@@ -7,5 +7,5 @@
  * - Common test helpers
  */
 
-// Placeholder for future test setup
-export {};
+// Import jest-dom matchers for vitest
+import '@testing-library/jest-dom/vitest';

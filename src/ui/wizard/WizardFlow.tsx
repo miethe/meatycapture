@@ -20,6 +20,7 @@ import { ProjectStep } from './ProjectStep';
 import { DocStep } from './DocStep';
 import { ItemStep } from './ItemStep';
 import { ReviewStep } from './ReviewStep';
+import { StepProgress } from '../shared/StepProgress';
 import './wizard.css';
 
 /**
@@ -27,6 +28,21 @@ import './wizard.css';
  * project -> doc -> item -> review -> (success state shown in ReviewStep)
  */
 type WizardStep = 'project' | 'doc' | 'item' | 'review';
+
+/**
+ * Step labels for progress indicator
+ */
+const STEP_LABELS = ['Project', 'Document', 'Item', 'Review'];
+
+/**
+ * Map step name to index
+ */
+const STEP_INDEX_MAP: Record<WizardStep, number> = {
+  project: 0,
+  doc: 1,
+  item: 2,
+  review: 3,
+};
 
 interface WizardFlowProps {
   /** Project store for CRUD operations */
@@ -70,6 +86,9 @@ export function WizardFlow({
 
   // Current step in the wizard flow
   const [currentStep, setCurrentStep] = useState<WizardStep>('project');
+
+  // Track completed steps for progress indicator
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
   // Project step state
   const [projects, setProjects] = useState<Project[]>([]);
@@ -226,6 +245,14 @@ export function WizardFlow({
   );
 
   const handleProjectNext = useCallback(() => {
+    // Mark project step as completed
+    setCompletedSteps((prev) => {
+      const projectIndex = STEP_INDEX_MAP.project;
+      if (!prev.includes(projectIndex)) {
+        return [...prev, projectIndex];
+      }
+      return prev;
+    });
     setCurrentStep('doc');
   }, []);
 
@@ -254,6 +281,14 @@ export function WizardFlow({
   }, [batchingMode]);
 
   const handleDocNext = useCallback(() => {
+    // Mark doc step as completed
+    setCompletedSteps((prev) => {
+      const docIndex = STEP_INDEX_MAP.doc;
+      if (!prev.includes(docIndex)) {
+        return [...prev, docIndex];
+      }
+      return prev;
+    });
     setCurrentStep('item');
   }, []);
 
@@ -298,6 +333,14 @@ export function WizardFlow({
   }, [batchingMode]);
 
   const handleItemNext = useCallback(() => {
+    // Mark item step as completed
+    setCompletedSteps((prev) => {
+      const itemIndex = STEP_INDEX_MAP.item;
+      if (!prev.includes(itemIndex)) {
+        return [...prev, itemIndex];
+      }
+      return prev;
+    });
     setCurrentStep('review');
   }, []);
 
@@ -377,6 +420,8 @@ export function WizardFlow({
     setDraft(EMPTY_DRAFT);
     setSubmitSuccess(false);
     setIsNewDoc(false); // All subsequent items append to existing doc
+    // Remove review from completed steps since we're going back to item
+    setCompletedSteps((prev) => prev.filter((idx) => idx !== STEP_INDEX_MAP.review));
     setCurrentStep('item');
   }, []);
 
@@ -399,45 +444,68 @@ export function WizardFlow({
     );
   }
 
+  const currentStepIndex = STEP_INDEX_MAP[currentStep];
+
   switch (currentStep) {
     case 'project':
       return (
-        <ProjectStep
-          projects={projects}
-          selectedProjectId={selectedProject?.id || null}
-          onSelectProject={handleSelectProject}
-          onCreateProject={handleCreateProject}
-          onNext={handleProjectNext}
-          isLoading={isLoading}
-        />
+        <>
+          <StepProgress
+            steps={STEP_LABELS}
+            currentStep={currentStepIndex}
+            completedSteps={completedSteps}
+          />
+          <ProjectStep
+            projects={projects}
+            selectedProjectId={selectedProject?.id || null}
+            onSelectProject={handleSelectProject}
+            onCreateProject={handleCreateProject}
+            onNext={handleProjectNext}
+            isLoading={isLoading}
+          />
+        </>
       );
 
     case 'doc':
       return (
-        <DocStep
-          projectPath={selectedProject?.default_path || ''}
-          existingDocs={existingDocs}
-          selectedDocPath={selectedDocPath}
-          onSelectDoc={handleSelectDoc}
-          onPathOverride={handlePathOverride}
-          docPath={docPath}
-          onBack={handleDocBack}
-          onNext={handleDocNext}
-          isLoading={isLoading}
-        />
+        <>
+          <StepProgress
+            steps={STEP_LABELS}
+            currentStep={currentStepIndex}
+            completedSteps={completedSteps}
+          />
+          <DocStep
+            projectPath={selectedProject?.default_path || ''}
+            existingDocs={existingDocs}
+            selectedDocPath={selectedDocPath}
+            onSelectDoc={handleSelectDoc}
+            onPathOverride={handlePathOverride}
+            docPath={docPath}
+            onBack={handleDocBack}
+            onNext={handleDocNext}
+            isLoading={isLoading}
+          />
+        </>
       );
 
     case 'item':
       return (
-        <ItemStep
-          draft={draft}
-          onDraftChange={handleDraftChange}
-          fieldOptions={fieldOptions}
-          onAddFieldOption={handleAddFieldOption}
-          onBack={handleItemBack}
-          onNext={handleItemNext}
-          isLoading={isLoading}
-        />
+        <>
+          <StepProgress
+            steps={STEP_LABELS}
+            currentStep={currentStepIndex}
+            completedSteps={completedSteps}
+          />
+          <ItemStep
+            draft={draft}
+            onDraftChange={handleDraftChange}
+            fieldOptions={fieldOptions}
+            onAddFieldOption={handleAddFieldOption}
+            onBack={handleItemBack}
+            onNext={handleItemNext}
+            isLoading={isLoading}
+          />
+        </>
       );
 
     case 'review': {
@@ -453,17 +521,24 @@ export function WizardFlow({
       }
 
       return (
-        <ReviewStep
-          project={selectedProject}
-          docPath={docPath}
-          isNewDoc={isNewDoc}
-          draft={draft}
-          onBack={handleReviewBack}
-          onSubmit={handleSubmit}
-          onAddAnother={handleAddAnother}
-          isSubmitting={isSubmitting}
-          submitSuccess={submitSuccess}
-        />
+        <>
+          <StepProgress
+            steps={STEP_LABELS}
+            currentStep={currentStepIndex}
+            completedSteps={completedSteps}
+          />
+          <ReviewStep
+            project={selectedProject}
+            docPath={docPath}
+            isNewDoc={isNewDoc}
+            draft={draft}
+            onBack={handleReviewBack}
+            onSubmit={handleSubmit}
+            onAddAnother={handleAddAnother}
+            isSubmitting={isSubmitting}
+            submitSuccess={submitSuccess}
+          />
+        </>
       );
     }
 
