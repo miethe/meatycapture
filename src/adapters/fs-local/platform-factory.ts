@@ -16,6 +16,7 @@
 import type { DocStore } from '@core/ports';
 import { isTauri } from '@platform';
 import { createTauriDocStore } from './tauri-fs-adapter';
+import { createBrowserDocStore } from '@adapters/browser-storage';
 
 /**
  * Creates a platform-appropriate DocStore instance.
@@ -23,10 +24,10 @@ import { createTauriDocStore } from './tauri-fs-adapter';
  * Selection logic:
  * - Tauri desktop: Use TauriDocStore (@tauri-apps/plugin-fs)
  * - Node.js/CLI: Throws error - import adapters directly from index module
- * - Web browser: Throws error (not supported - would need IndexedDB adapter)
+ * - Web browser: Use BrowserDocStore (IndexedDB-based storage)
  *
  * @returns DocStore implementation for current platform
- * @throws Error if running in Node.js CLI or unsupported browser environment
+ * @throws Error if running in Node.js CLI environment
  */
 export function createDocStore(): DocStore {
   // Tauri desktop environment
@@ -43,9 +44,6 @@ export function createDocStore(): DocStore {
     );
   }
 
-  // Browser environment - not supported for file-based storage
-  throw new Error(
-    'File-based storage is not supported in web browsers. ' +
-      'Use the Tauri desktop app or CLI for filesystem access.'
-  );
+  // Browser environment - use IndexedDB storage
+  return createBrowserDocStore();
 }

@@ -17,6 +17,7 @@
 import type { ProjectStore, FieldCatalogStore } from '@core/ports';
 import { isTauri } from '@platform';
 import { createTauriProjectStore, createTauriFieldCatalogStore } from './tauri-config-adapter';
+import { createBrowserProjectStore, createBrowserFieldCatalogStore } from '@adapters/browser-storage';
 
 /**
  * Creates a platform-appropriate ProjectStore instance.
@@ -24,10 +25,10 @@ import { createTauriProjectStore, createTauriFieldCatalogStore } from './tauri-c
  * Selection logic:
  * - Tauri desktop: Use TauriProjectStore (@tauri-apps/plugin-fs)
  * - Node.js/CLI: Throws error - import adapters directly from index module
- * - Web browser: Throws error (not supported - file-based config requires filesystem access)
+ * - Web browser: Use BrowserProjectStore (IndexedDB-based storage)
  *
  * @returns ProjectStore implementation for current platform
- * @throws Error if running in Node.js CLI or unsupported browser environment
+ * @throws Error if running in Node.js CLI environment
  */
 export function createProjectStore(): ProjectStore {
   // Tauri desktop environment
@@ -44,11 +45,8 @@ export function createProjectStore(): ProjectStore {
     );
   }
 
-  // Browser environment - not supported for file-based storage
-  throw new Error(
-    'File-based configuration is not supported in web browsers. ' +
-      'Use the Tauri desktop app or CLI for filesystem access.'
-  );
+  // Browser environment - use IndexedDB storage
+  return createBrowserProjectStore();
 }
 
 /**
@@ -57,10 +55,10 @@ export function createProjectStore(): ProjectStore {
  * Selection logic:
  * - Tauri desktop: Use TauriFieldCatalogStore (@tauri-apps/plugin-fs)
  * - Node.js/CLI: Throws error - import adapters directly from index module
- * - Web browser: Throws error (not supported - file-based config requires filesystem access)
+ * - Web browser: Use BrowserFieldCatalogStore (IndexedDB-based storage)
  *
  * @returns FieldCatalogStore implementation for current platform
- * @throws Error if running in Node.js CLI or unsupported browser environment
+ * @throws Error if running in Node.js CLI environment
  */
 export function createFieldCatalogStore(): FieldCatalogStore {
   // Tauri desktop environment
@@ -77,9 +75,6 @@ export function createFieldCatalogStore(): FieldCatalogStore {
     );
   }
 
-  // Browser environment - not supported for file-based storage
-  throw new Error(
-    'File-based configuration is not supported in web browsers. ' +
-      'Use the Tauri desktop app or CLI for filesystem access.'
-  );
+  // Browser environment - use IndexedDB storage
+  return createBrowserFieldCatalogStore();
 }

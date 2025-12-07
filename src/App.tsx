@@ -77,11 +77,10 @@ function AppContent() {
 
           <main id="main-content">
             <div className="error-panel" role="alert" aria-live="polite">
-              <h2>Platform Not Supported</h2>
+              <h2>Initialization Error</h2>
               <p className="error-message">{initError || 'Unable to initialize storage.'}</p>
-              <p>MeatyCapture requires the Tauri desktop application for file system access.</p>
               <p>
-                Please run the app using <code>pnpm tauri dev</code> instead of <code>pnpm dev</code>.
+                Please check the browser console for more details, or try refreshing the page.
               </p>
             </div>
           </main>
