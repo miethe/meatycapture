@@ -40,12 +40,14 @@
       "@core/*": ["./src/core/*"],
       "@adapters/*": ["./src/adapters/*"],
       "@ui/*": ["./src/ui/*"],
+      "@platform": ["./src/platform/index.ts"],
       "@platform/*": ["./src/platform/*"]
     }
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
+    "src/types/**/*.d.ts",
     "vite.config.ts",
     "vitest.config.ts"
   ],

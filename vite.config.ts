@@ -16,10 +16,19 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
+    // Prevent Vite from clearing screen in Tauri dev mode
+    strictPort: true,
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
     target: 'es2022',
+    // Tauri uses Chromium-based webview, no need for legacy browser support
+    minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
+    // Generate sourcemaps for production debugging in Tauri
+    sourcemap: process.env.TAURI_DEBUG === 'true' ? 'inline' : true,
   },
+  // Prevent "use client" directive issues in Tauri
+  clearScreen: false,
+  // Environment variable prefix for Tauri
+  envPrefix: ['VITE_', 'TAURI_'],
 });

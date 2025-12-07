@@ -28,6 +28,8 @@ meatycapture/
 
 ## Development
 
+### Web Development
+
 ```bash
 # Install dependencies
 pnpm install
@@ -47,6 +49,23 @@ pnpm lint
 # Format
 pnpm format
 ```
+
+### Desktop Application (Tauri)
+
+**Prerequisites:** Install [Rust](https://www.rust-lang.org/tools/install) first.
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start desktop app in dev mode (with hot reload)
+pnpm tauri:dev
+
+# Build desktop app for production
+pnpm tauri:build
+```
+
+See [src-tauri/README.md](./src-tauri/README.md) for detailed Tauri setup instructions and platform-specific dependencies.
 
 ## Project Status
 

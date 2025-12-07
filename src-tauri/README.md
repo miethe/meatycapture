@@ -1,0 +1,212 @@
+# Tauri Desktop Configuration
+
+This directory contains the Tauri v2 configuration for building MeatyCapture as a native desktop application.
+
+## Prerequisites
+
+### 1. Install Rust
+
+Tauri requires Rust to be installed:
+
+**macOS/Linux:**
+```bash
+curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
+source $HOME/.cargo/env
+```
+
+**Windows:**
+Download and run [rustup-init.exe](https://rustup.rs/)
+
+Verify installation:
+```bash
+rustc --version
+cargo --version
+```
+
+### 2. Platform-Specific Dependencies
+
+**macOS:**
+```bash
+# Xcode Command Line Tools
+xcode-select --install
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt update
+sudo apt install libwebkit2gtk-4.1-dev \
+  build-essential \
+  curl \
+  wget \
+  file \
+  libxdo-dev \
+  libssl-dev \
+  libayatana-appindicator3-dev \
+  librsvg2-dev
+```
+
+**Windows:**
+- Install [Microsoft Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+- Install [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) (usually pre-installed on Windows 11)
+
+## Development
+
+### First-time Setup
+
+```bash
+# Install dependencies (from project root)
+pnpm install
+
+# This will download Rust dependencies on first run
+pnpm tauri:dev
+```
+
+### Development Mode
+
+```bash
+# Runs Vite dev server + Tauri window with hot reload
+pnpm tauri:dev
+```
+
+The application will open in a native window. Changes to React code will hot-reload, but Rust changes require restarting.
+
+### Debug Mode
+
+Set environment variable for debug builds:
+```bash
+export TAURI_DEBUG=true
+pnpm tauri:dev
+```
+
+## Building
+
+### Development Build
+
+```bash
+pnpm tauri build --debug
+```
+
+Output: `src-tauri/target/debug/bundle/`
+
+### Production Build
+
+```bash
+pnpm tauri build
+```
+
+Output locations:
+- **macOS:** `src-tauri/target/release/bundle/dmg/MeatyCapture_0.1.0_aarch64.dmg`
+- **Windows:** `src-tauri/target/release/bundle/msi/MeatyCapture_0.1.0_x64_en-US.msi`
+- **Linux:** `src-tauri/target/release/bundle/deb/meatycapture_0.1.0_amd64.deb`
+
+## Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `tauri.conf.json` | App configuration (window size, permissions, bundle settings) |
+| `Cargo.toml` | Rust dependencies and build settings |
+| `src/main.rs` | Tauri application entry point |
+| `src/lib.rs` | Shared library code |
+| `build.rs` | Build-time code generation |
+
+## File System Permissions
+
+The app has full read/write access to:
+- `$HOME/**` - User's home directory and all subdirectories
+
+This is configured in `tauri.conf.json` under `plugins.fs.scope`.
+
+**Security Note:** This is intentionally permissive for MeatyCapture's use case (reading/writing markdown files anywhere). Production apps should use more restrictive scoping.
+
+## Architecture
+
+```
+┌─────────────────────────────────────┐
+│   React Frontend (Vite + React)     │
+│   - UI Components                   │
+│   - Business Logic (Core)           │
+│   - Tauri FS Adapter                │
+└──────────────┬──────────────────────┘
+               │ @tauri-apps/api
+               │ @tauri-apps/plugin-fs
+┌──────────────▼──────────────────────┐
+│   Tauri Runtime (Rust)              │
+│   - WebView Management              │
+│   - File System Plugin              │
+│   - IPC Bridge                      │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│   Native OS (macOS/Windows/Linux)   │
+│   - File System Access              │
+│   - Window Management               │
+└─────────────────────────────────────┘
+```
+
+## Adapters
+
+MeatyCapture uses platform-aware adapters:
+
+- **Tauri Desktop:** `TauriDocStore` (@tauri-apps/plugin-fs)
+- **Node.js CLI:** `FsDocStore` (node:fs)
+- **Web Browser:** Not supported (would need IndexedDB adapter)
+
+The correct adapter is selected automatically at runtime via `createDocStore()` factory.
+
+## Troubleshooting
+
+### "rustc not found"
+Install Rust (see Prerequisites above)
+
+### "No such file or directory: 'cargo'"
+Add cargo to PATH:
+```bash
+source $HOME/.cargo/env
+```
+
+### "webkit2gtk not found" (Linux)
+Install WebKit dependencies:
+```bash
+sudo apt install libwebkit2gtk-4.1-dev
+```
+
+### Build fails with "linker error" (Windows)
+Install Visual Studio C++ Build Tools
+
+### App won't start - "Failed to load resource"
+Check that Vite dev server is running on port 3000:
+```bash
+# In separate terminal
+pnpm dev
+```
+
+## Web vs Desktop Feature Detection
+
+Use the platform detection utility:
+
+```typescript
+import { isTauri, getPlatformCapabilities } from '@platform';
+
+if (isTauri()) {
+  // Desktop-specific features
+  const store = createTauriDocStore();
+} else {
+  // Web fallback
+  const store = createFsDocStore();
+}
+```
+
+## Icons
+
+App icons should be placed in `src-tauri/icons/`:
+- `icon.icns` - macOS
+- `icon.ico` - Windows
+- `*.png` - Linux and other platforms
+
+Default placeholder icons are generated by Tauri CLI.
+
+## Resources
+
+- [Tauri Documentation](https://v2.tauri.app/)
+- [Tauri API Reference](https://v2.tauri.app/reference/javascript/api/)
+- [Rust Installation](https://www.rust-lang.org/tools/install)
