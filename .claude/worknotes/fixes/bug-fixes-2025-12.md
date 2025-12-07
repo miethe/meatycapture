@@ -90,10 +90,12 @@
 
 ### Tauri Startup Fails - Invalid fs Plugin Configuration Schema
 
-**Issue**: Tauri application panics on startup with `Error deserializing 'plugins.fs': unknown field 'scope', expected 'requireLiteralLeadingDot'`
+**Issue**: Tauri application panics on startup with `Error deserializing 'plugins.fs': unknown field 'scope'` (then `allow`) `expected 'requireLiteralLeadingDot'`
 
-- **Location**: `src-tauri/tauri.conf.json:57-64`
-- **Root Cause**: Tauri v2's fs plugin configuration schema expects `allow` and `deny` as direct children of `fs`, not wrapped in a `scope` object. The original config used the Tauri v1 schema pattern.
-- **Fix**: Removed the `scope` wrapper, moved `allow` and `deny` directly under `plugins.fs`
-- **Commit(s)**: dc164ca
+- **Location**: `src-tauri/tauri.conf.json` and missing `src-tauri/capabilities/`
+- **Root Cause**: Tauri v2 completely changed the permissions model. The `allow`/`deny` fields don't go in `tauri.conf.json` at all - they must be defined in capabilities files. The only valid field in `plugins.fs` config is `requireLiteralLeadingDot`.
+- **Fix**:
+  1. Removed entire `plugins` section from `tauri.conf.json`
+  2. Created `src-tauri/capabilities/default.json` with proper Tauri v2 permissions structure including `fs:default`, `fs:allow-read`, `fs:allow-write` scoped to `$HOME/**`
+- **Commit(s)**: dc164ca, 1111551
 - **Status**: RESOLVED
