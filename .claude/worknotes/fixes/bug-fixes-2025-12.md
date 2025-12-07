@@ -70,8 +70,8 @@
 
 - **Location**: `src-tauri/icons/` directory
 - **Root Cause**: The `tauri.conf.json` references icon files that were never created. Only a README.md existed in the icons directory.
-- **Fix**: Created placeholder icons using ImageMagick with "MC" text on indigo background for all required formats (32x32.png, 128x128.png, 128x128@2x.png, icon.ico, icon.icns, icon.png)
-- **Commit(s)**: 2da4613
+- **Fix**: Created placeholder icons using ImageMagick with "MC" text on indigo background for all required formats (32x32.png, 128x128.png, 128x128@2x.png, icon.ico, icon.icns, icon.png). Required RGBA format with transparency - initial RGB icons caused "icon is not RGBA" error.
+- **Commit(s)**: 2da4613, dbf7af1
 - **Status**: RESOLVED
 
 ---
