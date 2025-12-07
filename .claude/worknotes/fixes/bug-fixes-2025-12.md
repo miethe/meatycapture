@@ -154,3 +154,28 @@
 - **Fix**: Updated `expandPath()` to use `homeDir()` from `@tauri-apps/api/path` to properly expand `~/` prefix to the user's home directory before file operations.
 - **Commit(s)**: ce9b56a
 - **Status**: RESOLVED
+
+---
+
+### Web App Cannot Access Local Filesystem
+
+**Issue**: Web app fails to load with error "File-based configuration is not supported in web browsers" and cannot be used for remote access.
+
+- **Location**: `src/adapters/config-local/platform-factory.ts`, `src/adapters/fs-local/platform-factory.ts`
+- **Root Cause**: The app's port/adapter pattern only had filesystem-based adapters (Tauri and Node.js). Platform factories explicitly threw errors for browser environments, making the web app unusable without Tauri.
+- **Fix**: Created browser storage adapters following the existing port/adapter pattern:
+  1. **IndexedDB DocStore** (`src/adapters/browser-storage/idb-doc-store.ts`):
+     - Stores request-log documents with `doc_id` as primary key
+     - Indexes on `project_id` for directory-like listing
+     - Separate `backups` object store for document versioning
+     - Full implementation of `list()`, `read()`, `write()`, `append()`, `backup()`, `isWritable()`
+  2. **localStorage Config Stores** (`src/adapters/browser-storage/ls-config-stores.ts`):
+     - `BrowserProjectStore`: Projects stored in `meatycapture_projects` key
+     - `BrowserFieldCatalogStore`: Fields stored in `meatycapture_fields` key
+     - Auto-initializes with `DEFAULT_FIELD_OPTIONS` on first access
+  3. **Updated Platform Factories**: Now return browser adapters instead of throwing errors
+  4. **Updated App.tsx**: Changed error messaging to be platform-agnostic
+- **Commit(s)**: e977f17
+- **Status**: RESOLVED
+
+Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it's from a browser extension, not MeatyCapture.
