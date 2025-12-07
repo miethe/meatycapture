@@ -56,10 +56,8 @@
   },
   "plugins": {
     "fs": {
-      "scope": {
-        "allow": ["$HOME/**"],
-        "deny": []
-      }
+      "allow": ["$HOME/**"],
+      "deny": []
     }
   }
 }
