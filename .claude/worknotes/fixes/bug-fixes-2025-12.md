@@ -99,3 +99,15 @@
   2. Created `src-tauri/capabilities/default.json` with proper Tauri v2 permissions structure including `fs:default`, `fs:allow-read`, `fs:allow-write` scoped to `$HOME/**`
 - **Commit(s)**: dc164ca, 1111551
 - **Status**: RESOLVED
+
+---
+
+### Tauri App Shows "Platform Not Supported" Error
+
+**Issue**: Both Tauri desktop app and web browser display "File-based configuration is not supported in web browsers" error, with no functional UI.
+
+- **Location**: `src-tauri/tauri.conf.json` - missing `withGlobalTauri` setting
+- **Root Cause**: Platform detection uses `window.__TAURI__` to identify Tauri environment. In Tauri v2, this global object is NOT exposed by default - requires explicit `withGlobalTauri: true` in app config. Without it, Tauri's webview looks like a regular browser to the detection logic.
+- **Fix**: Added `"withGlobalTauri": true` to the `app` section of `tauri.conf.json`
+- **Commit(s)**: ba27e13
+- **Status**: RESOLVED
