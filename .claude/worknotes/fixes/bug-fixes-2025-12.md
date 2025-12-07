@@ -142,3 +142,15 @@
   - `fs:allow-copy-file` (for backup operations)
 - **Commit(s)**: 0de9e02
 - **Status**: RESOLVED
+
+---
+
+### Document Write Fails for Project Paths with ~/
+
+**Issue**: Creating a new document fails with "Failed to write document ~/projects/skillmeat/REQ-...: Unknown error"
+
+- **Location**: `src/adapters/fs-local/tauri-fs-adapter.ts:44-49` - `expandPath()` function
+- **Root Cause**: The `expandPath()` function had a misleading comment saying "Tauri handles ~/ expansion automatically" but it actually just returned paths unchanged. Tauri's `writeTextFile()` doesn't expand shell shortcuts - it needs absolute paths.
+- **Fix**: Updated `expandPath()` to use `homeDir()` from `@tauri-apps/api/path` to properly expand `~/` prefix to the user's home directory before file operations.
+- **Commit(s)**: ce9b56a
+- **Status**: RESOLVED
