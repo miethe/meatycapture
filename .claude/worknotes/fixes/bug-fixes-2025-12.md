@@ -111,3 +111,19 @@
 - **Fix**: Added `"withGlobalTauri": true` to the `app` section of `tauri.conf.json`
 - **Commit(s)**: ba27e13
 - **Status**: RESOLVED
+
+---
+
+### Config Directory Creation Fails with "Unknown error"
+
+**Issue**: App shows "Failed to create config directory /Users/miethe/.meatycapture: Unknown error" even when directory exists.
+
+- **Location**: `src-tauri/capabilities/default.json` - insufficient fs permissions
+- **Root Cause**: Tauri v2 requires explicit permissions for each filesystem operation. The generic `fs:allow-read` and `fs:allow-write` don't cover `exists()` checks or `mkdir()` calls - each needs its own permission identifier.
+- **Fix**: Added specific permissions to capabilities:
+  - `fs:allow-exists` - for checking if directory/files exist
+  - `fs:allow-mkdir` - for creating directories
+  - `fs:allow-read-dir` - for listing directory contents
+  - Scoped to `$HOME/.meatycapture` and `$HOME/**` paths
+- **Commit(s)**: 712b725
+- **Status**: RESOLVED
