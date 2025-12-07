@@ -28,7 +28,7 @@
 
 **Issue**: Tauri build fails with Rust syntax errors: `expected ';', found '#'` and `expected expression, found '.'`
 
-- **Location**: `src-tauri/src/lib.rs:11-13`
+- **Location**: `src-tauri/src/lib.rs:11-13` and `src-tauri/src/main.rs:14-17`
 - **Root Cause**: The `#[cfg(...)]` attribute was placed inline within a method chain, which is invalid Rust syntax. Attributes can only be applied to items (functions, structs, blocks), not expressions within a chain.
 - **Fix**: Refactored to use a mutable builder pattern with a conditional block
 
@@ -42,7 +42,7 @@
   builder.run(tauri::generate_context!())...
   ```
 
-- **Commit(s)**: c1cc74a
+- **Commit(s)**: c1cc74a, b869778
 - **Status**: RESOLVED
 
 ---
