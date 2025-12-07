@@ -53,11 +53,5 @@
       "digestAlgorithm": "sha256",
       "timestampUrl": ""
     }
-  },
-  "plugins": {
-    "fs": {
-      "allow": ["$HOME/**"],
-      "deny": []
-    }
   }
 }
