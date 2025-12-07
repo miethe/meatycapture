@@ -8,23 +8,27 @@
     "shell:allow-open",
     {
       "identifier": "fs:allow-exists",
-      "allow": [{ "path": "$HOME/.meatycapture" }, { "path": "$HOME/.meatycapture/**" }]
+      "allow": [{ "path": "$HOME/.meatycapture" }, { "path": "$HOME/.meatycapture/**" }, { "path": "$HOME/**" }]
     },
     {
       "identifier": "fs:allow-mkdir",
-      "allow": [{ "path": "$HOME/.meatycapture" }, { "path": "$HOME/.meatycapture/**" }]
+      "allow": [{ "path": "$HOME/.meatycapture" }, { "path": "$HOME/.meatycapture/**" }, { "path": "$HOME/**" }]
     },
     {
-      "identifier": "fs:allow-read",
+      "identifier": "fs:allow-read-text-file",
       "allow": [{ "path": "$HOME/.meatycapture/**" }, { "path": "$HOME/**" }]
     },
     {
-      "identifier": "fs:allow-write",
+      "identifier": "fs:allow-write-text-file",
       "allow": [{ "path": "$HOME/.meatycapture/**" }, { "path": "$HOME/**" }]
     },
     {
       "identifier": "fs:allow-read-dir",
       "allow": [{ "path": "$HOME/.meatycapture" }, { "path": "$HOME/**" }]
+    },
+    {
+      "identifier": "fs:allow-copy-file",
+      "allow": [{ "path": "$HOME/**" }]
     }
   ]
 }
