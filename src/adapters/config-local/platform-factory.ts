@@ -2,79 +2,89 @@
  * Platform-aware Config Store Factory
  *
  * Automatically selects the correct configuration adapter based on
- * the runtime environment (Tauri desktop vs Node.js vs web browser).
+ * the runtime environment (API server, Tauri desktop, or web browser).
  *
  * @example
  * ```typescript
  * import { createProjectStore, createFieldCatalogStore } from '@adapters/config-local/platform-factory';
  *
- * // Automatically uses TauriConfigAdapter in desktop, LocalConfigAdapter in Node.js
+ * // Automatically uses API stores when API URL configured,
+ * // Tauri stores in desktop, or Browser stores in web
  * const projectStore = createProjectStore();
  * const fieldStore = createFieldCatalogStore();
  * ```
  */
 
 import type { ProjectStore, FieldCatalogStore } from '@core/ports';
-import { isTauri } from '@platform';
+import { detectAdapterMode } from '@platform';
+import { HttpClient, ApiProjectStore, ApiFieldCatalogStore } from '@adapters/api-client';
 import { createTauriProjectStore, createTauriFieldCatalogStore } from './tauri-config-adapter';
 import { createBrowserProjectStore, createBrowserFieldCatalogStore } from '@adapters/browser-storage';
 
 /**
  * Creates a platform-appropriate ProjectStore instance.
  *
- * Selection logic:
- * - Tauri desktop: Use TauriProjectStore (@tauri-apps/plugin-fs)
- * - Node.js/CLI: Throws error - import adapters directly from index module
- * - Web browser: Use BrowserProjectStore (IndexedDB-based storage)
+ * Selection logic (by priority):
+ * 1. API mode: MEATYCAPTURE_API_URL env var set → ApiProjectStore (HTTP client)
+ * 2. Local mode: Tauri desktop → TauriProjectStore (@tauri-apps/plugin-fs)
+ * 3. Browser mode: Web browser → BrowserProjectStore (IndexedDB)
+ *
+ * API mode supports both browser and Node.js/Bun environments.
  *
  * @returns ProjectStore implementation for current platform
- * @throws Error if running in Node.js CLI environment
  */
 export function createProjectStore(): ProjectStore {
-  // Tauri desktop environment
-  if (isTauri()) {
-    return createTauriProjectStore();
-  }
+  const mode = detectAdapterMode();
 
-  // Node.js environment (CLI or server)
-  // Check if we're in Node.js by looking for process.versions.node
-  if (typeof process !== 'undefined' && process.versions && process.versions.node) {
-    throw new Error(
-      'Node.js CLI environment detected. For CLI usage, import adapters directly from the index module. ' +
-        'This platform factory is intended for browser/Tauri contexts only.'
-    );
-  }
+  switch (mode) {
+    case 'api': {
+      // API mode: Use HTTP client to communicate with server
+      // HttpClient auto-detects baseUrl from MEATYCAPTURE_API_URL env var
+      const client = new HttpClient();
+      return new ApiProjectStore(client);
+    }
 
-  // Browser environment - use IndexedDB storage
-  return createBrowserProjectStore();
+    case 'local':
+      // Local mode: Tauri desktop with direct filesystem access
+      return createTauriProjectStore();
+
+    case 'browser':
+    default:
+      // Browser mode: Web browser with IndexedDB storage
+      return createBrowserProjectStore();
+  }
 }
 
 /**
  * Creates a platform-appropriate FieldCatalogStore instance.
  *
- * Selection logic:
- * - Tauri desktop: Use TauriFieldCatalogStore (@tauri-apps/plugin-fs)
- * - Node.js/CLI: Throws error - import adapters directly from index module
- * - Web browser: Use BrowserFieldCatalogStore (IndexedDB-based storage)
+ * Selection logic (by priority):
+ * 1. API mode: MEATYCAPTURE_API_URL env var set → ApiFieldCatalogStore (HTTP client)
+ * 2. Local mode: Tauri desktop → TauriFieldCatalogStore (@tauri-apps/plugin-fs)
+ * 3. Browser mode: Web browser → BrowserFieldCatalogStore (IndexedDB)
+ *
+ * API mode supports both browser and Node.js/Bun environments.
  *
  * @returns FieldCatalogStore implementation for current platform
- * @throws Error if running in Node.js CLI environment
  */
 export function createFieldCatalogStore(): FieldCatalogStore {
-  // Tauri desktop environment
-  if (isTauri()) {
-    return createTauriFieldCatalogStore();
-  }
+  const mode = detectAdapterMode();
 
-  // Node.js environment (CLI or server)
-  // Check if we're in Node.js by looking for process.versions.node
-  if (typeof process !== 'undefined' && process.versions && process.versions.node) {
-    throw new Error(
-      'Node.js CLI environment detected. For CLI usage, import adapters directly from the index module. ' +
-        'This platform factory is intended for browser/Tauri contexts only.'
-    );
-  }
+  switch (mode) {
+    case 'api': {
+      // API mode: Use HTTP client to communicate with server
+      // HttpClient auto-detects baseUrl from MEATYCAPTURE_API_URL env var
+      const client = new HttpClient();
+      return new ApiFieldCatalogStore(client);
+    }
 
-  // Browser environment - use IndexedDB storage
-  return createBrowserFieldCatalogStore();
+    case 'local':
+      // Local mode: Tauri desktop with direct filesystem access
+      return createTauriFieldCatalogStore();
+
+    case 'browser':
+    default:
+      // Browser mode: Web browser with IndexedDB storage
+      return createBrowserFieldCatalogStore();
+  }
 }

@@ -3,18 +3,33 @@
  *
  * Detects runtime environment (Tauri desktop vs web browser)
  * and provides platform-specific feature flags.
+ * Also detects storage adapter mode (API vs local vs browser).
  *
  * @example
  * ```typescript
- * import { isTauri, getPlatform } from '@platform';
+ * import { isTauri, getPlatform, detectAdapterMode } from '@platform';
  *
  * if (isTauri()) {
  *   // Use Tauri filesystem API
  * } else {
  *   // Use browser localStorage
  * }
+ *
+ * const mode = detectAdapterMode();
+ * if (mode === 'api') {
+ *   // Use HTTP client adapters
+ * }
  * ```
  */
+
+// Re-export API detection utilities
+export {
+  detectAdapterMode,
+  pingApiHealth,
+  clearDetectionCache,
+  getCachedMode,
+  type AdapterMode,
+} from './api-detection.js';
 
 /**
  * Checks if the application is running in Tauri desktop environment.

@@ -2,48 +2,54 @@
  * Platform-aware DocStore Factory
  *
  * Automatically selects the correct filesystem adapter based on
- * the runtime environment (Tauri desktop vs web browser).
+ * the runtime environment (API server, Tauri desktop, or web browser).
  *
  * @example
  * ```typescript
  * import { createDocStore } from '@adapters/fs-local/platform-factory';
  *
- * // Automatically uses TauriDocStore in desktop, FsDocStore in Node.js
+ * // Automatically uses ApiDocStore when API URL configured,
+ * // TauriDocStore in desktop, or BrowserDocStore in browser
  * const store = createDocStore();
  * ```
  */
 
 import type { DocStore } from '@core/ports';
-import { isTauri } from '@platform';
+import { detectAdapterMode } from '@platform';
+import { HttpClient, ApiDocStore } from '@adapters/api-client';
 import { createTauriDocStore } from './tauri-fs-adapter';
 import { createBrowserDocStore } from '@adapters/browser-storage';
 
 /**
  * Creates a platform-appropriate DocStore instance.
  *
- * Selection logic:
- * - Tauri desktop: Use TauriDocStore (@tauri-apps/plugin-fs)
- * - Node.js/CLI: Throws error - import adapters directly from index module
- * - Web browser: Use BrowserDocStore (IndexedDB-based storage)
+ * Selection logic (by priority):
+ * 1. API mode: MEATYCAPTURE_API_URL env var set → ApiDocStore (HTTP client)
+ * 2. Local mode: Tauri desktop → TauriDocStore (@tauri-apps/plugin-fs)
+ * 3. Browser mode: Web browser → BrowserDocStore (IndexedDB)
+ *
+ * API mode supports both browser and Node.js/Bun environments.
  *
  * @returns DocStore implementation for current platform
- * @throws Error if running in Node.js CLI environment
  */
 export function createDocStore(): DocStore {
-  // Tauri desktop environment
-  if (isTauri()) {
-    return createTauriDocStore();
-  }
+  const mode = detectAdapterMode();
 
-  // Node.js environment (CLI or server)
-  // Check if we're in Node.js by looking for process.versions.node
-  if (typeof process !== 'undefined' && process.versions && process.versions.node) {
-    throw new Error(
-      'Node.js CLI environment detected. For CLI usage, import adapters directly from the index module. ' +
-        'This platform factory is intended for browser/Tauri contexts only.'
-    );
-  }
+  switch (mode) {
+    case 'api': {
+      // API mode: Use HTTP client to communicate with server
+      // HttpClient auto-detects baseUrl from MEATYCAPTURE_API_URL env var
+      const client = new HttpClient();
+      return new ApiDocStore(client);
+    }
 
-  // Browser environment - use IndexedDB storage
-  return createBrowserDocStore();
+    case 'local':
+      // Local mode: Tauri desktop with direct filesystem access
+      return createTauriDocStore();
+
+    case 'browser':
+    default:
+      // Browser mode: Web browser with IndexedDB storage
+      return createBrowserDocStore();
+  }
 }
