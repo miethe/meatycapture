@@ -1,0 +1,207 @@
+# ============================================================================
+# MeatyCapture Docker Compose Override Examples
+# ============================================================================
+#
+# This file demonstrates advanced configurations and override patterns.
+# Copy sections you need to docker-compose.override.yml (auto-loaded)
+# or use with: docker-compose -f docker-compose.yml -f custom.yml up
+#
+# Override files are applied on top of base docker-compose.yml
+# and are useful for:
+#   - Local development customization
+#   - Production environment-specific settings
+#   - Adding reverse proxy, monitoring, backups
+#   - Custom port mappings and volume paths
+#
+# ============================================================================
+
+version: '3.8'
+
+# ----------------------------------------------------------------------------
+# Example 1: Production with Nginx Reverse Proxy & HTTPS
+# ----------------------------------------------------------------------------
+# Uncomment this section for production deployment with SSL termination
+# services:
+#   # MeatyCapture server with modified port (internal only)
+#   meatycapture-server:
+#     # Don't expose port 3001 to host - only accessible via nginx
+#     ports: []
+#     expose:
+#       - "3001"
+#
+#     # Production environment overrides
+#     environment:
+#       NODE_ENV: production
+#       LOG_LEVEL: warn
+#       CORS_ORIGINS: https://meatycapture.example.com
+#       MEATYCAPTURE_AUTH_TOKEN: ${MEATYCAPTURE_AUTH_TOKEN}
+#
+#   # Nginx reverse proxy for HTTPS termination
+#   nginx:
+#     image: nginx:alpine
+#     container_name: meatycapture-nginx
+#     restart: unless-stopped
+#
+#     ports:
+#       - "80:80"
+#       - "443:443"
+#
+#     volumes:
+#       # Nginx configuration file (create separately)
+#       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+#       - ./nginx/conf.d:/etc/nginx/conf.d:ro
+#
+#       # SSL certificates (Let's Encrypt or custom)
+#       - ./nginx/ssl:/etc/nginx/ssl:ro
+#
+#       # Access logs
+#       - ./logs/nginx:/var/log/nginx
+#
+#     networks:
+#       - meatycapture-network
+#
+#     depends_on:
+#       meatycapture-server:
+#         condition: service_healthy
+
+# ----------------------------------------------------------------------------
+# Example 2: Custom Port Mapping for Development
+# ----------------------------------------------------------------------------
+# Override port mapping to avoid conflicts with other services
+# services:
+#   meatycapture-server:
+#     ports:
+#       - "8080:3001"  # Map to port 8080 on host instead of 3001
+#
+#     environment:
+#       NODE_ENV: development
+#       LOG_LEVEL: debug
+
+# ----------------------------------------------------------------------------
+# Example 3: Custom Data Path
+# ----------------------------------------------------------------------------
+# Use different data directory path on host
+# services:
+#   meatycapture-server:
+#     volumes:
+#       - /custom/path/to/data:/data
+#       # Or use absolute path with environment variable:
+#       # - ${MEATYCAPTURE_HOST_DATA_PATH}:/data
+
+# ----------------------------------------------------------------------------
+# Example 4: Development with Hot Reload (Future Enhancement)
+# ----------------------------------------------------------------------------
+# Mount source code for development with file watching
+# Note: Requires server code to support file watching (not yet implemented)
+# services:
+#   meatycapture-server:
+#     environment:
+#       NODE_ENV: development
+#       LOG_LEVEL: debug
+#
+#     volumes:
+#       - ./src:/app/src:ro  # Mount source as read-only
+#       - ./data:/data       # Data directory
+#
+#     # Override command to use --watch flag (Bun 1.0.0+)
+#     command: ["bun", "run", "--watch", "src/server/index.ts"]
+
+# ----------------------------------------------------------------------------
+# Example 5: Resource Limits for Production
+# ----------------------------------------------------------------------------
+# Set CPU and memory constraints to prevent resource exhaustion
+# services:
+#   meatycapture-server:
+#     deploy:
+#       resources:
+#         limits:
+#           cpus: '2'
+#           memory: 1G
+#         reservations:
+#           cpus: '1'
+#           memory: 512M
+
+# ----------------------------------------------------------------------------
+# Example 6: Multiple Environments with Profiles
+# ----------------------------------------------------------------------------
+# Use Docker Compose profiles to run different configurations
+# Usage: docker-compose --profile monitoring up
+# services:
+#   # Prometheus for metrics collection
+#   prometheus:
+#     image: prom/prometheus:latest
+#     container_name: meatycapture-prometheus
+#     restart: unless-stopped
+#     profiles:
+#       - monitoring
+#
+#     ports:
+#       - "9090:9090"
+#
+#     volumes:
+#       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+#       - prometheus-data:/prometheus
+#
+#     command:
+#       - '--config.file=/etc/prometheus/prometheus.yml'
+#       - '--storage.tsdb.path=/prometheus'
+#
+#     networks:
+#       - meatycapture-network
+#
+#   # Grafana for visualization
+#   grafana:
+#     image: grafana/grafana:latest
+#     container_name: meatycapture-grafana
+#     restart: unless-stopped
+#     profiles:
+#       - monitoring
+#
+#     ports:
+#       - "3000:3000"
+#
+#     volumes:
+#       - grafana-data:/var/lib/grafana
+#       - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+#
+#     environment:
+#       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+#
+#     networks:
+#       - meatycapture-network
+#
+#     depends_on:
+#       - prometheus
+
+# ----------------------------------------------------------------------------
+# Example 7: Automated Backups
+# ----------------------------------------------------------------------------
+# Add backup service to periodically backup data directory
+# services:
+#   backup:
+#     image: alpine:latest
+#     container_name: meatycapture-backup
+#     profiles:
+#       - backup
+#
+#     volumes:
+#       - ./data:/data:ro
+#       - ./backups:/backups
+#
+#     command: |
+#       sh -c "
+#         while true; do
+#           tar -czf /backups/meatycapture-backup-$$(date +%Y%m%d-%H%M%S).tar.gz -C /data .
+#           find /backups -name '*.tar.gz' -mtime +7 -delete
+#           sleep 86400
+#         done
+#       "
+
+# ----------------------------------------------------------------------------
+# Named Volumes for Monitoring Services
+# ----------------------------------------------------------------------------
+# volumes:
+#   prometheus-data:
+#     name: meatycapture-prometheus-data
+#   grafana-data:
+#     name: meatycapture-grafana-data

@@ -1,0 +1,165 @@
+# ============================================================================
+# Docker Build Context Exclusions
+# ============================================================================
+#
+# Excludes unnecessary files from Docker build context to:
+# - Reduce image size
+# - Speed up build process
+# - Prevent sensitive data leakage
+# - Avoid cache invalidation from irrelevant file changes
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Version Control
+# ----------------------------------------------------------------------------
+.git
+.gitignore
+.gitattributes
+.github
+
+# ----------------------------------------------------------------------------
+# Dependencies (rebuilt in container)
+# ----------------------------------------------------------------------------
+node_modules
+.pnpm-store
+pnpm-lock.yaml
+
+# ----------------------------------------------------------------------------
+# Build Artifacts
+# ----------------------------------------------------------------------------
+dist
+build
+out
+*.js.map
+*.d.ts.map
+
+# ----------------------------------------------------------------------------
+# Development & Testing
+# ----------------------------------------------------------------------------
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test files and coverage reports
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+coverage
+.nyc_output
+*.lcov
+
+# Test configuration
+vitest.config.ts
+**/__tests__
+**/__mocks__
+
+# ----------------------------------------------------------------------------
+# Documentation (not needed at runtime)
+# ----------------------------------------------------------------------------
+*.md
+!package.json
+docs
+.claude
+README.md
+CHANGELOG.md
+LICENSE
+
+# ----------------------------------------------------------------------------
+# CI/CD & Deployment
+# ----------------------------------------------------------------------------
+.github
+.gitlab-ci.yml
+.circleci
+.travis.yml
+Jenkinsfile
+.dockerignore
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+
+# ----------------------------------------------------------------------------
+# Environment & Secrets
+# ----------------------------------------------------------------------------
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+.env.test
+*.key
+*.pem
+*.p12
+credentials.json
+
+# ----------------------------------------------------------------------------
+# Logs
+# ----------------------------------------------------------------------------
+*.log
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ----------------------------------------------------------------------------
+# Cache & Temporary Files
+# ----------------------------------------------------------------------------
+.cache
+.temp
+tmp
+*.tmp
+.eslintcache
+.stylelintcache
+
+# ----------------------------------------------------------------------------
+# UI Development (not needed for server)
+# ----------------------------------------------------------------------------
+public
+index.html
+vite.config.ts
+
+# Tauri desktop platform (not needed for server)
+src-tauri
+*.tauri
+
+# ----------------------------------------------------------------------------
+# Data & User Files
+# ----------------------------------------------------------------------------
+# Exclude local data directory (will be mounted as volume)
+.meatycapture
+data
+
+# ----------------------------------------------------------------------------
+# Build Configuration (keep minimal config)
+# ----------------------------------------------------------------------------
+# Keep package.json, tsconfig.json
+# Exclude everything else
+.npmrc
+.nvmrc
+.node-version
+.editorconfig
+.prettierrc
+.prettierignore
+prettier.config.js
+eslint.config.js
+.eslintrc
+.eslintrc.js
+.eslintrc.json
+.eslintignore
+
+# Build scripts (not needed in container)
+build-cli.js
+verify-tauri-setup.js
+
+# ----------------------------------------------------------------------------
+# Platform-Specific
+# ----------------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/

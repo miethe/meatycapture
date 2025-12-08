@@ -1,0 +1,139 @@
+# ============================================================================
+# MeatyCapture Docker Compose Configuration
+# ============================================================================
+#
+# Production-ready Docker Compose setup for local deployment of the
+# MeatyCapture REST API server with persistent storage and health monitoring.
+#
+# Quick Start:
+#   1. Copy .env.example to .env and configure
+#   2. Run: docker-compose up -d
+#   3. View logs: docker-compose logs -f
+#   4. Stop: docker-compose down
+#
+# Health Check:
+#   curl http://localhost:3001/health
+#
+# Data Persistence:
+#   Request-log markdown files are stored in ./data directory (mounted volume)
+#
+# ============================================================================
+
+version: '3.8'
+
+# ----------------------------------------------------------------------------
+# Services
+# ----------------------------------------------------------------------------
+services:
+  # MeatyCapture REST API Server
+  meatycapture-server:
+    # Service name used for networking
+    container_name: meatycapture-server
+
+    # Build configuration
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Bun version (default: 1, can override for specific versions)
+        BUN_VERSION: 1
+
+    # Image name for built container
+    image: meatycapture-server:latest
+
+    # Restart policy - restart unless manually stopped
+    # Options: no | always | on-failure | unless-stopped
+    restart: unless-stopped
+
+    # Port mapping: HOST:CONTAINER
+    # Maps container port 3001 to host port 3001
+    ports:
+      - "3001:3001"
+
+    # Environment variables for runtime configuration
+    # Values are loaded from .env file (see .env.example for reference)
+    environment:
+      # HTTP server port (must match EXPOSE in Dockerfile)
+      PORT: ${PORT:-3001}
+
+      # Environment mode: production | development
+      NODE_ENV: ${NODE_ENV:-production}
+
+      # Logging verbosity: debug | info | warn | error
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+      # Data directory inside container (mounted volume)
+      MEATYCAPTURE_DATA_DIR: ${MEATYCAPTURE_DATA_DIR:-/data}
+
+      # CORS allowed origins (comma-separated)
+      # Default allows common dev ports; override in .env for production
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:4173,http://localhost:3000}
+
+      # Optional: Authentication token for API access
+      # Uncomment in .env to enable authentication
+      MEATYCAPTURE_AUTH_TOKEN: ${MEATYCAPTURE_AUTH_TOKEN:-}
+
+    # Environment file for sensitive/complex configuration
+    # This file should not be committed to git
+    env_file:
+      - .env
+
+    # Volume mounts for persistent data storage
+    volumes:
+      # Mount local ./data directory to container's /data directory
+      # This persists request-log files, project metadata, and field catalogs
+      # Format: HOST_PATH:CONTAINER_PATH:OPTIONS
+      - ./data:/data
+
+      # Alternative: Use named volume for better Docker management
+      # Uncomment below and comment out ./data mount to use named volume
+      # - meatycapture-data:/data
+
+    # Health check configuration
+    # Uses the built-in HEALTHCHECK from Dockerfile
+    # The service is considered healthy when /health endpoint returns 200 OK
+    healthcheck:
+      # Health check is defined in Dockerfile:
+      # - Interval: 30s (check every 30 seconds)
+      # - Timeout: 5s (fail if check takes > 5 seconds)
+      # - Start period: 10s (grace period on startup)
+      # - Retries: 3 (mark unhealthy after 3 consecutive failures)
+      test: ["CMD", "bun", "run", "-e", "fetch('http://localhost:3001/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    # Network configuration
+    networks:
+      - meatycapture-network
+
+    # Resource limits (optional, uncomment for production)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1'
+    #       memory: 512M
+    #     reservations:
+    #       cpus: '0.5'
+    #       memory: 256M
+
+# ----------------------------------------------------------------------------
+# Networks
+# ----------------------------------------------------------------------------
+networks:
+  # Bridge network for service isolation
+  # Allows containers to communicate internally while controlling external access
+  meatycapture-network:
+    driver: bridge
+    name: meatycapture-network
+
+# ----------------------------------------------------------------------------
+# Volumes (Optional Named Volumes)
+# ----------------------------------------------------------------------------
+# Uncomment to use Docker-managed named volumes instead of bind mounts
+# Named volumes provide better portability and backup management
+# volumes:
+#   meatycapture-data:
+#     name: meatycapture-data
+#     driver: local
