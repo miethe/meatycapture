@@ -8,6 +8,7 @@ export default defineConfig({
       '@adapters': resolve(__dirname, './src/adapters'),
       '@ui': resolve(__dirname, './src/ui'),
       '@platform': resolve(__dirname, './src/platform'),
+      '@server': resolve(__dirname, './src/server'),
     },
   },
   test: {

@@ -41,7 +41,8 @@
       "@adapters/*": ["./src/adapters/*"],
       "@ui/*": ["./src/ui/*"],
       "@platform": ["./src/platform/index.ts"],
-      "@platform/*": ["./src/platform/*"]
+      "@platform/*": ["./src/platform/*"],
+      "@server/*": ["./src/server/*"]
     }
   },
   "include": [

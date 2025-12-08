@@ -35,6 +35,9 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { logger, LogLevel } from '@core/logging';
+import { createFsDocStore } from '@adapters/fs-local';
+import { realClock } from '@adapters/clock';
+import { createDocsRouter } from './routes/docs.js';
 
 /**
  * Server configuration resolved from environment variables.
@@ -151,6 +154,10 @@ async function main(): Promise<void> {
   // Track server start time for uptime calculation
   const startTime = Date.now();
 
+  // Initialize adapters and routers
+  const docStore = createFsDocStore();
+  const docsRouter = createDocsRouter(docStore, realClock);
+
   let server: ReturnType<typeof Bun.serve> | null = null;
 
   try {
@@ -161,16 +168,16 @@ async function main(): Promise<void> {
       /**
        * Request handler - routes incoming HTTP requests.
        *
-       * Currently handles only the health check endpoint.
-       * Additional endpoints will be added in subsequent tasks:
-       * - /api/docs/* (DocStore operations)
-       * - /api/projects/* (ProjectStore operations)
-       * - /api/fields/* (FieldCatalogStore operations)
+       * Routes:
+       * - GET /health - Health check endpoint
+       * - /api/docs/* - DocStore operations (IMPLEMENTED)
+       * - /api/projects/* - ProjectStore operations (TODO)
+       * - /api/fields/* - FieldCatalogStore operations (TODO)
        *
        * @param req - Incoming HTTP request
        * @returns HTTP response
        */
-      fetch(req: Request): Response {
+      async fetch(req: Request): Promise<Response> {
         const url = new URL(req.url);
         const method = req.method;
         const path = url.pathname;
@@ -202,6 +209,39 @@ async function main(): Promise<void> {
               'Content-Type': 'application/json',
             },
           });
+        }
+
+        // DocStore routes
+        if (path.startsWith('/api/docs')) {
+          // GET /api/docs - List documents
+          if (method === 'GET' && path === '/api/docs') {
+            return await docsRouter.list(req);
+          }
+
+          // GET /api/docs/:doc_id - Read document
+          if (method === 'GET' && /^\/api\/docs\/[^/]+$/.test(path)) {
+            return await docsRouter.read(req);
+          }
+
+          // POST /api/docs/:doc_id - Write document
+          if (method === 'POST' && /^\/api\/docs\/[^/]+$/.test(path)) {
+            return await docsRouter.write(req);
+          }
+
+          // PATCH /api/docs/:doc_id/items - Append item
+          if (method === 'PATCH' && /^\/api\/docs\/[^/]+\/items$/.test(path)) {
+            return await docsRouter.appendItem(req);
+          }
+
+          // POST /api/docs/:doc_id/backup - Create backup
+          if (method === 'POST' && /^\/api\/docs\/[^/]+\/backup$/.test(path)) {
+            return await docsRouter.backup(req);
+          }
+
+          // HEAD /api/docs/:doc_id - Check writability
+          if (method === 'HEAD' && /^\/api\/docs\/[^/]+$/.test(path)) {
+            return await docsRouter.checkWritable(req);
+          }
         }
 
         // 404 for unmatched routes
