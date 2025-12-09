@@ -38,6 +38,7 @@ import { logger, LogLevel } from '@core/logging';
 import { createFsDocStore } from '@adapters/fs-local';
 import { realClock } from '@adapters/clock';
 import { createDocsRouter } from './routes/docs.js';
+import { createDefaultCorsMiddleware } from './middleware/cors.js';
 
 /**
  * Server configuration resolved from environment variables.
@@ -158,6 +159,9 @@ async function main(): Promise<void> {
   const docStore = createFsDocStore();
   const docsRouter = createDocsRouter(docStore, realClock);
 
+  // Initialize CORS middleware
+  const cors = createDefaultCorsMiddleware();
+
   let server: ReturnType<typeof Bun.serve> | null = null;
 
   try {
@@ -178,6 +182,7 @@ async function main(): Promise<void> {
        * @returns HTTP response
        */
       async fetch(req: Request): Promise<Response> {
+        return cors(req, async () => {
         const url = new URL(req.url);
         const method = req.method;
         const path = url.pathname;
@@ -258,6 +263,7 @@ async function main(): Promise<void> {
           headers: {
             'Content-Type': 'application/json',
           },
+        });
         });
       },
     });

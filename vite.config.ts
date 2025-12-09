@@ -30,5 +30,5 @@ export default defineConfig({
   // Prevent "use client" directive issues in Tauri
   clearScreen: false,
   // Environment variable prefix for Tauri
-  envPrefix: ['VITE_', 'TAURI_'],
+  envPrefix: ['VITE_', 'TAURI_', 'MEATYCAPTURE_'],
 });

@@ -194,3 +194,30 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   3. Pattern: Each method now expands the path parameter as its first operation before any file system calls
 - **Commit(s)**: 0bd9555
 - **Status**: RESOLVED
+
+---
+
+### Vite Blocks MEATYCAPTURE_API_URL from Browser
+
+**Issue**: Web app cannot detect API mode because `MEATYCAPTURE_API_URL` environment variable is not accessible in the browser context.
+
+- **Location**: `vite.config.ts:33`
+- **Root Cause**: Vite only exposes environment variables to the browser that match the `envPrefix` patterns. The configuration only included `VITE_` and `TAURI_` prefixes, blocking `MEATYCAPTURE_API_URL` from `import.meta.env`. The platform detection logic in `src/platform/api-detection.ts` checks for this variable to determine API mode, but always received `undefined` in browsers.
+- **Fix**: Added `'MEATYCAPTURE_'` to the `envPrefix` array in `vite.config.ts`
+- **Commit(s)**: 0b57252
+- **Status**: RESOLVED
+
+---
+
+### Server CORS Middleware Not Applied
+
+**Issue**: Cross-origin requests from the web app to the backend server fail with CORS errors despite middleware being implemented.
+
+- **Location**: `src/server/index.ts:180` - fetch handler
+- **Root Cause**: The CORS middleware was fully implemented in `src/server/middleware/cors.ts` but was never imported or used in the server's `Bun.serve` fetch handler. All responses lacked the required `Access-Control-Allow-Origin` headers.
+- **Fix**:
+  1. Imported `createDefaultCorsMiddleware` from `./middleware/cors.js`
+  2. Initialized middleware instance in `main()` before `Bun.serve`
+  3. Wrapped the fetch handler's routing logic with the CORS middleware
+- **Commit(s)**: 0b57252
+- **Status**: RESOLVED
