@@ -61,7 +61,6 @@ COPY index.html ./
 
 # Copy source code
 COPY src ./src
-COPY public ./public
 
 # Build argument for API URL (required)
 # This will be available to Vite as MEATYCAPTURE_API_URL at build time
