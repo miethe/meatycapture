@@ -28,7 +28,8 @@ import { ValidationError } from '../middleware/error-handler.js';
  * Ensures all required fields are present and valid:
  * - id: non-empty string
  * - title: non-empty string
- * - type, domain, context, priority, status: non-empty strings
+ * - type, priority, status: non-empty strings
+ * - domain, context: string (may be empty)
  * - tags: array of strings
  * - notes: string (may be empty)
  * - created_at: valid Date or ISO string
@@ -44,8 +45,8 @@ function validateRequestLogItem(obj: unknown): RequestLogItem {
     id: validateString(item.id, 'id'),
     title: validateString(item.title, 'title'),
     type: validateString(item.type, 'type'),
-    domain: validateString(item.domain, 'domain'),
-    context: validateString(item.context, 'context'),
+    domain: typeof item.domain === 'string' ? item.domain : '',
+    context: typeof item.context === 'string' ? item.context : '',
     priority: validateString(item.priority, 'priority'),
     status: validateString(item.status, 'status'),
     tags: validateStringArray(item.tags, 'tags'),
@@ -223,11 +224,13 @@ export function validateDocWriteBody(body: unknown): RequestLogDoc {
  * Required fields:
  * - title: Item title/summary
  * - type: Item type (enhancement, bug, etc.)
- * - domain: Domain/area (web, api, etc.)
- * - context: Additional context
  * - priority: Priority level (low, medium, high, critical)
  * - status: Current status (triage, backlog, etc.)
  * - tags: Array of tag strings
+ *
+ * Optional fields (may be empty):
+ * - domain: Domain/area (web, api, etc.)
+ * - context: Additional context
  * - notes: Freeform notes/description
  *
  * @param body - Raw request body
@@ -246,8 +249,8 @@ export function validateItemDraftBody(body: unknown): ItemDraft {
   return {
     title: validateString(obj.title, 'title'),
     type: validateString(obj.type, 'type'),
-    domain: validateString(obj.domain, 'domain'),
-    context: validateString(obj.context, 'context'),
+    domain: typeof obj.domain === 'string' ? obj.domain : '',
+    context: typeof obj.context === 'string' ? obj.context : '',
     priority: validateString(obj.priority, 'priority'),
     status: validateString(obj.status, 'status'),
     tags: validateStringArray(obj.tags, 'tags'),

@@ -236,5 +236,21 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   3. Initialized project and field stores with the expanded data directory
   4. Created router instances with their respective stores
   5. Added route handling blocks for `/api/projects/*` and `/api/fields/*` endpoints
-- **Commit(s)**: 88bda25
+- **Commit(s)**: 6d21945
+- **Status**: RESOLVED
+
+---
+
+### Server Rejects Empty Domain/Context Fields
+
+**Issue**: Creating a new request fails with 400 ValidationError because the server rejects empty `domain` and `context` fields that the UI allows.
+
+- **Location**: `src/server/schemas/docs.ts:48-49` and `:249-250`
+- **Root Cause**: The UI's `ItemStep.tsx` only validates `title`, `type`, `priority`, and `status` as required fields, allowing empty `domain` and `context`. However, the server's `validateRequestLogItem()` and `validateItemDraftBody()` functions used `validateString()` which rejects empty strings.
+- **Fix**: Changed `domain` and `context` validation to accept empty strings, following the same pattern as the `notes` field:
+  ```typescript
+  domain: typeof item.domain === 'string' ? item.domain : '',
+  context: typeof item.context === 'string' ? item.context : '',
+  ```
+- **Commit(s)**: a240c6d
 - **Status**: RESOLVED
