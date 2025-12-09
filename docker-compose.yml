@@ -3,29 +3,74 @@
 # ============================================================================
 #
 # Production-ready Docker Compose setup for local deployment of the
-# MeatyCapture REST API server with persistent storage and health monitoring.
+# MeatyCapture application stack:
+#   - Web App: React/Vite frontend (port 80)
+#   - REST API Server: Bun backend (port 3001)
 #
 # Quick Start:
 #   1. Copy .env.example to .env and configure
-#   2. Run: docker-compose up -d
+#   2. Run: docker-compose up -d --build
 #   3. View logs: docker-compose logs -f
-#   4. Stop: docker-compose down
+#   4. Access web app: http://localhost
+#   5. Access API: http://localhost:3001
+#   6. Stop: docker-compose down
 #
-# Health Check:
-#   curl http://localhost:3001/health
+# Health Checks:
+#   curl http://localhost/health           # Web app
+#   curl http://localhost:3001/health      # API server
 #
 # Data Persistence:
 #   Request-log markdown files are stored in ./data directory (mounted volume)
 #
 # ============================================================================
 
-version: '3.8'
-
 # ----------------------------------------------------------------------------
 # Services
 # ----------------------------------------------------------------------------
 services:
-  # MeatyCapture REST API Server
+  # MeatyCapture Web App (React/Vite Frontend)
+  meatycapture-web:
+    # Service name used for networking
+    container_name: meatycapture-web
+
+    # Build configuration
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        # API URL for the backend service (embedded at build time)
+        # Uses service name for internal Docker network communication
+        MEATYCAPTURE_API_URL: http://meatycapture-server:3001
+
+    # Image name for built container
+    image: meatycapture-web:latest
+
+    # Restart policy - restart unless manually stopped
+    restart: unless-stopped
+
+    # Port mapping: HOST:CONTAINER
+    # Maps container port 80 to host port 80 (or 3000 if preferred)
+    ports:
+      - "${WEB_PORT:-80}:80"
+
+    # Network configuration
+    networks:
+      - meatycapture-network
+
+    # Dependencies - ensure backend starts first
+    depends_on:
+      meatycapture-server:
+        condition: service_healthy
+
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # MeatyCapture REST API Server (Bun Backend)
   meatycapture-server:
     # Service name used for networking
     container_name: meatycapture-server

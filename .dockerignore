@@ -117,15 +117,13 @@ tmp
 .stylelintcache
 
 # ----------------------------------------------------------------------------
-# UI Development (not needed for server)
+# Tauri desktop platform (not needed for Docker web/server builds)
 # ----------------------------------------------------------------------------
-public
-index.html
-vite.config.ts
-
-# Tauri desktop platform (not needed for server)
 src-tauri
 *.tauri
+
+# Note: public, index.html, vite.config.ts are needed for Dockerfile.web builds
+# They are excluded only for backend Dockerfile builds via specific COPY commands
 
 # ----------------------------------------------------------------------------
 # Data & User Files

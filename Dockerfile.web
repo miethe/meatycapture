@@ -1,0 +1,133 @@
+# ============================================================================
+# MeatyCapture Web App - Multi-Stage Production Dockerfile
+# ============================================================================
+#
+# Optimized Docker image for serving the MeatyCapture React/Vite frontend.
+# Uses multi-stage build with Node for building and nginx for serving static files.
+#
+# Build arguments:
+#   - MEATYCAPTURE_API_URL: Backend API URL (required, embedded at build time)
+#   - NODE_VERSION: Node.js version (default: 20)
+#
+# IMPORTANT: Vite embeds environment variables at BUILD time, not runtime.
+# The MEATYCAPTURE_API_URL must be provided as a build arg.
+#
+# Usage:
+#   docker build \
+#     --build-arg MEATYCAPTURE_API_URL=http://localhost:3001 \
+#     -f Dockerfile.web \
+#     -t meatycapture-web .
+#
+#   docker run -p 80:80 meatycapture-web
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Stage 1: Dependencies
+# Install all dependencies including devDependencies for the build
+# ----------------------------------------------------------------------------
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+# Install pnpm globally
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
+
+# Copy package files for dependency installation
+COPY package.json pnpm-lock.yaml ./
+
+# Install all dependencies (including devDependencies for build)
+RUN pnpm install --frozen-lockfile
+
+# ----------------------------------------------------------------------------
+# Stage 2: Builder
+# Build the Vite application with embedded API URL
+# ----------------------------------------------------------------------------
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Enable pnpm
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Copy configuration files
+COPY tsconfig.json vite.config.ts ./
+COPY index.html ./
+
+# Copy source code
+COPY src ./src
+COPY public ./public
+
+# Build argument for API URL (required)
+# This will be available to Vite as MEATYCAPTURE_API_URL at build time
+ARG MEATYCAPTURE_API_URL
+ENV MEATYCAPTURE_API_URL=${MEATYCAPTURE_API_URL}
+
+# Validate that API URL is provided
+RUN if [ -z "$MEATYCAPTURE_API_URL" ]; then \
+      echo "ERROR: MEATYCAPTURE_API_URL build argument is required"; \
+      exit 1; \
+    fi
+
+# Build the application
+# Vite will embed MEATYCAPTURE_API_URL into the bundle
+RUN echo "Building with API URL: ${MEATYCAPTURE_API_URL}" && \
+    pnpm build
+
+# Verify build output exists
+RUN ls -la /app/dist && \
+    if [ ! -f /app/dist/index.html ]; then \
+      echo "ERROR: Build failed - dist/index.html not found"; \
+      exit 1; \
+    fi
+
+# ----------------------------------------------------------------------------
+# Stage 3: Production Runtime
+# Serve static files with nginx
+# ----------------------------------------------------------------------------
+FROM nginx:1.25-alpine AS runtime
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Copy custom nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy built static files from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Create non-root user for nginx
+RUN addgroup -g 101 -S nginx-app && \
+    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx-app -g nginx-app nginx-app && \
+    chown -R nginx-app:nginx-app /usr/share/nginx/html /var/cache/nginx /var/run && \
+    chmod -R 755 /usr/share/nginx/html
+
+# Switch to non-root user
+USER nginx-app
+
+# Expose HTTP port
+EXPOSE 80
+
+# Add metadata labels following OCI image spec
+LABEL org.opencontainers.image.title="MeatyCapture Web App" \
+      org.opencontainers.image.description="React/Vite frontend for MeatyCapture request-log management" \
+      org.opencontainers.image.version="0.1.0" \
+      org.opencontainers.image.vendor="MeatyCapture" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.source="https://github.com/yourusername/meatycapture" \
+      maintainer="MeatyCapture Team"
+
+# Health check for nginx
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start nginx in foreground mode
+CMD ["nginx", "-g", "daemon off;"]
