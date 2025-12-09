@@ -22,22 +22,17 @@
 
 # ----------------------------------------------------------------------------
 # Stage 1: Dependencies
-# Install production dependencies with frozen lockfile for reproducibility
+# Install production dependencies using Bun's native package manager
 # ----------------------------------------------------------------------------
 FROM oven/bun:1 AS deps
 
 WORKDIR /app
 
-# Copy package manager files for dependency installation
-# Using pnpm since package.json specifies it as packageManager
-COPY package.json pnpm-lock.yaml ./
+# Copy package files for dependency installation
+COPY package.json ./
 
-# Install pnpm globally (Bun includes npm, but we need pnpm for this project)
-RUN npm install -g pnpm@8.15.0
-
-# Install dependencies with frozen lockfile (no modifications to lockfile)
-# --prod flag installs only production dependencies
-RUN pnpm install --frozen-lockfile --prod
+# Install dependencies using Bun (production only)
+RUN bun install --production
 
 # ----------------------------------------------------------------------------
 # Stage 2: Builder
@@ -51,7 +46,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY package.json ./
 
 # Copy TypeScript configuration
 COPY tsconfig.json ./
