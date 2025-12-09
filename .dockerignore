@@ -22,7 +22,7 @@
 # ----------------------------------------------------------------------------
 node_modules
 .pnpm-store
-pnpm-lock.yaml
+# pnpm-lock.yaml is needed for frozen-lockfile install
 
 # ----------------------------------------------------------------------------
 # Build Artifacts
