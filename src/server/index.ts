@@ -36,8 +36,11 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { logger, LogLevel } from '@core/logging';
 import { createFsDocStore } from '@adapters/fs-local';
+import { createProjectStore, createFieldCatalogStore } from '@adapters/config-local';
 import { realClock } from '@adapters/clock';
 import { createDocsRouter } from './routes/docs.js';
+import { createProjectsRouter } from './routes/projects.js';
+import { createFieldsRouter } from './routes/fields.js';
 import { createDefaultCorsMiddleware } from './middleware/cors.js';
 
 /**
@@ -157,7 +160,12 @@ async function main(): Promise<void> {
 
   // Initialize adapters and routers
   const docStore = createFsDocStore();
+  const projectStore = createProjectStore(expandedDataDir);
+  const fieldStore = createFieldCatalogStore(expandedDataDir);
+
   const docsRouter = createDocsRouter(docStore, realClock);
+  const projectsRouter = createProjectsRouter(projectStore);
+  const fieldsRouter = createFieldsRouter(fieldStore);
 
   // Initialize CORS middleware
   const cors = createDefaultCorsMiddleware();
@@ -174,9 +182,9 @@ async function main(): Promise<void> {
        *
        * Routes:
        * - GET /health - Health check endpoint
-       * - /api/docs/* - DocStore operations (IMPLEMENTED)
-       * - /api/projects/* - ProjectStore operations (TODO)
-       * - /api/fields/* - FieldCatalogStore operations (TODO)
+       * - /api/docs/* - DocStore operations
+       * - /api/projects/* - ProjectStore operations
+       * - /api/fields/* - FieldCatalogStore operations
        *
        * @param req - Incoming HTTP request
        * @returns HTTP response
@@ -246,6 +254,68 @@ async function main(): Promise<void> {
           // HEAD /api/docs/:doc_id - Check writability
           if (method === 'HEAD' && /^\/api\/docs\/[^/]+$/.test(path)) {
             return await docsRouter.checkWritable(req);
+          }
+        }
+
+        // ProjectStore routes
+        if (path.startsWith('/api/projects')) {
+          // GET /api/projects - List all projects
+          if (method === 'GET' && path === '/api/projects') {
+            return await projectsRouter.list(req);
+          }
+
+          // GET /api/projects/:id - Get project by ID
+          if (method === 'GET' && /^\/api\/projects\/[^/]+$/.test(path)) {
+            const id = path.split('/').pop() || '';
+            return await projectsRouter.get(req, id);
+          }
+
+          // POST /api/projects - Create new project
+          if (method === 'POST' && path === '/api/projects') {
+            return await projectsRouter.create(req);
+          }
+
+          // PATCH /api/projects/:id - Update project
+          if (method === 'PATCH' && /^\/api\/projects\/[^/]+$/.test(path)) {
+            const id = path.split('/').pop() || '';
+            return await projectsRouter.update(req, id);
+          }
+
+          // DELETE /api/projects/:id - Delete project
+          if (method === 'DELETE' && /^\/api\/projects\/[^/]+$/.test(path)) {
+            const id = path.split('/').pop() || '';
+            return await projectsRouter.delete(req, id);
+          }
+        }
+
+        // FieldCatalogStore routes
+        if (path.startsWith('/api/fields')) {
+          // GET /api/fields/global - Get all global field options
+          if (method === 'GET' && path === '/api/fields/global') {
+            return await fieldsRouter.getGlobal();
+          }
+
+          // GET /api/fields/project/:id - Get effective options for project
+          if (method === 'GET' && /^\/api\/fields\/project\/[^/]+$/.test(path)) {
+            const id = path.split('/').pop() || '';
+            return await fieldsRouter.getForProject(id);
+          }
+
+          // GET /api/fields/by-field/:field - Get options by field name
+          if (method === 'GET' && /^\/api\/fields\/by-field\/[^/]+$/.test(path)) {
+            const field = path.split('/').pop() || '';
+            return await fieldsRouter.getByField(req, field);
+          }
+
+          // POST /api/fields - Add field option
+          if (method === 'POST' && path === '/api/fields') {
+            return await fieldsRouter.addOption(req);
+          }
+
+          // DELETE /api/fields/:id - Remove field option
+          if (method === 'DELETE' && /^\/api\/fields\/[^/]+$/.test(path)) {
+            const id = path.split('/').pop() || '';
+            return await fieldsRouter.removeOption(id);
           }
         }
 

@@ -221,3 +221,20 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   3. Wrapped the fetch handler's routing logic with the CORS middleware
 - **Commit(s)**: 0b57252
 - **Status**: RESOLVED
+
+---
+
+### Server Missing /api/projects and /api/fields Routes
+
+**Issue**: API requests to `/api/projects` and `/api/fields` return 404 Not Found despite route handlers existing in separate files.
+
+- **Location**: `src/server/index.ts` - fetch handler routing
+- **Root Cause**: The route handlers for projects (`src/server/routes/projects.ts`) and fields (`src/server/routes/fields.ts`) were fully implemented but never imported or registered in the main server entry point. Only the `docsRouter` was wired up. The stores (`ProjectStore`, `FieldCatalogStore`) were also not instantiated.
+- **Fix**:
+  1. Imported `createProjectsRouter` and `createFieldsRouter` from route modules
+  2. Imported `createProjectStore` and `createFieldCatalogStore` from `@adapters/config-local`
+  3. Initialized project and field stores with the expanded data directory
+  4. Created router instances with their respective stores
+  5. Added route handling blocks for `/api/projects/*` and `/api/fields/*` endpoints
+- **Commit(s)**: 88bda25
+- **Status**: RESOLVED
