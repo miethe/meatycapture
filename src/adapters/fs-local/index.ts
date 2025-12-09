@@ -10,11 +10,28 @@
 
 import { promises as fs } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { homedir } from 'node:os';
 import type { DocStore, DocMeta, Clock } from '@core/ports';
 import type { RequestLogDoc, ItemDraft } from '@core/models';
 import { serialize, parse, aggregateTags, updateItemsIndex } from '@core/serializer';
 import { generateItemId, getNextItemNumber } from '@core/validation';
 import { logger } from '@core/logging';
+
+/**
+ * Expands tilde (~) in paths to the user's home directory.
+ *
+ * @param path - Path that may contain tilde
+ * @returns Path with tilde expanded to absolute home directory
+ */
+function expandPath(path: string): string {
+  if (path.startsWith('~/')) {
+    return path.replace('~/', `${homedir()}/`);
+  }
+  if (path === '~') {
+    return homedir();
+  }
+  return path;
+}
 
 /**
  * Local filesystem implementation of DocStore.
@@ -45,18 +62,19 @@ export class FsDocStore implements DocStore {
    * @throws Error if directory cannot be read
    */
   async list(directory: string): Promise<DocMeta[]> {
-    logger.debug('Listing documents in directory', { directory });
+    const expandedDirectory = expandPath(directory);
+    logger.debug('Listing documents in directory', { directory: expandedDirectory });
 
     try {
       // Read all files in the directory
-      const entries = await fs.readdir(directory, { withFileTypes: true });
+      const entries = await fs.readdir(expandedDirectory, { withFileTypes: true });
 
       // Filter for markdown files
       const mdFiles = entries
         .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
-        .map((entry) => join(directory, entry.name));
+        .map((entry) => join(expandedDirectory, entry.name));
 
-      logger.debug('Found markdown files', { count: mdFiles.length, directory });
+      logger.debug('Found markdown files', { count: mdFiles.length, directory: expandedDirectory });
 
       // Read and parse each file to extract metadata
       const docMetas: DocMeta[] = [];
@@ -90,7 +108,7 @@ export class FsDocStore implements DocStore {
       const sorted = docMetas.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime());
 
       logger.info('Listed documents successfully', {
-        directory,
+        directory: expandedDirectory,
         count: sorted.length,
       });
 
@@ -98,17 +116,17 @@ export class FsDocStore implements DocStore {
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
         // Directory doesn't exist - return empty array
-        logger.debug('Directory does not exist', { directory });
+        logger.debug('Directory does not exist', { directory: expandedDirectory });
         return [];
       }
 
       logger.error('Failed to list documents', {
-        directory,
+        directory: expandedDirectory,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       throw new Error(
-        `Failed to list documents in ${directory}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to list documents in ${expandedDirectory}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -121,14 +139,15 @@ export class FsDocStore implements DocStore {
    * @throws Error if file not found or parsing fails
    */
   async read(path: string): Promise<RequestLogDoc> {
-    logger.debug('Reading document', { path });
+    const expandedPath = expandPath(path);
+    logger.debug('Reading document', { path: expandedPath });
 
     try {
-      const content = await fs.readFile(path, 'utf-8');
+      const content = await fs.readFile(expandedPath, 'utf-8');
       const doc = parse(content);
 
       logger.info('Document read successfully', {
-        path,
+        path: expandedPath,
         doc_id: doc.doc_id,
         item_count: doc.item_count,
       });
@@ -136,17 +155,17 @@ export class FsDocStore implements DocStore {
       return doc;
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-        logger.error('Document not found', { path });
-        throw new Error(`Document not found: ${path}`);
+        logger.error('Document not found', { path: expandedPath });
+        throw new Error(`Document not found: ${expandedPath}`);
       }
 
       logger.error('Failed to read document', {
-        path,
+        path: expandedPath,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       throw new Error(
-        `Failed to read document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to read document ${expandedPath}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -162,48 +181,49 @@ export class FsDocStore implements DocStore {
    * @throws Error if write fails or path not writable
    */
   async write(path: string, doc: RequestLogDoc): Promise<void> {
+    const expandedPath = expandPath(path);
     logger.debug('Writing document', {
-      path,
+      path: expandedPath,
       doc_id: doc.doc_id,
       item_count: doc.item_count,
     });
 
     try {
       // Ensure parent directory exists
-      const dir = dirname(path);
+      const dir = dirname(expandedPath);
       await fs.mkdir(dir, { recursive: true });
 
       // Create backup if file exists
       let backupCreated = false;
       try {
-        await fs.access(path);
-        await this.backup(path);
+        await fs.access(expandedPath);
+        await this.backup(expandedPath);
         backupCreated = true;
-        logger.debug('Backup created before write', { path, backup: `${path}.bak` });
+        logger.debug('Backup created before write', { path: expandedPath, backup: `${expandedPath}.bak` });
       } catch {
         // File doesn't exist yet, no backup needed
-        logger.debug('No existing file, skipping backup', { path });
+        logger.debug('No existing file, skipping backup', { path: expandedPath });
       }
 
       // Serialize and write
       const content = serialize(doc);
-      await fs.writeFile(path, content, 'utf-8');
+      await fs.writeFile(expandedPath, content, 'utf-8');
 
       logger.info('Document written successfully', {
-        path,
+        path: expandedPath,
         doc_id: doc.doc_id,
         item_count: doc.item_count,
         backup_created: backupCreated,
       });
     } catch (error) {
       logger.error('Failed to write document', {
-        path,
+        path: expandedPath,
         doc_id: doc.doc_id,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       throw new Error(
-        `Failed to write document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to write document ${expandedPath}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -228,15 +248,16 @@ export class FsDocStore implements DocStore {
    * @throws Error if document not found or append fails
    */
   async append(path: string, item: ItemDraft, clock: Clock): Promise<RequestLogDoc> {
+    const expandedPath = expandPath(path);
     logger.debug('Appending item to document', {
-      path,
+      path: expandedPath,
       item_type: item.type,
       item_title: item.title,
     });
 
     try {
       // Read existing document
-      const doc = await this.read(path);
+      const doc = await this.read(expandedPath);
 
       // Generate next item ID
       const nextNumber = getNextItemNumber(doc.items);
@@ -263,10 +284,10 @@ export class FsDocStore implements DocStore {
       };
 
       // Write updated document (includes automatic backup)
-      await this.write(path, updatedDoc);
+      await this.write(expandedPath, updatedDoc);
 
       logger.info('Item appended successfully', {
-        path,
+        path: expandedPath,
         item_id: itemId,
         doc_id: doc.doc_id,
         new_item_count: updatedDoc.item_count,
@@ -275,13 +296,13 @@ export class FsDocStore implements DocStore {
       return updatedDoc;
     } catch (error) {
       logger.error('Failed to append item', {
-        path,
+        path: expandedPath,
         item_type: item.type,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       throw new Error(
-        `Failed to append item to ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to append item to ${expandedPath}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -297,29 +318,30 @@ export class FsDocStore implements DocStore {
    * @throws Error if backup creation fails
    */
   async backup(path: string): Promise<string> {
-    const backupPath = `${path}.bak`;
+    const expandedPath = expandPath(path);
+    const backupPath = `${expandedPath}.bak`;
 
-    logger.debug('Creating backup', { path, backup: backupPath });
+    logger.debug('Creating backup', { path: expandedPath, backup: backupPath });
 
     try {
       // Check if source file exists
-      await fs.access(path);
+      await fs.access(expandedPath);
 
       // Copy to backup (overwrites existing .bak)
-      await fs.copyFile(path, backupPath);
+      await fs.copyFile(expandedPath, backupPath);
 
-      logger.info('Backup created successfully', { path, backup: backupPath });
+      logger.info('Backup created successfully', { path: expandedPath, backup: backupPath });
 
       return backupPath;
     } catch (error) {
       logger.error('Failed to create backup', {
-        path,
+        path: expandedPath,
         backup: backupPath,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       throw new Error(
-        `Failed to create backup of ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to create backup of ${expandedPath}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -334,28 +356,29 @@ export class FsDocStore implements DocStore {
    * @returns True if writable, false otherwise
    */
   async isWritable(path: string): Promise<boolean> {
-    logger.debug('Checking path writability', { path });
+    const expandedPath = expandPath(path);
+    logger.debug('Checking path writability', { path: expandedPath });
 
     try {
       // Check if file exists
-      await fs.access(path);
+      await fs.access(expandedPath);
 
       // File exists - check if writable
       try {
-        await fs.access(path, fs.constants.W_OK);
-        logger.debug('Path is writable (existing file)', { path });
+        await fs.access(expandedPath, fs.constants.W_OK);
+        logger.debug('Path is writable (existing file)', { path: expandedPath });
         return true;
       } catch {
-        logger.debug('Path is not writable (existing file, no write permission)', { path });
+        logger.debug('Path is not writable (existing file, no write permission)', { path: expandedPath });
         return false;
       }
     } catch {
       // File doesn't exist - check if parent directory is writable
-      const dir = dirname(path);
+      const dir = dirname(expandedPath);
 
       try {
         await fs.access(dir, fs.constants.W_OK);
-        logger.debug('Path is writable (parent directory exists)', { path, dir });
+        logger.debug('Path is writable (parent directory exists)', { path: expandedPath, dir });
         return true;
       } catch {
         // Parent directory doesn't exist or isn't writable
@@ -363,10 +386,10 @@ export class FsDocStore implements DocStore {
         try {
           const parentDir = dirname(dir);
           await fs.access(parentDir, fs.constants.W_OK);
-          logger.debug('Path is writable (can create parent directory)', { path, parentDir });
+          logger.debug('Path is writable (can create parent directory)', { path: expandedPath, parentDir });
           return true;
         } catch {
-          logger.debug('Path is not writable (cannot create directory)', { path, dir });
+          logger.debug('Path is not writable (cannot create directory)', { path: expandedPath, dir });
           return false;
         }
       }

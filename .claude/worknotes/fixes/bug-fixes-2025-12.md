@@ -179,3 +179,18 @@
 - **Status**: RESOLVED
 
 Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it's from a browser extension, not MeatyCapture.
+
+---
+
+### Tilde Path Expansion Missing in Node.js FsDocStore
+
+**Issue**: Project directories and request-log documents are not created when using paths with tilde (`~`) notation in CLI/server mode.
+
+- **Location**: `src/adapters/fs-local/index.ts` - FsDocStore class
+- **Root Cause**: The Node.js `FsDocStore` did not expand tilde (`~`) paths to absolute home directory paths. When a user creates a project with `default_path: "~/projects/skillmeat"`, the path was used literally instead of expanding to `/Users/username/projects/skillmeat`. This caused `fs.mkdir()` to create a literal directory named `~` in the current working directory, and file writes would fail silently or write to wrong locations. The `TauriDocStore` (desktop adapter) already had this working via an `expandPath()` helper function.
+- **Fix**:
+  1. Added `expandPath()` helper function to `src/adapters/fs-local/index.ts:26-34`
+  2. Applied path expansion to all DocStore methods: `list()`, `read()`, `write()`, `append()`, `backup()`, `isWritable()`
+  3. Pattern: Each method now expands the path parameter as its first operation before any file system calls
+- **Commit(s)**: 0bd9555
+- **Status**: RESOLVED
