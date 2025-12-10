@@ -100,14 +100,12 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Copy built static files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Create non-root user for nginx
-RUN addgroup -g 101 -S nginx-app && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx-app -g nginx-app nginx-app && \
-    chown -R nginx-app:nginx-app /usr/share/nginx/html /var/cache/nginx /var/run && \
+# Set permissions for nginx user (already exists in nginx:alpine image)
+RUN chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /var/run && \
     chmod -R 755 /usr/share/nginx/html
 
 # Switch to non-root user
-USER nginx-app
+USER nginx
 
 # Expose HTTP port
 EXPOSE 80
