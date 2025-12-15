@@ -299,5 +299,20 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   1. Changed port mapping from `"3737:3001"` to `"3737:${PORT:-3001}"` so container port matches PORT env var
   2. Updated health check to use dynamic port: `process.env.PORT || 3001` instead of hardcoded 3001
   3. Updated header comments to reflect correct port documentation
-- **Commit(s)**: 3ede850
+- **Commit(s)**: 7d0148b
+- **Status**: RESOLVED
+
+---
+
+### Docker Container Cannot Create Config Directory
+
+**Issue**: API server returns InternalServerError on `/api/projects` with `EACCES: permission denied, mkdir '/home/meatycapture'`.
+
+- **Location**: `docker-compose.yml:113` - MEATYCAPTURE_DATA_DIR environment variable
+- **Root Cause**: The `.env` file sets `MEATYCAPTURE_DATA_DIR=~/.meatycapture` which expands to `/home/meatycapture/.meatycapture` inside the container. However:
+  - The `meatycapture` user (UID 1001) has no home directory created
+  - `/home` is owned by root, so mkdir fails with permission denied
+  - The docker-compose default was `${MEATYCAPTURE_DATA_DIR:-/data}` but `env_file: .env` overrode it
+- **Fix**: Hardcoded `MEATYCAPTURE_DATA_DIR: /data` in docker-compose.yml (ignoring .env override). The `/data` volume is properly mounted and owned by the meatycapture user. The .env setting is only for native/local development.
+- **Commit(s)**: 8254aac
 - **Status**: RESOLVED

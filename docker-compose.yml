@@ -110,7 +110,9 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
 
       # Data directory inside container (mounted volume)
-      MEATYCAPTURE_DATA_DIR: ${MEATYCAPTURE_DATA_DIR:-/data}
+      # IMPORTANT: Hardcoded to /data for Docker - ignores .env override
+      # The .env MEATYCAPTURE_DATA_DIR is for native/local development only
+      MEATYCAPTURE_DATA_DIR: /data
 
       # CORS allowed origins (comma-separated)
       # Default allows common dev ports; override in .env for production
