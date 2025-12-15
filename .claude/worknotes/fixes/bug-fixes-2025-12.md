@@ -254,3 +254,50 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   ```
 - **Commit(s)**: a240c6d
 - **Status**: RESOLVED
+
+---
+
+### Web App ERR_CONNECTION_REFUSED on /api/projects
+
+**Issue**: Web app fails to load with `ERR_CONNECTION_REFUSED` on `:3737/api/projects` after running `pnpm dev`.
+
+- **Location**: `.env:27`
+- **Root Cause**: The `.env` file had `MEATYCAPTURE_API_URL=http://localhost:3737` uncommented, which triggers API mode in the platform detection logic. When the frontend uses API mode, it expects a backend server running on port 3737, but only the Vite dev server was started.
+- **Fix**: Commented out `MEATYCAPTURE_API_URL` in `.env` to disable API mode. The app now defaults to browser mode (IndexedDB storage) when no server is running. Users who want API mode should run `pnpm run server:dev` before starting the frontend.
+- **Commit(s)**: (configuration change, not committed)
+- **Status**: RESOLVED
+
+---
+
+### Docker Web Container Cannot Connect to API Server
+
+**Issue**: Web app running in Docker container fails with `ERR_CONNECTION_REFUSED` on `:3737/api/projects` even when both containers are running.
+
+- **Location**: `docker-compose.yml:43` and `.env:34`
+- **Root Cause**: Two separate issues:
+  1. **Wrong API URL**: `docker-compose.yml` passed `http://meatycapture-server:3001` (internal Docker network name) as the build arg for `MEATYCAPTURE_API_URL`. This URL is embedded into the browser JavaScript at build time. Browsers running on the host machine cannot resolve Docker internal service names.
+  2. **Missing CORS origin**: The web container serves on port 8069 (`WEB_PORT=8069`), but `CORS_ORIGINS` only listed ports 5173, 4173, and 3000 - not 8069. API requests from port 8069 would be blocked by CORS even with correct URL.
+- **Fix**:
+  1. Changed `docker-compose.yml` to use `${MEATYCAPTURE_API_URL:-http://localhost:3737}` - external host URL
+  2. Added `http://localhost:8069,http://localhost:80` to `CORS_ORIGINS` in `.env`
+  3. Requires: `docker compose build meatycapture-web && docker compose up -d`
+- **Commit(s)**: f75b9d1
+- **Status**: RESOLVED
+
+---
+
+### Docker Port Mapping Mismatch Causes ERR_CONNECTION_RESET
+
+**Issue**: Web app fails to connect to API server with `GET http://localhost:3737/api/projects net::ERR_CONNECTION_RESET` when running via docker-compose.
+
+- **Location**: `docker-compose.yml:97` - port mapping
+- **Root Cause**: Port mismatch between Docker port mapping and server binding:
+  - Docker port mapping: `"3737:3001"` (host 3737 → container 3001)
+  - Server `PORT` env var: `3737` (from `.env` file)
+  - Result: Server binds to port 3737 inside container, but Docker forwards to container port 3001 where nothing is listening
+- **Fix**:
+  1. Changed port mapping from `"3737:3001"` to `"3737:${PORT:-3001}"` so container port matches PORT env var
+  2. Updated health check to use dynamic port: `process.env.PORT || 3001` instead of hardcoded 3001
+  3. Updated header comments to reflect correct port documentation
+- **Commit(s)**: 3ede850
+- **Status**: RESOLVED
