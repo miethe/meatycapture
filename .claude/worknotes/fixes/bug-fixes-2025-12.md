@@ -314,5 +314,24 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   - `/home` is owned by root, so mkdir fails with permission denied
   - The docker-compose default was `${MEATYCAPTURE_DATA_DIR:-/data}` but `env_file: .env` overrode it
 - **Fix**: Hardcoded `MEATYCAPTURE_DATA_DIR: /data` in docker-compose.yml (ignoring .env override). The `/data` volume is properly mounted and owned by the meatycapture user. The .env setting is only for native/local development.
-- **Commit(s)**: 8254aac
+- **Commit(s)**: 5620456
+- **Status**: RESOLVED
+
+---
+
+### Document Write Fails with Tilde Path in Docker
+
+**Issue**: Creating a new request log fails with `EACCES: permission denied, mkdir '/home/meatycapture'` when project has `default_path: ~/projects/skillmeat`.
+
+- **Location**: `src/adapters/fs-local/index.ts:26-34` - expandPath function
+- **Root Cause**: The `expandPath()` function used `homedir()` from Node's `os` module to expand tilde paths. In the Docker container:
+  - Container user is `meatycapture` (UID 1001)
+  - `homedir()` returns `/home/meatycapture` which doesn't exist
+  - User has no permission to create `/home/meatycapture`
+  - Project paths like `~/projects/skillmeat` became `/home/meatycapture/projects/skillmeat`
+- **Fix**: Made `expandPath()` environment-aware:
+  - Added `getBaseDir()` helper that returns `MEATYCAPTURE_DATA_DIR` if set, otherwise `homedir()`
+  - In server/Docker mode: `~/projects/skillmeat` → `/data/projects/skillmeat`
+  - In desktop mode: `~/projects/skillmeat` → `/Users/username/projects/skillmeat`
+- **Commit(s)**: 805282c
 - **Status**: RESOLVED

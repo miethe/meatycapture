@@ -18,17 +18,31 @@ import { generateItemId, getNextItemNumber } from '@core/validation';
 import { logger } from '@core/logging';
 
 /**
- * Expands tilde (~) in paths to the user's home directory.
+ * Gets the base directory for tilde expansion.
+ *
+ * In server/Docker mode (MEATYCAPTURE_DATA_DIR set), uses data directory.
+ * In desktop mode, uses user's home directory.
+ */
+function getBaseDir(): string {
+  return process.env.MEATYCAPTURE_DATA_DIR || homedir();
+}
+
+/**
+ * Expands tilde (~) in paths to the appropriate base directory.
+ *
+ * In server/Docker mode: ~ expands to MEATYCAPTURE_DATA_DIR (/data)
+ * In desktop mode: ~ expands to user's home directory
  *
  * @param path - Path that may contain tilde
- * @returns Path with tilde expanded to absolute home directory
+ * @returns Path with tilde expanded to absolute directory
  */
 function expandPath(path: string): string {
+  const baseDir = getBaseDir();
   if (path.startsWith('~/')) {
-    return path.replace('~/', `${homedir()}/`);
+    return join(baseDir, path.slice(2));
   }
   if (path === '~') {
-    return homedir();
+    return baseDir;
   }
   return path;
 }
