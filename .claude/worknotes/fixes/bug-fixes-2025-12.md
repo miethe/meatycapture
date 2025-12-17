@@ -404,5 +404,5 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
     // ...
   }, []);
   ```
-- **Commit(s)**: (pending)
+- **Commit(s)**: 11aae0e
 - **Status**: RESOLVED
