@@ -62,3 +62,10 @@ export {
   filterByText,
   applyFilters,
 } from './filter';
+
+export {
+  groupByProject,
+  sortDocuments,
+  sortProjects,
+  createGroupedCatalog,
+} from './group';
