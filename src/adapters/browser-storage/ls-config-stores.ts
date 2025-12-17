@@ -85,6 +85,9 @@ export class BrowserProjectStore implements ProjectStore {
     try {
       const data = localStorage.getItem(PROJECTS_KEY);
       if (!data) {
+        if (import.meta.env.DEV) {
+          console.warn('[BrowserProjectStore] No projects found in localStorage');
+        }
         return [];
       }
 
@@ -312,6 +315,9 @@ export class BrowserFieldCatalogStore implements FieldCatalogStore {
     try {
       const data = localStorage.getItem(FIELDS_KEY);
       if (!data) {
+        if (import.meta.env.DEV) {
+          console.warn('[BrowserFieldCatalogStore] No fields found in localStorage, initializing with defaults');
+        }
         // No data exists - initialize with defaults
         return this.initializeDefaults();
       }
@@ -547,9 +553,24 @@ export class BrowserFieldCatalogStore implements FieldCatalogStore {
 // ============================================================================
 
 /**
- * Creates a new BrowserProjectStore instance.
+ * Singleton instance of BrowserProjectStore.
+ * Ensures consistent state across multiple calls to createBrowserProjectStore().
+ */
+let projectStoreInstance: ProjectStore | null = null;
+
+/**
+ * Singleton instance of BrowserFieldCatalogStore.
+ * Ensures consistent state across multiple calls to createBrowserFieldCatalogStore().
+ */
+let fieldCatalogStoreInstance: FieldCatalogStore | null = null;
+
+/**
+ * Creates or returns the singleton BrowserProjectStore instance.
  *
- * @returns A new BrowserProjectStore instance
+ * Uses singleton pattern to ensure all parts of the application
+ * share the same store instance and localStorage state.
+ *
+ * @returns The singleton BrowserProjectStore instance
  *
  * @example
  * ```typescript
@@ -558,13 +579,19 @@ export class BrowserFieldCatalogStore implements FieldCatalogStore {
  * ```
  */
 export function createBrowserProjectStore(): ProjectStore {
-  return new BrowserProjectStore();
+  if (!projectStoreInstance) {
+    projectStoreInstance = new BrowserProjectStore();
+  }
+  return projectStoreInstance;
 }
 
 /**
- * Creates a new BrowserFieldCatalogStore instance.
+ * Creates or returns the singleton BrowserFieldCatalogStore instance.
  *
- * @returns A new BrowserFieldCatalogStore instance
+ * Uses singleton pattern to ensure all parts of the application
+ * share the same store instance and localStorage state.
+ *
+ * @returns The singleton BrowserFieldCatalogStore instance
  *
  * @example
  * ```typescript
@@ -573,5 +600,8 @@ export function createBrowserProjectStore(): ProjectStore {
  * ```
  */
 export function createBrowserFieldCatalogStore(): FieldCatalogStore {
-  return new BrowserFieldCatalogStore();
+  if (!fieldCatalogStoreInstance) {
+    fieldCatalogStoreInstance = new BrowserFieldCatalogStore();
+  }
+  return fieldCatalogStoreInstance;
 }

@@ -16,6 +16,7 @@ import { ViewerContainer } from './ui/viewer';
 import { createProjectStore, createFieldCatalogStore } from './adapters/config-local/platform-factory';
 import { createDocStore } from './adapters/fs-local/platform-factory';
 import { realClock } from './adapters/clock';
+import { detectAdapterMode } from './platform/api-detection';
 
 type View = 'wizard' | 'viewer' | 'admin';
 
@@ -61,6 +62,9 @@ function AppContent() {
   const { toasts, dismissToast } = useToast();
   const [view, setView] = useState<View>('wizard');
 
+  // Detect platform adapter mode
+  const adapterMode = detectAdapterMode();
+
   // Enable keyboard shortcuts for navigation
   useNavigationShortcuts({ onNavigate: setView });
 
@@ -105,6 +109,23 @@ function AppContent() {
           <div className="header-brand">
             <h1>MeatyCapture</h1>
             <p>Lightweight capture app for request logs</p>
+            <span
+              className="platform-indicator"
+              style={{
+                fontSize: '0.65rem',
+                fontWeight: 600,
+                padding: '2px 6px',
+                borderRadius: '4px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginTop: '4px',
+                display: 'inline-block',
+                color: adapterMode === 'api' ? '#22c55e' : adapterMode === 'local' ? '#3b82f6' : '#f59e0b',
+                backgroundColor: adapterMode === 'api' ? 'rgba(34, 197, 94, 0.1)' : adapterMode === 'local' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+              }}
+            >
+              {adapterMode === 'api' ? 'API' : adapterMode === 'local' ? 'Local' : 'Browser'}
+            </span>
           </div>
 
           <nav aria-label="Main navigation" className="app-nav">

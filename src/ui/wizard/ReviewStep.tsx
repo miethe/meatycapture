@@ -26,6 +26,8 @@ interface ReviewStepProps {
   onSubmit: () => Promise<void>;
   /** Called when user clicks Add Another after successful submit */
   onAddAnother: () => void;
+  /** Called when user clicks Done to complete the wizard */
+  onComplete: () => void;
   /** Whether submission is in progress */
   isSubmitting?: boolean;
   /** Whether submission was successful */
@@ -40,6 +42,7 @@ export function ReviewStep({
   onBack,
   onSubmit,
   onAddAnother,
+  onComplete,
   isSubmitting = false,
   submitSuccess = false,
 }: ReviewStepProps): React.JSX.Element {
@@ -101,7 +104,7 @@ export function ReviewStep({
             <button
               type="button"
               className="button secondary"
-              onClick={() => window.location.reload()}
+              onClick={onComplete}
               aria-label="Start a new capture session"
             >
               Done

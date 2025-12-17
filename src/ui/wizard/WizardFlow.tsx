@@ -76,10 +76,8 @@ export function WizardFlow({
   fieldCatalogStore,
   docStore,
   clock,
-  onComplete, // Currently unused - ReviewStep handles "Done" via window.location.reload()
+  onComplete,
 }: WizardFlowProps): React.JSX.Element {
-  // Prevent unused warning - onComplete is part of public API for future extensibility
-  void onComplete;
   // ============================================================================
   // State Management
   // ============================================================================
@@ -425,8 +423,21 @@ export function WizardFlow({
     setCurrentStep('item');
   }, []);
 
-  // handleDone is implicitly called via ReviewStep's "Done" button
-  // which triggers window.location.reload() directly in ReviewStep
+  const handleWizardComplete = useCallback(() => {
+    // Reset all wizard state to start fresh
+    setSelectedProject(null);
+    setSelectedDocPath(null);
+    setDraft(EMPTY_DRAFT);
+    setSubmitSuccess(false);
+    setBatchingMode(false);
+    setCompletedSteps([]);
+    setCurrentStep('project');
+
+    // Call external completion handler if provided
+    if (onComplete) {
+      onComplete();
+    }
+  }, [onComplete]);
 
   // ============================================================================
   // Render Current Step
@@ -535,6 +546,7 @@ export function WizardFlow({
             onBack={handleReviewBack}
             onSubmit={handleSubmit}
             onAddAnother={handleAddAnother}
+            onComplete={handleWizardComplete}
             isSubmitting={isSubmitting}
             submitSuccess={submitSuccess}
           />
