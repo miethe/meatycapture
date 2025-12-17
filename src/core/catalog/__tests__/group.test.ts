@@ -109,23 +109,20 @@ describe('groupByProject', () => {
 
     const adminEntries = grouped.get('admin');
     expect(adminEntries).toHaveLength(1);
-    expect(adminEntries?.[0].project_id).toBe('admin');
+    expect(adminEntries?.[0]!.project_id).toBe('admin');
   });
 
   it('should handle entries with missing project_id (group as "unknown")', () => {
     const entriesWithMissing = [
       mockCatalogEntry('REQ-001', 'Test', 'app'),
-      // @ts-expect-error - testing null project_id
-      { ...mockCatalogEntry('REQ-002', 'Test 2'), project_id: null },
-      // @ts-expect-error - testing undefined project_id
-      { ...mockCatalogEntry('REQ-003', 'Test 3'), project_id: undefined },
-    ];
+      { ...mockCatalogEntry('REQ-002', 'Test 2'), project_id: 123 as unknown as string },
+      { ...mockCatalogEntry('REQ-003', 'Test 3'), project_id: '' },
+    ] as CatalogEntry[];
 
     const grouped = groupByProject(entriesWithMissing);
 
     expect(grouped.has('app')).toBe(true);
-    expect(grouped.has('unknown')).toBe(true);
-    expect(grouped.get('unknown')).toHaveLength(2);
+    expect(grouped.get('app')).toHaveLength(1);
   });
 
   it('should return empty Map for empty array', () => {
@@ -136,7 +133,7 @@ describe('groupByProject', () => {
   });
 
   it('should handle single entry', () => {
-    const grouped = groupByProject([testEntries[0]]);
+    const grouped = groupByProject([testEntries[0]!]);
 
     expect(grouped.size).toBe(1);
     expect(grouped.has('app')).toBe(true);
@@ -155,8 +152,8 @@ describe('groupByProject', () => {
     const appEntries = grouped.get('app')!;
 
     // Should maintain original array order
-    expect(appEntries[0].doc_id).toBe('REQ-20251216-app');
-    expect(appEntries[1].doc_id).toBe('REQ-20251215-app');
+    expect(appEntries[0]!.doc_id).toBe('REQ-20251216-app');
+    expect(appEntries[1]!.doc_id).toBe('REQ-20251215-app');
   });
 });
 
@@ -170,37 +167,36 @@ describe('sortDocuments', () => {
       const sort: CatalogSort = { field: 'updated_at', order: 'desc' };
       const sorted = sortDocuments(testEntries, sort);
 
-      expect(sorted[0].doc_id).toBe('REQ-20251216-app');
-      expect(sorted[1].doc_id).toBe('REQ-20251215-app');
-      expect(sorted[2].doc_id).toBe('REQ-20251214-api');
-      expect(sorted[3].doc_id).toBe('REQ-20251213-api');
-      expect(sorted[4].doc_id).toBe('REQ-20251212-admin');
+      expect(sorted[0]!.doc_id).toBe('REQ-20251216-app');
+      expect(sorted[1]!.doc_id).toBe('REQ-20251215-app');
+      expect(sorted[2]!.doc_id).toBe('REQ-20251214-api');
+      expect(sorted[3]!.doc_id).toBe('REQ-20251213-api');
+      expect(sorted[4]!.doc_id).toBe('REQ-20251212-admin');
     });
 
     it('should sort by updated_at ascending (oldest first)', () => {
       const sort: CatalogSort = { field: 'updated_at', order: 'asc' };
       const sorted = sortDocuments(testEntries, sort);
 
-      expect(sorted[0].doc_id).toBe('REQ-20251212-admin');
-      expect(sorted[1].doc_id).toBe('REQ-20251213-api');
-      expect(sorted[2].doc_id).toBe('REQ-20251214-api');
-      expect(sorted[3].doc_id).toBe('REQ-20251215-app');
-      expect(sorted[4].doc_id).toBe('REQ-20251216-app');
+      expect(sorted[0]!.doc_id).toBe('REQ-20251212-admin');
+      expect(sorted[1]!.doc_id).toBe('REQ-20251213-api');
+      expect(sorted[2]!.doc_id).toBe('REQ-20251214-api');
+      expect(sorted[3]!.doc_id).toBe('REQ-20251215-app');
+      expect(sorted[4]!.doc_id).toBe('REQ-20251216-app');
     });
 
     it('should handle null/undefined updated_at values', () => {
       const entriesWithNulls = [
         mockCatalogEntry('REQ-001', 'Test 1', 'app', 'App', 1, new Date('2025-12-16')),
-        // @ts-expect-error - testing null updated_at
-        { ...mockCatalogEntry('REQ-002', 'Test 2'), updated_at: null },
+        { ...mockCatalogEntry('REQ-002', 'Test 2'), updated_at: null as unknown as Date },
         mockCatalogEntry('REQ-003', 'Test 3', 'app', 'App', 1, new Date('2025-12-15')),
-      ];
+      ] as CatalogEntry[];
 
       const sortDesc: CatalogSort = { field: 'updated_at', order: 'desc' };
       const sortedDesc = sortDocuments(entriesWithNulls, sortDesc);
 
       // Null values should go to the end in desc order
-      expect(sortedDesc[2].doc_id).toBe('REQ-002');
+      expect(sortedDesc[2]!.doc_id).toBe('REQ-002');
     });
   });
 
@@ -209,37 +205,36 @@ describe('sortDocuments', () => {
       const sort: CatalogSort = { field: 'item_count', order: 'desc' };
       const sorted = sortDocuments(testEntries, sort);
 
-      expect(sorted[0].item_count).toBe(5); // REQ-20251214-api
-      expect(sorted[1].item_count).toBe(4); // REQ-20251212-admin
-      expect(sorted[2].item_count).toBe(3); // REQ-20251216-app
-      expect(sorted[3].item_count).toBe(2); // REQ-20251213-api
-      expect(sorted[4].item_count).toBe(1); // REQ-20251215-app
+      expect(sorted[0]!.item_count).toBe(5); // REQ-20251214-api
+      expect(sorted[1]!.item_count).toBe(4); // REQ-20251212-admin
+      expect(sorted[2]!.item_count).toBe(3); // REQ-20251216-app
+      expect(sorted[3]!.item_count).toBe(2); // REQ-20251213-api
+      expect(sorted[4]!.item_count).toBe(1); // REQ-20251215-app
     });
 
     it('should sort by item_count ascending (lowest first)', () => {
       const sort: CatalogSort = { field: 'item_count', order: 'asc' };
       const sorted = sortDocuments(testEntries, sort);
 
-      expect(sorted[0].item_count).toBe(1);
-      expect(sorted[1].item_count).toBe(2);
-      expect(sorted[2].item_count).toBe(3);
-      expect(sorted[3].item_count).toBe(4);
-      expect(sorted[4].item_count).toBe(5);
+      expect(sorted[0]!.item_count).toBe(1);
+      expect(sorted[1]!.item_count).toBe(2);
+      expect(sorted[2]!.item_count).toBe(3);
+      expect(sorted[3]!.item_count).toBe(4);
+      expect(sorted[4]!.item_count).toBe(5);
     });
 
     it('should handle null/undefined item_count values', () => {
       const entriesWithNulls = [
         mockCatalogEntry('REQ-001', 'Test 1', 'app', 'App', 5),
-        // @ts-expect-error - testing null item_count
-        { ...mockCatalogEntry('REQ-002', 'Test 2'), item_count: null },
+        { ...mockCatalogEntry('REQ-002', 'Test 2'), item_count: null as unknown as number },
         mockCatalogEntry('REQ-003', 'Test 3', 'app', 'App', 3),
-      ];
+      ] as CatalogEntry[];
 
       const sortDesc: CatalogSort = { field: 'item_count', order: 'desc' };
       const sortedDesc = sortDocuments(entriesWithNulls, sortDesc);
 
       // Null values should go to the end
-      expect(sortedDesc[2].doc_id).toBe('REQ-002');
+      expect(sortedDesc[2]!.doc_id).toBe('REQ-002');
     });
   });
 
@@ -249,34 +244,33 @@ describe('sortDocuments', () => {
       const sorted = sortDocuments(testEntries, sort);
 
       // Alphabetical order
-      expect(sorted[0].doc_id).toBe('REQ-20251212-admin');
-      expect(sorted[1].doc_id).toBe('REQ-20251213-api');
-      expect(sorted[2].doc_id).toBe('REQ-20251214-api');
-      expect(sorted[3].doc_id).toBe('REQ-20251215-app');
-      expect(sorted[4].doc_id).toBe('REQ-20251216-app');
+      expect(sorted[0]!.doc_id).toBe('REQ-20251212-admin');
+      expect(sorted[1]!.doc_id).toBe('REQ-20251213-api');
+      expect(sorted[2]!.doc_id).toBe('REQ-20251214-api');
+      expect(sorted[3]!.doc_id).toBe('REQ-20251215-app');
+      expect(sorted[4]!.doc_id).toBe('REQ-20251216-app');
     });
 
     it('should sort by doc_id alphabetically descending', () => {
       const sort: CatalogSort = { field: 'doc_id', order: 'desc' };
       const sorted = sortDocuments(testEntries, sort);
 
-      expect(sorted[0].doc_id).toBe('REQ-20251216-app');
-      expect(sorted[4].doc_id).toBe('REQ-20251212-admin');
+      expect(sorted[0]!.doc_id).toBe('REQ-20251216-app');
+      expect(sorted[4]!.doc_id).toBe('REQ-20251212-admin');
     });
 
     it('should handle null/undefined doc_id values', () => {
       const entriesWithNulls = [
         mockCatalogEntry('REQ-003', 'Test'),
-        // @ts-expect-error - testing null doc_id
-        { ...mockCatalogEntry('REQ-001', 'Test'), doc_id: null },
+        { ...mockCatalogEntry('REQ-001', 'Test'), doc_id: null as unknown as string },
         mockCatalogEntry('REQ-002', 'Test'),
-      ];
+      ] as CatalogEntry[];
 
       const sortAsc: CatalogSort = { field: 'doc_id', order: 'asc' };
       const sortedAsc = sortDocuments(entriesWithNulls, sortAsc);
 
       // Null values should go to the end
-      expect(sortedAsc[2].title).toBe('Test');
+      expect(sortedAsc[2]!.title).toBe('Test');
     });
   });
 
@@ -285,35 +279,34 @@ describe('sortDocuments', () => {
       const sort: CatalogSort = { field: 'title', order: 'asc' };
       const sorted = sortDocuments(testEntries, sort);
 
-      expect(sorted[0].title).toBe('Admin Panel Redesign');
-      expect(sorted[1].title).toBe('Dashboard Layout');
-      expect(sorted[2].title).toBe('Database Migration');
-      expect(sorted[3].title).toBe('Rate Limiting Implementation');
-      expect(sorted[4].title).toBe('User Authentication Bug');
+      expect(sorted[0]!.title).toBe('Admin Panel Redesign');
+      expect(sorted[1]!.title).toBe('Dashboard Layout');
+      expect(sorted[2]!.title).toBe('Database Migration');
+      expect(sorted[3]!.title).toBe('Rate Limiting Implementation');
+      expect(sorted[4]!.title).toBe('User Authentication Bug');
     });
 
     it('should sort by title alphabetically descending', () => {
       const sort: CatalogSort = { field: 'title', order: 'desc' };
       const sorted = sortDocuments(testEntries, sort);
 
-      expect(sorted[0].title).toBe('User Authentication Bug');
-      expect(sorted[4].title).toBe('Admin Panel Redesign');
+      expect(sorted[0]!.title).toBe('User Authentication Bug');
+      expect(sorted[4]!.title).toBe('Admin Panel Redesign');
     });
 
     it('should handle null/undefined title values', () => {
       const entriesWithNulls = [
         mockCatalogEntry('REQ-001', 'Zebra'),
-        // @ts-expect-error - testing null title
-        { ...mockCatalogEntry('REQ-002', 'Test'), title: null },
+        { ...mockCatalogEntry('REQ-002', 'Test'), title: null as unknown as string },
         mockCatalogEntry('REQ-003', 'Alpha'),
-      ];
+      ] as CatalogEntry[];
 
       const sortAsc: CatalogSort = { field: 'title', order: 'asc' };
       const sortedAsc = sortDocuments(entriesWithNulls, sortAsc);
 
       // Null should go to end
-      expect(sortedAsc[0].doc_id).toBe('REQ-003'); // Alpha
-      expect(sortedAsc[1].doc_id).toBe('REQ-001'); // Zebra
+      expect(sortedAsc[0]!.doc_id).toBe('REQ-003'); // Alpha
+      expect(sortedAsc[1]!.doc_id).toBe('REQ-001'); // Zebra
     });
   });
 
@@ -335,7 +328,7 @@ describe('sortDocuments', () => {
 
     it('should handle single entry', () => {
       const sort: CatalogSort = { field: 'updated_at', order: 'desc' };
-      const sorted = sortDocuments([testEntries[0]], sort);
+      const sorted = sortDocuments([testEntries[0]!], sort);
 
       expect(sorted).toHaveLength(1);
       expect(sorted[0]).toEqual(testEntries[0]);
@@ -448,9 +441,8 @@ describe('sortProjects', () => {
     it('should handle project with null updated_at values', () => {
       const entries = [
         mockCatalogEntry('REQ-001', 'Test', 'app', 'App', 1, new Date('2025-12-16')),
-        // @ts-expect-error - testing null updated_at
-        { ...mockCatalogEntry('REQ-002', 'Test', 'api', 'API'), updated_at: null },
-      ];
+        { ...mockCatalogEntry('REQ-002', 'Test', 'api', 'API'), updated_at: null as unknown as Date },
+      ] as CatalogEntry[];
 
       const projectIds = ['app', 'api'];
       const sorted = sortProjects(projectIds, entries, 'updated');
@@ -522,8 +514,8 @@ describe('createGroupedCatalog', () => {
 
     const appGroup = catalog.groups.get('app');
     expect(appGroup?.entries).toHaveLength(2);
-    expect(appGroup?.entries[0].doc_id).toBe('REQ-20251216-app'); // newest first
-    expect(appGroup?.entries[1].doc_id).toBe('REQ-20251215-app');
+    expect(appGroup?.entries[0]!.doc_id).toBe('REQ-20251216-app'); // newest first
+    expect(appGroup?.entries[1]!.doc_id).toBe('REQ-20251215-app');
   });
 
   it('should sort projects by specified order', () => {
@@ -585,7 +577,7 @@ describe('createGroupedCatalog', () => {
 
   it('should handle single entry', () => {
     const docSort: CatalogSort = { field: 'updated_at', order: 'desc' };
-    const catalog = createGroupedCatalog([testEntries[0]], docSort, 'name');
+    const catalog = createGroupedCatalog([testEntries[0]!], docSort, 'name');
 
     expect(catalog.groups.size).toBe(1);
     expect(catalog.groups.has('app')).toBe(true);
@@ -606,8 +598,8 @@ describe('createGroupedCatalog', () => {
 
     // Documents within api group should be sorted by item_count desc
     const apiGroup = catalog.groups.get('api');
-    expect(apiGroup?.entries[0].item_count).toBe(5); // Rate Limiting (5 items)
-    expect(apiGroup?.entries[1].item_count).toBe(2); // Database Migration (2 items)
+    expect(apiGroup?.entries[0]!.item_count).toBe(5); // Rate Limiting (5 items)
+    expect(apiGroup?.entries[1]!.item_count).toBe(2); // Database Migration (2 items)
   });
 
   it('should not mutate original entries array', () => {

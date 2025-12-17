@@ -22,7 +22,6 @@ function mockProject(
     name,
     default_path,
     enabled,
-    repo_url: undefined,
     created_at: new Date('2025-12-01T00:00:00Z'),
     updated_at: new Date('2025-12-16T00:00:00Z'),
   };
@@ -96,6 +95,8 @@ function createMockDocStore(
     read: vi.fn(),
     write: vi.fn(),
     append: vi.fn(),
+    backup: vi.fn(),
+    isWritable: vi.fn(),
   };
 }
 
@@ -139,9 +140,9 @@ describe('listAllDocuments', () => {
     const result = await listAllDocuments(projectStore, docStore);
 
     expect(result).toHaveLength(3);
-    expect(result[0].doc_id).toBe('REQ-20251216-app'); // Most recent first
-    expect(result[1].doc_id).toBe('REQ-20251215-app');
-    expect(result[2].doc_id).toBe('REQ-20251214-api');
+    expect(result[0]!.doc_id).toBe('REQ-20251216-app'); // Most recent first
+    expect(result[1]!.doc_id).toBe('REQ-20251215-app');
+    expect(result[2]!.doc_id).toBe('REQ-20251214-api');
   });
 
   it('should filter out disabled projects', async () => {
@@ -165,7 +166,7 @@ describe('listAllDocuments', () => {
     const result = await listAllDocuments(projectStore, docStore);
 
     expect(result).toHaveLength(1);
-    expect(result[0].doc_id).toBe('REQ-001');
+    expect(result[0]!.doc_id).toBe('REQ-001');
     expect(docStore.list).toHaveBeenCalledTimes(1);
     expect(docStore.list).toHaveBeenCalledWith('/data/app');
   });
@@ -182,8 +183,8 @@ describe('listAllDocuments', () => {
     const result = await listAllDocuments(projectStore, docStore);
 
     expect(result).toHaveLength(1);
-    expect(result[0].project_id).toBe('app');
-    expect(result[0].project_name).toBe('My App');
+    expect(result[0]!.project_id).toBe('app');
+    expect(result[0]!.project_name).toBe('My App');
   });
 
   it('should sort results by updated_at descending (most recent first)', async () => {
@@ -199,9 +200,9 @@ describe('listAllDocuments', () => {
 
     const result = await listAllDocuments(projectStore, docStore);
 
-    expect(result[0].doc_id).toBe('REQ-002'); // newest
-    expect(result[1].doc_id).toBe('REQ-003');
-    expect(result[2].doc_id).toBe('REQ-001'); // oldest
+    expect(result[0]!.doc_id).toBe('REQ-002'); // newest
+    expect(result[1]!.doc_id).toBe('REQ-003');
+    expect(result[2]!.doc_id).toBe('REQ-001'); // oldest
   });
 
   it('should handle project with no documents', async () => {
@@ -222,7 +223,7 @@ describe('listAllDocuments', () => {
     const result = await listAllDocuments(projectStore, docStore);
 
     expect(result).toHaveLength(1);
-    expect(result[0].project_id).toBe('app');
+    expect(result[0]!.project_id).toBe('app');
   });
 
   it('should handle docStore.list() error for a project gracefully', async () => {
@@ -247,7 +248,7 @@ describe('listAllDocuments', () => {
 
     // Should skip broken project and continue with others
     expect(result).toHaveLength(1);
-    expect(result[0].project_id).toBe('app');
+    expect(result[0]!.project_id).toBe('app');
     expect(consoleWarnSpy).toHaveBeenCalledWith(
       expect.stringContaining("Project 'broken'"),
       'Permission denied'
@@ -388,10 +389,10 @@ describe('enrichWithProjectInfo', () => {
     const result = enrichWithProjectInfo(docMetas, project);
 
     expect(result).toHaveLength(2);
-    expect(result[0].project_id).toBe('app');
-    expect(result[0].project_name).toBe('My App');
-    expect(result[1].project_id).toBe('app');
-    expect(result[1].project_name).toBe('My App');
+    expect(result[0]!.project_id).toBe('app');
+    expect(result[0]!.project_name).toBe('My App');
+    expect(result[1]!.project_id).toBe('app');
+    expect(result[1]!.project_name).toBe('My App');
   });
 
   it('should preserve all DocMeta fields', () => {
@@ -403,11 +404,11 @@ describe('enrichWithProjectInfo', () => {
 
     const result = enrichWithProjectInfo(docMetas, project);
 
-    expect(result[0].path).toBe('/data/REQ-001.md');
-    expect(result[0].doc_id).toBe('REQ-001');
-    expect(result[0].title).toBe('Test');
-    expect(result[0].item_count).toBe(5);
-    expect(result[0].updated_at).toEqual(new Date('2025-12-16'));
+    expect(result[0]!.path).toBe('/data/REQ-001.md');
+    expect(result[0]!.doc_id).toBe('REQ-001');
+    expect(result[0]!.title).toBe('Test');
+    expect(result[0]!.item_count).toBe(5);
+    expect(result[0]!.updated_at).toEqual(new Date('2025-12-16'));
   });
 
   it('should handle empty array', () => {
@@ -435,12 +436,12 @@ describe('enrichWithProjectInfo', () => {
     const result = enrichWithProjectInfo(docMetas, project);
 
     // Result should have extra fields
-    expect(result[0]).toHaveProperty('project_id');
-    expect(result[0]).toHaveProperty('project_name');
+    expect(result[0]!).toHaveProperty('project_id');
+    expect(result[0]!).toHaveProperty('project_name');
 
     // Original should not
-    expect(docMetas[0]).not.toHaveProperty('project_id');
-    expect(docMetas[0]).not.toHaveProperty('project_name');
+    expect(docMetas[0]!).not.toHaveProperty('project_id');
+    expect(docMetas[0]!).not.toHaveProperty('project_name');
   });
 
   it('should handle single DocMeta', () => {
@@ -450,7 +451,7 @@ describe('enrichWithProjectInfo', () => {
     const result = enrichWithProjectInfo(docMetas, project);
 
     expect(result).toHaveLength(1);
-    expect(result[0].project_id).toBe('app');
+    expect(result[0]!.project_id).toBe('app');
   });
 });
 

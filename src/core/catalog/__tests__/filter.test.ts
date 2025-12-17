@@ -10,6 +10,7 @@ import {
   applyFilters,
 } from '../filter';
 import type { CatalogEntry, FilterState } from '../types';
+import { createEmptyFilter } from '../types';
 
 // ============================================================================
 // Test Fixtures
@@ -77,11 +78,11 @@ describe('filterByProject', () => {
   });
 
   it('should handle single-entry array', () => {
-    const singleEntry = [testEntries[0]];
+    const singleEntry = [testEntries[0]!];
     const result = filterByProject(singleEntry, 'app');
 
     expect(result).toHaveLength(1);
-    expect(result[0].project_id).toBe('app');
+    expect(result[0]!.project_id).toBe('app');
   });
 
   it('should not mutate original array', () => {
@@ -297,14 +298,14 @@ describe('filterByText', () => {
     const result = filterByText(testEntries, 'auth');
 
     expect(result).toHaveLength(1);
-    expect(result[0].title).toBe('User Authentication Bug');
+    expect(result[0]!.title).toBe('User Authentication Bug');
   });
 
   it('should filter by title with different casing', () => {
     const result = filterByText(testEntries, 'AUTHENTICATION');
 
     expect(result).toHaveLength(1);
-    expect(result[0].title).toBe('User Authentication Bug');
+    expect(result[0]!.title).toBe('User Authentication Bug');
   });
 
   it('should filter by doc_id prefix match', () => {
@@ -332,7 +333,7 @@ describe('filterByText', () => {
     const result = filterByText(testEntries, 'Dashboard');
 
     expect(result).toHaveLength(1);
-    expect(result[0].title).toBe('Dashboard Layout');
+    expect(result[0]!.title).toBe('Dashboard Layout');
   });
 
   it('should return empty array when no matches found', () => {
@@ -366,7 +367,7 @@ describe('filterByText', () => {
     const result = filterByText(testEntries, '  Dashboard  ');
 
     expect(result).toHaveLength(1);
-    expect(result[0].title).toBe('Dashboard Layout');
+    expect(result[0]!.title).toBe('Dashboard Layout');
   });
 });
 
@@ -376,15 +377,7 @@ describe('filterByText', () => {
 
 describe('applyFilters', () => {
   it('should return all entries when filter is completely empty', () => {
-    const emptyFilter: FilterState = {
-      project_id: undefined,
-      types: [],
-      domains: [],
-      priorities: [],
-      statuses: [],
-      tags: [],
-      text: '',
-    };
+    const emptyFilter = createEmptyFilter();
 
     const result = applyFilters(testEntries, emptyFilter);
 
@@ -411,37 +404,28 @@ describe('applyFilters', () => {
 
   it('should apply text filter only', () => {
     const filter: FilterState = {
-      project_id: undefined,
-      types: [],
-      domains: [],
-      priorities: [],
-      statuses: [],
-      tags: [],
+      ...createEmptyFilter(),
       text: 'auth',
     };
 
     const result = applyFilters(testEntries, filter);
 
     expect(result).toHaveLength(1);
-    expect(result[0].title).toBe('User Authentication Bug');
+    expect(result[0]!.title).toBe('User Authentication Bug');
   });
 
   it('should apply both project and text filters (AND logic)', () => {
     const filter: FilterState = {
+      ...createEmptyFilter(),
       project_id: 'app',
-      types: [],
-      domains: [],
-      priorities: [],
-      statuses: [],
-      tags: [],
       text: 'Dashboard',
     };
 
     const result = applyFilters(testEntries, filter);
 
     expect(result).toHaveLength(1);
-    expect(result[0].project_id).toBe('app');
-    expect(result[0].title).toBe('Dashboard Layout');
+    expect(result[0]!.project_id).toBe('app');
+    expect(result[0]!.title).toBe('Dashboard Layout');
   });
 
   it('should return empty array when filters do not match', () => {
@@ -496,6 +480,7 @@ describe('applyFilters', () => {
   it('should apply all filter facets in sequence', () => {
     // All facets provided, but only project and text are functional
     const filter: FilterState = {
+      ...createEmptyFilter(),
       project_id: 'api',
       types: ['enhancement'],
       domains: ['backend'],
@@ -509,8 +494,8 @@ describe('applyFilters', () => {
 
     // Should filter by project='api' AND text='rate'
     expect(result).toHaveLength(1);
-    expect(result[0].doc_id).toBe('REQ-20251214-api');
-    expect(result[0].title).toBe('Rate Limiting Implementation');
+    expect(result[0]!.doc_id).toBe('REQ-20251214-api');
+    expect(result[0]!.title).toBe('Rate Limiting Implementation');
   });
 
   it('should not mutate original entries array', () => {
@@ -561,7 +546,7 @@ describe('applyFilters', () => {
     const result = applyFilters(testEntries, filter);
 
     expect(result).toHaveLength(1);
-    expect(result[0].project_id).toBe('admin');
-    expect(result[0].title).toContain('Panel');
+    expect(result[0]!.project_id).toBe('admin');
+    expect(result[0]!.title).toContain('Panel');
   });
 });
