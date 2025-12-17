@@ -27,6 +27,8 @@ import {
 } from '@core/catalog';
 import { listAllDocuments, extractFilterOptions } from '@core/catalog/utils';
 import type { ViewerContainerProps } from './types';
+import { DocumentCatalog } from './DocumentCatalog';
+import { DocumentFilters } from './DocumentFilters';
 import './viewer.css';
 
 /**
@@ -76,6 +78,9 @@ export function ViewerContainer({
 
   /** Cache of full documents (path -> RequestLogDoc) */
   const [documentCache, setDocumentCache] = useState<Map<string, RequestLogDoc>>(new Map());
+
+  /** Expanded document paths (for detail view) */
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
 
   /** Loading state during catalog load/refresh */
   const [loading, setLoading] = useState<boolean>(true);
@@ -133,10 +138,11 @@ export function ViewerContainer({
    * Handle manual refresh button
    *
    * Re-scans filesystem for new/updated documents.
-   * Clears document cache to force re-loading.
+   * Clears document cache and expanded paths to force re-loading.
    */
   const handleRefresh = useCallback(() => {
     setDocumentCache(new Map()); // Clear cache
+    setExpandedPaths(new Set()); // Collapse all expanded rows
     loadCatalog();
   }, [loadCatalog]);
 
@@ -224,15 +230,36 @@ export function ViewerContainer({
   );
 
   // ============================================================================
+  // Document Expansion Management
+  // ============================================================================
+
+  /**
+   * Toggle document expansion
+   *
+   * Adds or removes document path from expanded set.
+   *
+   * @param path - Document path to toggle
+   */
+  const handleToggleExpand = useCallback((path: string) => {
+    setExpandedPaths((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+  }, []);
+
+  // ============================================================================
   // Reserved Handler References (for child components in future tasks)
   // ============================================================================
 
   // Prevent unused variable warnings for handlers reserved for child components
-  // These will be passed to DocumentFilters (TASK-2.3) and DocumentCatalog (TASK-2.4)
+  // These will be passed to DocumentFilters (TASK-2.3)
   void filterOptions;
   void handleFilterChange;
-  void handleSortChange;
-  void handleLoadDocument;
 
   // ============================================================================
   // Derived State (Filtering & Sorting)
@@ -257,7 +284,7 @@ export function ViewerContainer({
     };
   }, [catalog, filterState, sort]);
 
-  const { filtered: filteredCatalog } = filteredAndSorted;
+  const { filtered: filteredCatalog, grouped: groupedCatalog } = filteredAndSorted;
 
   // ============================================================================
   // Render
@@ -291,40 +318,27 @@ export function ViewerContainer({
       ) : (
         /* Main Content */
         <>
-          {/* DocumentFilters placeholder - will be replaced in TASK-2.3 */}
-          <div className="viewer-filters-placeholder glass" aria-label="Filter controls placeholder">
-            <h3>Filters</h3>
-            <p>
-              Active filters: {filterState.project_id ? '1 project, ' : ''}
-              {filterState.types.length > 0 ? `${filterState.types.length} types, ` : ''}
-              {filterState.domains.length > 0 ? `${filterState.domains.length} domains, ` : ''}
-              {filterState.priorities.length > 0 ? `${filterState.priorities.length} priorities, ` : ''}
-              {filterState.statuses.length > 0 ? `${filterState.statuses.length} statuses, ` : ''}
-              {filterState.tags.length > 0 ? `${filterState.tags.length} tags, ` : ''}
-              {filterState.text ? `text: "${filterState.text}"` : ''}
-            </p>
-            {JSON.stringify(filterState) !== JSON.stringify(createEmptyFilter()) && (
-              <button
-                type="button"
-                className="button small"
-                onClick={handleClearFilters}
-                aria-label="Clear all filters"
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
+          {/* Document Filters */}
+          <DocumentFilters
+            filterState={filterState}
+            filterOptions={filterOptions}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+            resultCount={filteredCatalog.length}
+            totalCount={catalog.length}
+          />
 
-          {/* DocumentCatalog placeholder - will be replaced in TASK-2.4 */}
-          <div className="viewer-catalog-placeholder glass" aria-label="Document catalog placeholder">
-            <h3>Documents</h3>
-            <p>
-              Showing {filteredCatalog.length} of {catalog.length} document(s)
-            </p>
-            <p>
-              Sort: {sort.field} ({sort.order})
-            </p>
-          </div>
+          {/* DocumentCatalog - TASK-2.4 */}
+          <DocumentCatalog
+            entries={filteredCatalog}
+            groupedCatalog={groupedCatalog}
+            sort={sort}
+            onSortChange={handleSortChange}
+            onLoadDocument={handleLoadDocument}
+            expandedPaths={expandedPaths}
+            onToggleExpand={handleToggleExpand}
+            documentCache={documentCache}
+          />
         </>
       )}
     </div>

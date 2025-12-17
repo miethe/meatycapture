@@ -101,6 +101,576 @@
   line-height: 1.6;
 }
 
+/* ============================================================================
+ * Document Filters
+ * ============================================================================ */
+
+/* Main filters container */
+.viewer-filters {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Filter controls row - horizontal layout */
+.viewer-filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: flex-start;
+}
+
+/* Individual filter control wrapper */
+.filter-control {
+  flex: 1;
+  min-width: 10rem;
+}
+
+/* Text search input */
+.viewer-filters-search {
+  width: 100%;
+}
+
+/* Actions row - result count, badges, clear button */
+.viewer-filters-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Result count display */
+.viewer-filters-result-count {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+}
+
+.viewer-filters-count-badge {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-bg-glass-active);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.viewer-filters-count-label {
+  color: var(--color-text-muted);
+}
+
+/* Active filter badges container */
+.viewer-filters-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  flex: 1;
+}
+
+/* Filter badge (uses .chip from shared.css) */
+.viewer-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.viewer-filter-badge-label {
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.viewer-filter-badge-value {
+  color: var(--color-text);
+}
+
+/* ============================================================================
+ * Filter Dropdown Component
+ * ============================================================================ */
+
+/* Dropdown container */
+.filter-dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+/* Dropdown trigger button */
+.filter-dropdown-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+}
+
+.filter-dropdown-trigger[aria-expanded="true"] {
+  background: var(--color-bg-glass-active);
+  border-color: var(--color-border-focus);
+}
+
+.filter-dropdown-label {
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.filter-dropdown-text {
+  flex: 1;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-dropdown-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 var(--spacing-xs);
+  background: rgba(99, 150, 255, 0.2);
+  border: 1px solid rgba(99, 150, 255, 0.4);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Dropdown menu */
+.filter-dropdown-menu {
+  position: absolute;
+  top: calc(100% + var(--spacing-xs));
+  left: 0;
+  right: 0;
+  max-height: 20rem;
+  overflow-y: auto;
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 16px var(--color-shadow);
+  z-index: 100;
+  animation: dropdownOpen var(--transition-fast);
+}
+
+/* Dropdown option */
+.filter-dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  color: var(--color-text);
+}
+
+.filter-dropdown-option:hover {
+  background: var(--color-bg-glass-hover);
+}
+
+.filter-dropdown-option:focus {
+  background: var(--color-bg-glass-hover);
+  outline: none;
+}
+
+.filter-dropdown-option.selected {
+  background: var(--color-bg-glass-active);
+}
+
+/* Checkbox in dropdown option */
+.filter-dropdown-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  transition: all var(--transition-fast);
+}
+
+.filter-dropdown-checkbox.checked {
+  background: rgba(99, 150, 255, 0.3);
+  border-color: rgba(99, 150, 255, 0.6);
+  color: var(--color-text);
+}
+
+/* Empty state in dropdown */
+.filter-dropdown-empty {
+  padding: var(--spacing-md);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* ============================================================================
+ * Radix UI Select Styling (Project Filter)
+ * ============================================================================ */
+
+/* Select trigger */
+.filter-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.filter-select-trigger[data-state="open"] {
+  background: var(--color-bg-glass-active);
+  border-color: var(--color-border-focus);
+}
+
+/* Select content (portal) */
+.filter-select-content {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 16px var(--color-shadow);
+  overflow: hidden;
+  z-index: 100;
+  animation: dropdownOpen var(--transition-fast);
+}
+
+/* Select viewport */
+.filter-select-viewport {
+  padding: var(--spacing-xs);
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
+/* Select item */
+.filter-select-item {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text);
+  outline: none;
+  transition: background var(--transition-fast);
+}
+
+.filter-select-item:hover,
+.filter-select-item[data-highlighted] {
+  background: var(--color-bg-glass-hover);
+}
+
+.filter-select-item[data-state="checked"] {
+  background: var(--color-bg-glass-active);
+  font-weight: 500;
+}
+
+/* ============================================================================
+ * Tags Filter Component
+ * ============================================================================ */
+
+/* Tags control (takes more space) */
+.filter-tags-control {
+  flex: 2;
+  min-width: 15rem;
+}
+
+.filter-tags-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* Selected tags chips */
+.filter-tags-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+/* Tags input wrapper */
+.filter-tags-input-wrapper {
+  position: relative;
+}
+
+/* Tags suggestions dropdown */
+.filter-tags-suggestions {
+  /* Uses .filter-dropdown-menu styles */
+}
+
+/* ============================================================================
+ * Document Catalog
+ * ============================================================================ */
+
+/* Catalog Container */
+.viewer-catalog {
+  padding: 0;
+  overflow: hidden;
+}
+
+.viewer-catalog-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Catalog Table */
+.viewer-catalog-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+/* Table Header */
+.viewer-catalog-header {
+  background: var(--color-bg-glass-active);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.viewer-catalog-header-cell {
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.viewer-catalog-header-cell.sortable {
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.viewer-catalog-header-cell.sortable:hover {
+  background: var(--color-bg-glass-hover);
+}
+
+.viewer-catalog-header-cell .header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.viewer-catalog-header-cell .sort-indicator {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast);
+}
+
+/* Project Group Row */
+.viewer-project-group {
+  background: var(--color-bg-glass-hover);
+  border-top: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.viewer-project-group:hover {
+  background: var(--color-bg-glass-active);
+}
+
+.viewer-project-group:focus-visible {
+  outline: 3px solid rgba(99, 150, 255, 0.9);
+  outline-offset: -3px;
+}
+
+.viewer-project-header {
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.project-header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.project-chevron {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  width: 1rem;
+  display: inline-block;
+  transition: transform var(--transition-fast);
+}
+
+.project-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  flex: 1;
+}
+
+.project-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 var(--spacing-sm);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--color-bg-glass-active);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text);
+}
+
+/* Document Row */
+.viewer-document-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.viewer-document-row:hover {
+  background: var(--color-bg-glass-hover);
+}
+
+.viewer-document-row:focus-visible {
+  outline: 3px solid rgba(99, 150, 255, 0.9);
+  outline-offset: -3px;
+}
+
+.viewer-document-row.expanded {
+  background: var(--color-bg-glass-active);
+}
+
+.viewer-document-cell {
+  padding: var(--spacing-md) var(--spacing-lg);
+  vertical-align: middle;
+}
+
+/* Expand Button Cell */
+.viewer-expand-cell {
+  width: 3rem;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.viewer-expand-button {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.viewer-expand-button:hover {
+  background: var(--color-bg-glass-active);
+  color: var(--color-text);
+}
+
+.viewer-expand-button:focus-visible {
+  outline: 2px solid rgba(99, 150, 255, 0.9);
+  outline-offset: 2px;
+}
+
+.expand-icon {
+  font-size: 0.75rem;
+  transition: transform var(--transition-fast);
+}
+
+/* Document ID Code */
+.doc-id-code {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 0.8125rem;
+  background: var(--color-bg-glass-active);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+/* Title Cell */
+.viewer-title-cell {
+  max-width: 20rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Count Cell */
+.viewer-count-cell {
+  text-align: center;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* Date Cell */
+.viewer-date-cell {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* Tags Cell */
+.viewer-tags-cell {
+  min-width: 8rem;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.tags-placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Detail Row */
+.viewer-detail-row {
+  background: rgba(0, 0, 0, 0.2);
+  animation: expandRow var(--transition-normal) ease-out;
+}
+
+@keyframes expandRow {
+  from {
+    opacity: 0;
+    transform: scaleY(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.viewer-detail-cell {
+  padding: 0;
+}
+
+.viewer-detail-content {
+  padding: var(--spacing-lg);
+  animation: fadeIn var(--transition-normal);
+}
+
+.detail-placeholder {
+  padding: var(--spacing-lg);
+  text-align: center;
+}
+
+.detail-placeholder p {
+  margin: var(--spacing-sm) 0;
+  color: var(--color-text-muted);
+}
+
+/* Empty State */
+.viewer-catalog-empty {
+  padding: var(--spacing-xl);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .viewer-container {
@@ -115,5 +685,61 @@
 
   .viewer-header h2 {
     font-size: 1.5rem;
+  }
+
+  /* Stack filter controls vertically on mobile */
+  .viewer-filters-row {
+    flex-direction: column;
+  }
+
+  .filter-control {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .filter-tags-control {
+    width: 100%;
+    min-width: auto;
+  }
+
+  /* Stack actions vertically */
+  .viewer-filters-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .viewer-filters-result-count {
+    justify-content: center;
+  }
+
+  .viewer-filters-badges {
+    justify-content: center;
+  }
+
+  .viewer-catalog-table-wrapper {
+    overflow-x: scroll;
+  }
+
+  .viewer-catalog-header-cell,
+  .viewer-document-cell {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .viewer-title-cell {
+    max-width: 12rem;
+  }
+}
+
+/* Accessibility: Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .viewer-document-row,
+  .viewer-project-group,
+  .expand-icon,
+  .project-chevron {
+    transition: none;
+  }
+
+  .viewer-detail-row {
+    animation: none;
   }
 }
