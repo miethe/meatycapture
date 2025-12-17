@@ -363,3 +363,24 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
      - Added "Filter all" button to second row
 - **Commit(s)**: 2218fe3
 - **Status**: RESOLVED
+
+---
+
+### Project Data Wiped on App Restart
+
+**Issue**: When restarting the app instance (clicking "Done" after submission, or refreshing the page), project details appear to be wiped. Projects should persist across deployments based on localStorage.
+
+- **Location**: `src/adapters/browser-storage/ls-config-stores.ts:560-577`, `src/ui/wizard/ReviewStep.tsx:104`, `src/App.tsx`
+- **Root Cause**: Compound bug with three contributing factors:
+  1. **Non-singleton store instances**: Each call to `createBrowserProjectStore()` created a new `BrowserProjectStore` instance. No singleton pattern, no shared state between instances.
+  2. **React StrictMode double-invocation**: In development mode, React StrictMode intentionally double-invokes components and hooks, causing multiple store instances to be created.
+  3. **Hard page reload**: The "Done" button in `ReviewStep` used `window.location.reload()` which destroyed all JavaScript state and forced full app reinitialization with new store instances.
+  4. **Silent empty array return**: `readProjects()` returned `[]` on missing localStorage data without logging, making it impossible to distinguish between "no projects" and "data failed to load".
+- **Fix**:
+  1. Implemented singleton pattern for `BrowserProjectStore` and `BrowserFieldCatalogStore` - module-level instances ensure all code shares the same store
+  2. Replaced `window.location.reload()` in ReviewStep with state reset callback that clears wizard state without page reload
+  3. Added `handleWizardComplete` callback in WizardFlow that resets: selectedProject, selectedDocPath, draft, submitSuccess, batchingMode, completedSteps, currentStep
+  4. Added development-only console warnings when localStorage data is missing (gated by `import.meta.env.DEV`)
+  5. Added platform indicator badge in navbar showing current storage mode (API/Local/Browser) with color coding for visibility
+- **Commit(s)**: 21d337d
+- **Status**: RESOLVED
