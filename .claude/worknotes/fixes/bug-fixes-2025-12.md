@@ -384,3 +384,25 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   5. Added platform indicator badge in navbar showing current storage mode (API/Local/Browser) with color coding for visibility
 - **Commit(s)**: 21d337d
 - **Status**: RESOLVED
+
+---
+
+### Duplicate Project Name Prompt During Creation
+
+**Issue**: When adding a new project, the user is prompted to enter the project name twice - first in the dropdown's inline form, then again in the modal form.
+
+- **Location**: `src/ui/wizard/ProjectStep.tsx:69-77`
+- **Root Cause**: The `handleAddNew` callback was defined as `async () => { ... }` with no parameters, ignoring the name value passed from `DropdownWithAdd`. The `DropdownWithAdd` component correctly passes the entered value via `onAddNew(newValue.trim())` (line 90), but `ProjectStep` discarded it and reset form state to empty defaults.
+- **Fix**: Updated `handleAddNew` to accept the name parameter and pre-populate the modal form:
+  ```typescript
+  const handleAddNew = useCallback(async (name: string) => {
+    setIsModalOpen(true);
+    setFormData({
+      ...DEFAULT_FORM_STATE,
+      name: name,
+    });
+    // ...
+  }, []);
+  ```
+- **Commit(s)**: (pending)
+- **Status**: RESOLVED

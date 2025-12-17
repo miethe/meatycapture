@@ -66,9 +66,12 @@ export function ProjectStep({
     }));
 
   // Handle opening the "Add new" modal
-  const handleAddNew = useCallback(async () => {
+  const handleAddNew = useCallback(async (name: string) => {
     setIsModalOpen(true);
-    setFormData(DEFAULT_FORM_STATE);
+    setFormData({
+      ...DEFAULT_FORM_STATE,
+      name: name,
+    });
     setFormErrors({});
     setCreateError(null);
   }, []);
