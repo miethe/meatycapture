@@ -13,6 +13,7 @@ export { PathField } from './PathField';
 export { Tooltip } from './Tooltip';
 export { FormField } from './FormField';
 export { useKeyboardShortcuts } from './useKeyboardShortcuts';
+export { useNavigationShortcuts } from './useNavigationShortcuts';
 export { useFocusTrap } from './useFocusTrap';
 export { Toast, ToastContainer } from './Toast';
 export { ToastProvider, useToast } from './useToast';

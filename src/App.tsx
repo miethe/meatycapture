@@ -3,18 +3,20 @@
  *
  * Main application shell with:
  * - Wizard capture flow
+ * - Viewer catalog interface
  * - Admin field management interface
  * - Store initialization and view routing
  */
 import { useState, useMemo } from 'react';
-import { ToastProvider, ToastContainer, useToast } from './ui/shared';
+import { ToastProvider, ToastContainer, useToast, useNavigationShortcuts } from './ui/shared';
 import { WizardFlow } from './ui/wizard';
 import { AdminContainer } from './ui/admin';
+import { ViewerContainer } from './ui/viewer';
 import { createProjectStore, createFieldCatalogStore } from './adapters/config-local/platform-factory';
 import { createDocStore } from './adapters/fs-local/platform-factory';
 import { realClock } from './adapters/clock';
 
-type View = 'wizard' | 'admin';
+type View = 'wizard' | 'viewer' | 'admin';
 
 function App() {
   return (
@@ -57,6 +59,9 @@ function initializeStores(): StoreResult {
 function AppContent() {
   const { toasts, dismissToast } = useToast();
   const [view, setView] = useState<View>('wizard');
+
+  // Enable keyboard shortcuts for navigation
+  useNavigationShortcuts({ onNavigate: setView });
 
   // Initialize stores once using useMemo to prevent recreation on re-renders
   // Error handling is done in initializeStores to avoid setState during render
@@ -111,6 +116,15 @@ function AppContent() {
             </button>
             <button
               type="button"
+              onClick={() => setView('viewer')}
+              className={`nav-button ${view === 'viewer' ? 'active' : ''}`}
+              aria-current={view === 'viewer' ? 'page' : undefined}
+              aria-label="Navigate to Viewer"
+            >
+              Viewer
+            </button>
+            <button
+              type="button"
               onClick={() => setView('admin')}
               className={`nav-button ${view === 'admin' ? 'active' : ''}`}
               aria-current={view === 'admin' ? 'page' : undefined}
@@ -128,6 +142,11 @@ function AppContent() {
               fieldCatalogStore={stores.fieldCatalogStore}
               docStore={stores.docStore}
               clock={stores.clock}
+            />
+          ) : view === 'viewer' ? (
+            <ViewerContainer
+              projectStore={stores.projectStore}
+              docStore={stores.docStore}
             />
           ) : (
             <AdminContainer
