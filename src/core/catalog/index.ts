@@ -7,15 +7,21 @@
  * - Type definitions for filtering and sorting catalog entries
  * - Type guards for runtime validation
  * - Factory functions for creating default values
+ * - Core utilities for aggregating documents across projects
  *
  * Usage:
  * ```typescript
- * import { FilterState, createEmptyFilter, isFilterEmpty } from '@core/catalog';
+ * import { FilterState, createEmptyFilter, isFilterEmpty, listAllDocuments } from '@core/catalog';
  *
+ * // Create empty filter
  * const filter = createEmptyFilter();
  * if (isFilterEmpty(filter)) {
  *   // No filters applied
  * }
+ *
+ * // List all documents across projects
+ * const entries = await listAllDocuments(projectStore, docStore);
+ * const filterOptions = extractFilterOptions(entries, projects);
  * ```
  */
 
@@ -43,3 +49,16 @@ export {
   createEmptyGroupedCatalog,
   createCatalogEntry,
 } from './types';
+
+export { listAllDocuments, extractFilterOptions, enrichWithProjectInfo } from './utils';
+
+export {
+  filterByProject,
+  filterByType,
+  filterByDomain,
+  filterByPriority,
+  filterByStatus,
+  filterByTags,
+  filterByText,
+  applyFilters,
+} from './filter';
