@@ -17,6 +17,8 @@
 import React, { useState } from 'react';
 import type { RequestLogDoc } from '@core/models';
 import { ItemCard } from './ItemCard';
+import { StatsCard } from './StatsCard';
+import { FileTextIcon, CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
 
 export interface DocumentDetailProps {
   /** Full document with all items */
@@ -71,16 +73,27 @@ export function DocumentDetail({
   };
 
   /**
-   * Format date for display
+   * Format date as short date (for stats cards)
    */
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatShortDate = (date: Date | string | undefined): string => {
+    if (!date) return 'Unknown';
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  /**
+   * Format date as relative time (for "Updated" stat)
+   */
+  const formatRelativeDate = (date: Date | string | undefined): string => {
+    if (!date) return 'Unknown';
+    const d = new Date(date);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return formatShortDate(d);
   };
 
   /**
@@ -128,22 +141,28 @@ export function DocumentDetail({
         </div>
 
         <h3 className="viewer-document-title">{document.title}</h3>
-
-        <div className="viewer-document-meta">
-          <div className="viewer-document-meta-item">
-            <span className="meta-label">Item Count</span>
-            <span className="meta-value">{document.item_count}</span>
-          </div>
-          <div className="viewer-document-meta-item">
-            <span className="meta-label">Updated</span>
-            <span className="meta-value">{formatDate(document.updated_at)}</span>
-          </div>
-          <div className="viewer-document-meta-item">
-            <span className="meta-label">Created</span>
-            <span className="meta-value">{formatDate(document.created_at)}</span>
-          </div>
-        </div>
       </div>
+
+      {/* Stats Section */}
+      <section className="detail-stats" aria-label="Document statistics">
+        <div className="stats-row">
+          <StatsCard
+            icon={<FileTextIcon />}
+            label="Item Count"
+            value={document.items?.length || document.item_count || 0}
+          />
+          <StatsCard
+            icon={<CalendarIcon />}
+            label="Updated"
+            value={formatRelativeDate(document.updated_at)}
+          />
+          <StatsCard
+            icon={<ClockIcon />}
+            label="Created"
+            value={formatShortDate(document.created_at)}
+          />
+        </div>
+      </section>
 
       {/* Document Tags */}
       {document.tags.length > 0 && (
@@ -159,63 +178,66 @@ export function DocumentDetail({
         </div>
       )}
 
-      {/* Items Index Summary (Collapsible) */}
-      <div className="viewer-items-index">
-        <button
-          type="button"
-          className="viewer-items-index-toggle"
-          onClick={handleToggleIndex}
-          aria-expanded={showItemsIndex}
-          aria-controls="items-index-list"
-        >
-          <span
-            className="viewer-index-chevron"
-            aria-hidden="true"
-            style={{
-              transform: showItemsIndex ? 'rotate(90deg)' : 'rotate(0deg)',
-            }}
+      {/* Items Section */}
+      <section className="detail-items" aria-label="Document items">
+        {/* Items Index Summary (Collapsible) */}
+        <div className="viewer-items-index">
+          <button
+            type="button"
+            className="viewer-items-index-toggle"
+            onClick={handleToggleIndex}
+            aria-expanded={showItemsIndex}
+            aria-controls="items-index-list"
           >
-            ▶
-          </span>
-          <span className="viewer-index-title">Items Index ({document.items_index.length})</span>
-        </button>
-
-        {showItemsIndex && (
-          <div
-            id="items-index-list"
-            className="viewer-items-index-list"
-            role="region"
-            aria-label="Items index"
-          >
-            {document.items_index.map((indexEntry) => (
-              <div key={indexEntry.id} className="viewer-index-entry">
-                <code className="viewer-index-id">{indexEntry.id}</code>
-                <span className="viewer-index-type type-badge">{indexEntry.type}</span>
-                <span className="viewer-index-title-text">{indexEntry.title}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Item Cards */}
-      <div className="viewer-items-list" role="list" aria-label="Request log items">
-        {document.items.length === 0 ? (
-          <div className="empty-state">
-            <span className="empty-state-icon" aria-hidden="true">
-              📄
+            <span
+              className="viewer-index-chevron"
+              aria-hidden="true"
+              style={{
+                transform: showItemsIndex ? 'rotate(90deg)' : 'rotate(0deg)',
+              }}
+            >
+              ▶
             </span>
-            <h3 className="empty-state-title">No Items</h3>
-            <p className="empty-state-description">This document has no items.</p>
-          </div>
-        ) : (
-          document.items.map((item) => (
-            <div key={item.id} role="listitem">
-              <ItemCard item={item} onCopyId={handleCopyItemId} />
+            <span className="viewer-index-title">Items Index ({document.items_index.length})</span>
+          </button>
+
+          {showItemsIndex && (
+            <div
+              id="items-index-list"
+              className="viewer-items-index-list"
+              role="region"
+              aria-label="Items index"
+            >
+              {document.items_index.map((indexEntry) => (
+                <div key={indexEntry.id} className="viewer-index-entry">
+                  <code className="viewer-index-id">{indexEntry.id}</code>
+                  <span className="viewer-index-type type-badge">{indexEntry.type}</span>
+                  <span className="viewer-index-title-text">{indexEntry.title}</span>
+                </div>
+              ))}
             </div>
-          ))
-        )}
-      </div>
+          )}
+        </div>
+
+        {/* Item Cards */}
+        <div className="viewer-items-list" role="list" aria-label="Request log items">
+          {document.items.length === 0 ? (
+            <div className="empty-state">
+              <span className="empty-state-icon" aria-hidden="true">
+                📄
+              </span>
+              <h3 className="empty-state-title">No Items</h3>
+              <p className="empty-state-description">This document has no items.</p>
+            </div>
+          ) : (
+            document.items.map((item) => (
+              <div key={item.id} role="listitem">
+                <ItemCard item={item} onCopyId={handleCopyItemId} />
+              </div>
+            ))
+          )}
+        </div>
+      </section>
     </div>
   );
 }

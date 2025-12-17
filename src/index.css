@@ -5,6 +5,7 @@
  */
 
 :root {
+  /* Base Colors */
   --color-primary: #2563eb;
   --color-secondary: #7c3aed;
   --color-background: #0f172a;
@@ -14,6 +15,48 @@
   --border-radius: 12px;
   --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   --backdrop-blur: blur(8px);
+
+  /* Icon Sizes */
+  --icon-xs: 12px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+
+  /* Icon Spacing */
+  --icon-gap: 0.5rem;
+  --icon-margin: 0.25rem;
+
+  /* Nav Pill Styling */
+  --nav-pill-radius: 9999px;
+  --nav-pill-padding-x: 1.25rem;
+  --nav-pill-padding-y: 0.625rem;
+  --nav-pill-gap: 0.75rem;
+
+  /* Nav Pill Glass Effect */
+  --nav-pill-glass-bg: rgba(30, 41, 59, 0.7);
+  --nav-pill-glass-border: rgba(255, 255, 255, 0.08);
+  --nav-pill-active-glow: 0 0 20px rgba(37, 99, 235, 0.3);
+
+  /* Card Stats */
+  --stats-card-padding: 1rem;
+  --stats-card-gap: 0.75rem;
+  --stats-value-size: 1.5rem;
+  --stats-label-size: 0.75rem;
+
+  /* Card Glass Effects */
+  --card-glass-bg: rgba(30, 41, 59, 0.6);
+  --card-glass-border: rgba(255, 255, 255, 0.1);
+  --card-hover-bg: rgba(37, 99, 235, 0.08);
+  --card-focus-ring: 0 0 0 2px rgba(37, 99, 235, 0.4);
+
+  /* Filter Section Glass Effects */
+  --filter-glass-bg: rgba(30, 41, 59, 0.5);
+  --filter-input-bg: rgba(15, 23, 42, 0.6);
+
+  /* Interactive State Colors */
+  --color-active-bg: var(--color-primary);
+  --color-inactive-bg: rgba(30, 41, 59, 0.6);
+  --color-hover-bg: rgba(37, 99, 235, 0.15);
 }
 
 * {
@@ -86,31 +129,54 @@ code {
   outline-offset: 2px;
 }
 
+/* Header Layout */
+.header-brand {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.header-nav-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
 /* App navigation */
 .app-nav {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
+  gap: var(--nav-pill-gap);
   justify-content: center;
+  align-items: center;
 }
 
 .nav-button {
-  background: var(--color-surface);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--icon-gap);
+  background: var(--nav-pill-glass-bg);
   color: var(--color-text-secondary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--border-radius);
-  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--nav-pill-glass-border);
+  border-radius: var(--nav-pill-radius);
+  padding: var(--nav-pill-padding-y) var(--nav-pill-padding-x);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   backdrop-filter: var(--backdrop-blur);
   -webkit-backdrop-filter: var(--backdrop-blur);
-  box-shadow: var(--shadow-glass);
+  /* Ensure minimum touch target size (44x44px) */
+  min-height: 44px;
+}
+
+.nav-icon {
+  width: var(--icon-md);
+  height: var(--icon-md);
+  flex-shrink: 0;
 }
 
 .nav-button:hover {
-  background: rgba(37, 99, 235, 0.1);
+  background: var(--color-hover-bg);
   color: var(--color-text);
   border-color: rgba(37, 99, 235, 0.3);
   transform: translateY(-1px);
@@ -121,9 +187,10 @@ code {
 }
 
 .nav-button.active {
-  background: var(--color-primary);
+  background: var(--color-active-bg);
   color: white;
   border-color: var(--color-primary);
+  box-shadow: var(--nav-pill-active-glow);
 }
 
 .nav-button.active:hover {
@@ -131,10 +198,64 @@ code {
   border-color: #1d4ed8;
 }
 
+.nav-button.active .nav-icon {
+  color: white;
+}
+
+/* Enhanced focus indicators for navigation buttons */
+.nav-button:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.4);
+}
+
+/* Profile Button */
+.profile-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Ensure minimum touch target size (44x44px) */
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  background: var(--nav-pill-glass-bg);
+  border: 1px solid var(--nav-pill-glass-border);
+  border-radius: 50%;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+}
+
+.profile-button:hover {
+  background: var(--color-hover-bg);
+  color: var(--color-text);
+  border-color: rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.profile-button:active {
+  transform: translateY(0);
+}
+
+.profile-button svg {
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+
+/* Enhanced focus indicator for profile button */
+.profile-button:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.4);
+}
+
 /* Error panel for platform compatibility issues */
 .error-panel {
-  background: var(--color-surface);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--card-glass-bg);
+  border: 1px solid var(--card-glass-border);
   border-radius: var(--border-radius);
   padding: 2rem;
   max-width: 600px;
@@ -179,4 +300,19 @@ code {
   font-size: 0.9em;
   color: var(--color-text);
   font-weight: 500;
+}
+
+/* Reduced motion support for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .nav-button,
+  .profile-button {
+    transition: none;
+  }
+
+  .nav-button:hover,
+  .nav-button:active,
+  .profile-button:hover,
+  .profile-button:active {
+    transform: none;
+  }
 }

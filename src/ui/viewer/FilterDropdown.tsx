@@ -6,7 +6,7 @@
  * Shows selected count badge when selections are made.
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, type ReactNode } from 'react';
 import './viewer.css';
 
 export interface FilterDropdownProps {
@@ -22,6 +22,8 @@ export interface FilterDropdownProps {
   placeholder?: string;
   /** Whether the dropdown is disabled */
   disabled?: boolean;
+  /** Optional icon to display before the label */
+  icon?: ReactNode;
 }
 
 /**
@@ -47,6 +49,7 @@ export function FilterDropdown({
   onChange,
   placeholder = 'Select...',
   disabled = false,
+  icon,
 }: FilterDropdownProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -128,6 +131,7 @@ export function FilterDropdown({
         aria-haspopup="listbox"
         aria-label={`${label} filter`}
       >
+        {icon && <span className="filter-icon" aria-hidden="true">{icon}</span>}
         <span className="filter-dropdown-label">{label}:</span>
         <span className="filter-dropdown-text">{getButtonText()}</span>
         {selected.length > 0 && <span className="filter-dropdown-badge">{selected.length}</span>}

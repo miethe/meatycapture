@@ -105,19 +105,22 @@
  * Document Filters
  * ============================================================================ */
 
-/* Main filters container */
+/* Main filters container - glass morphism card with refined spacing */
 .viewer-filters {
   padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  background: var(--filter-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
-/* Filter controls row - horizontal layout */
+/* Filter controls row - horizontal layout with even 0.75rem spacing */
 .viewer-filters-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-md);
+  gap: 0.75rem;
   align-items: flex-start;
 }
 
@@ -127,9 +130,27 @@
   min-width: 10rem;
 }
 
-/* Text search input */
+/* Text search input - prominent with refined styling */
 .viewer-filters-search {
   width: 100%;
+  padding: 0.625rem 1rem;
+  background: var(--filter-input-bg);
+  border: 1px solid var(--card-glass-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.viewer-filters-search:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1), 0 0 12px rgba(99, 150, 255, 0.3);
+}
+
+.viewer-filters-search::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
 }
 
 /* Actions row - result count, badges, clear button */
@@ -189,6 +210,77 @@
 }
 
 /* ============================================================================
+ * Primary Filter Button (Accent Color)
+ * ============================================================================ */
+
+/* Primary Filter Button - Accent colored action button */
+.filter-button-primary,
+.btn-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--icon-gap);
+  padding: 0.5rem 1rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-button-primary:hover,
+.btn-filter:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.filter-button-primary:active,
+.btn-filter:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.filter-button-primary:focus-visible,
+.btn-filter:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.5);
+  outline-offset: 2px;
+}
+
+/* Secondary/Ghost Filter Button (for "Clear All" and "Filter all") */
+.filter-button-secondary,
+.btn-filter-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--icon-gap);
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--card-glass-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-button-secondary:hover,
+.btn-filter-secondary:hover {
+  background: var(--color-hover-bg);
+  color: var(--color-text);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.filter-button-secondary:focus-visible,
+.btn-filter-secondary:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.5);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
  * Filter Dropdown Component
  * ============================================================================ */
 
@@ -198,15 +290,40 @@
   width: 100%;
 }
 
-/* Dropdown trigger button */
+/* Dropdown trigger button - refined with consistent sizing and spacing */
 .filter-dropdown-trigger {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--icon-gap);
   justify-content: space-between;
   text-align: left;
   cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  background: var(--filter-input-bg);
+  border: 1px solid var(--card-glass-border);
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.filter-dropdown-trigger:hover {
+  background: var(--color-hover-bg);
+  border-color: rgba(37, 99, 235, 0.3);
+  color: var(--color-text);
+}
+
+/* Filter icon */
+.filter-icon {
+  width: var(--icon-sm, 1rem);
+  height: var(--icon-sm, 1rem);
+  opacity: 0.7;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .filter-dropdown-trigger[aria-expanded="true"] {
@@ -318,18 +435,46 @@
  * Radix UI Select Styling (Project Filter)
  * ============================================================================ */
 
-/* Select trigger */
+/* Select trigger - matches filter dropdown style with refined spacing */
 .filter-select-trigger {
   width: 100%;
   display: flex;
   align-items: center;
+  gap: var(--icon-gap);
   justify-content: space-between;
   cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  background: var(--filter-input-bg);
+  border: 1px solid var(--card-glass-border);
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.filter-select-trigger:hover {
+  background: var(--color-hover-bg);
+  border-color: rgba(37, 99, 235, 0.3);
+  color: var(--color-text);
+}
+
+/* Filter chevron icon for Radix Select */
+.filter-chevron {
+  width: var(--icon-sm, 1rem);
+  height: var(--icon-sm, 1rem);
+  opacity: 0.7;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
 }
 
 .filter-select-trigger[data-state="open"] {
   background: var(--color-bg-glass-active);
   border-color: var(--color-border-focus);
+}
+
+.filter-select-trigger[data-state="open"] .filter-chevron {
+  transform: rotate(180deg);
 }
 
 /* Select content (portal) */
@@ -630,6 +775,125 @@
   font-style: italic;
 }
 
+/* Metadata Cell - Consolidated inline metadata display */
+.viewer-metadata-cell {
+  min-width: 20rem;
+  text-align: right;
+}
+
+/* Document Row Metadata - Inline display of item count, date, tags */
+.doc-row-metadata {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.doc-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.doc-meta-icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.doc-meta-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+/* Document Row Tags - Inline tag chips */
+.doc-row-tags {
+  display: flex;
+  gap: 0.375rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.doc-tag-chip {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background: rgba(37, 99, 235, 0.15);
+  color: var(--color-primary);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.doc-tag-more {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Expand/Collapse Chevron */
+.doc-row-chevron {
+  width: var(--icon-md);
+  height: var(--icon-md);
+  color: var(--color-text-secondary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.doc-row-chevron.expanded {
+  transform: rotate(180deg);
+}
+
+/* Document Row Actions - Container for action buttons */
+.doc-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+/* Three-Dot Menu Button */
+.doc-row-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+/* Show on row hover */
+.viewer-document-row:hover .doc-row-menu-btn,
+.doc-row-menu-btn:focus {
+  opacity: 1;
+}
+
+.doc-row-menu-btn:hover {
+  background: var(--color-hover-bg);
+  color: var(--color-text);
+}
+
+.doc-row-menu-btn:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.doc-row-menu-btn svg {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+
 /* Detail Row - Uses custom 300ms timing for smooth expand/collapse feel */
 .viewer-detail-row {
   background: rgba(0, 0, 0, 0.25);
@@ -692,9 +956,18 @@
   .viewer-expand-button,
   .viewer-copy-button,
   .filter-dropdown-trigger,
-  .viewer-items-index-toggle {
+  .filter-select-trigger,
+  .viewer-items-index-toggle,
+  .filter-button-primary,
+  .filter-button-secondary,
+  .doc-row-menu-btn {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Always show menu button on mobile for touch access */
+  .doc-row-menu-btn {
+    opacity: 1;
   }
 
   /* Stack filter controls vertically on mobile */
@@ -705,6 +978,11 @@
   .filter-control {
     width: 100%;
     min-width: auto;
+  }
+
+  .filter-dropdown-trigger,
+  .filter-select-trigger {
+    width: 100%;
   }
 
   .filter-tags-control {
@@ -738,6 +1016,21 @@
   .viewer-title-cell {
     max-width: 12rem;
   }
+
+  /* Stack metadata vertically on mobile */
+  .viewer-metadata-cell {
+    min-width: auto;
+  }
+
+  .doc-row-metadata {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .doc-row-tags {
+    width: 100%;
+  }
 }
 
 /* ============================================================================
@@ -757,8 +1050,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--spacing-md);
 }
 
 .viewer-document-id-row {
@@ -827,6 +1119,20 @@
   color: var(--color-success);
   font-weight: 500;
   animation: fadeIn var(--transition-fast);
+}
+
+/* Stats Section */
+.detail-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Items Section */
+.detail-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }
 
 /* Document Tags */
@@ -945,6 +1251,98 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+}
+
+/* ============================================================================
+ * Stats Card Component
+ * ============================================================================ */
+
+/* Stats Card - displays a single statistic with icon, label, and value */
+.stats-card {
+  display: flex;
+  align-items: center;
+  gap: var(--stats-card-gap);
+  padding: var(--stats-card-padding);
+  background: var(--card-glass-bg);
+  border: 1px solid var(--card-glass-border);
+  border-radius: var(--border-radius);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  transition: all var(--transition-fast);
+}
+
+.stats-card:hover {
+  background: var(--card-hover-bg);
+  border-color: var(--card-glass-border);
+}
+
+.stats-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: rgba(37, 99, 235, 0.1);
+  border-radius: 8px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.stats-icon svg {
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+
+.stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.stats-label {
+  font-size: var(--stats-label-size);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-value {
+  font-size: var(--stats-value-size);
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Stats Row - container for multiple stats cards */
+.stats-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.stats-row .stats-card {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Responsive design for stats cards */
+@media (max-width: 640px) {
+  .stats-row {
+    flex-direction: column;
+  }
+
+  .stats-row .stats-card {
+    width: 100%;
+    min-width: auto;
+  }
 }
 
 /* ============================================================================
@@ -1340,11 +1738,15 @@
   .expand-icon,
   .project-chevron,
   .viewer-index-chevron,
+  .doc-row-chevron,
   .viewer-expand-button,
   .viewer-copy-button,
   .filter-dropdown-trigger,
+  .filter-select-trigger,
   .filter-dropdown-option,
-  .viewer-items-index-toggle {
+  .viewer-items-index-toggle,
+  .filter-button-primary,
+  .filter-button-secondary {
     transition: none;
   }
 

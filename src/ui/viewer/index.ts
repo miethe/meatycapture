@@ -69,6 +69,7 @@ export { DocumentDetail } from './DocumentDetail';
 // Item and content components
 export { ItemCard } from './ItemCard';
 export { MarkdownRenderer } from './MarkdownRenderer';
+export { StatsCard } from './StatsCard';
 
 // Main component props and state
 export type { ViewerContainerProps, ViewerState } from './types';
@@ -80,6 +81,7 @@ export type { FilterBadgeProps } from './FilterBadge';
 export type { DocumentDetailProps } from './DocumentDetail';
 export type { ItemCardProps } from './ItemCard';
 export type { MarkdownRendererProps } from './MarkdownRenderer';
+export type { StatsCardProps } from './StatsCard';
 
 // Re-export core types for external use
 export type {

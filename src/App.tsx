@@ -8,6 +8,7 @@
  * - Store initialization and view routing
  */
 import { useState, useMemo } from 'react';
+import { Pencil2Icon, EyeOpenIcon, GearIcon, PersonIcon } from '@radix-ui/react-icons';
 import { ToastProvider, ToastContainer, useToast, useNavigationShortcuts } from './ui/shared';
 import { WizardFlow } from './ui/wizard';
 import { AdminContainer } from './ui/admin';
@@ -101,38 +102,56 @@ function AppContent() {
       </a>
       <div className="app">
         <header>
-          <h1>MeatyCapture</h1>
-          <p>Lightweight capture app for request logs</p>
+          <div className="header-brand">
+            <h1>MeatyCapture</h1>
+            <p>Lightweight capture app for request logs</p>
+          </div>
 
-          <nav aria-label="Main navigation" className="app-nav">
-            <button
-              type="button"
-              onClick={() => setView('wizard')}
-              className={`nav-button ${view === 'wizard' ? 'active' : ''}`}
-              aria-current={view === 'wizard' ? 'page' : undefined}
-              aria-label="Capture items"
-            >
-              Capture
-            </button>
-            <button
-              type="button"
-              onClick={() => setView('viewer')}
-              className={`nav-button ${view === 'viewer' ? 'active' : ''}`}
-              aria-current={view === 'viewer' ? 'page' : undefined}
-              aria-label="Navigate to Viewer"
-            >
-              Viewer
-            </button>
-            <button
-              type="button"
-              onClick={() => setView('admin')}
-              className={`nav-button ${view === 'admin' ? 'active' : ''}`}
-              aria-current={view === 'admin' ? 'page' : undefined}
-              aria-label="Manage field options"
-            >
-              Admin
-            </button>
-          </nav>
+          <div className="header-nav-row">
+            <nav aria-label="Main navigation" className="app-nav">
+              <button
+                type="button"
+                onClick={() => setView('wizard')}
+                className={`nav-button ${view === 'wizard' ? 'active' : ''}`}
+                aria-current={view === 'wizard' ? 'page' : undefined}
+                aria-label="Capture items"
+              >
+                <Pencil2Icon className="nav-icon" aria-hidden="true" />
+                <span>Capture</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setView('viewer')}
+                className={`nav-button ${view === 'viewer' ? 'active' : ''}`}
+                aria-current={view === 'viewer' ? 'page' : undefined}
+                aria-label="Navigate to Viewer"
+              >
+                <EyeOpenIcon className="nav-icon" aria-hidden="true" />
+                <span>Viewer</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setView('admin')}
+                className={`nav-button ${view === 'admin' ? 'active' : ''}`}
+                aria-current={view === 'admin' ? 'page' : undefined}
+                aria-label="Manage field options"
+              >
+                <GearIcon className="nav-icon" aria-hidden="true" />
+                <span>Admin</span>
+              </button>
+            </nav>
+
+            <div className="header-profile">
+              <button
+                type="button"
+                className="profile-button"
+                aria-label="User profile"
+                title="User Profile"
+              >
+                <PersonIcon aria-hidden="true" />
+              </button>
+            </div>
+          </div>
         </header>
 
         <main id="main-content">

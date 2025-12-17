@@ -14,6 +14,7 @@
  */
 
 import React from 'react';
+import { FileTextIcon, CalendarIcon, ChevronDownIcon, DotsVerticalIcon } from '@radix-ui/react-icons';
 import type { CatalogEntry } from '@core/catalog';
 import type { RequestLogDoc } from '@core/models';
 import { DocumentDetail } from './DocumentDetail';
@@ -70,6 +71,16 @@ export const DocumentRow = React.memo(function DocumentRow({
   };
 
   /**
+   * Handle menu button click
+   * Prevents row expansion and shows placeholder console log
+   */
+  const handleMenuClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    // Placeholder - menu will be added later
+    console.log('Menu clicked for:', entry.doc_id);
+  };
+
+  /**
    * Handle keyboard navigation
    * Enter key expands/collapses row
    */
@@ -109,7 +120,7 @@ export const DocumentRow = React.memo(function DocumentRow({
         tabIndex={0}
         role="row"
         aria-expanded={isExpanded}
-        aria-label={`Document ${entry.doc_id}: ${entry.title}`}
+        aria-label={`Document ${entry.doc_id}: ${entry.title}, ${entry.item_count} items, updated ${formatDate(entry.updated_at)}`}
       >
         {/* Expand/Collapse Button */}
         <td className="viewer-document-cell viewer-expand-cell" role="cell">
@@ -126,9 +137,10 @@ export const DocumentRow = React.memo(function DocumentRow({
             {isLoading ? (
               <span className="spinner" aria-label="Loading document" />
             ) : (
-              <span className="expand-icon" aria-hidden="true">
-                {isExpanded ? '▼' : '▶'}
-              </span>
+              <ChevronDownIcon
+                className={`doc-row-chevron ${isExpanded ? 'expanded' : ''}`}
+                aria-hidden="true"
+              />
             )}
           </button>
         </td>
@@ -143,23 +155,42 @@ export const DocumentRow = React.memo(function DocumentRow({
           {entry.title}
         </td>
 
-        {/* Item Count */}
-        <td className="viewer-document-cell viewer-count-cell" role="cell">
-          {entry.item_count}
-        </td>
-
-        {/* Updated Date */}
-        <td className="viewer-document-cell viewer-date-cell" role="cell">
-          <time dateTime={entry.updated_at.toISOString()}>
-            {formatDate(entry.updated_at)}
-          </time>
-        </td>
-
-        {/* Tags */}
-        <td className="viewer-document-cell viewer-tags-cell" role="cell">
-          {/* Tags will be loaded from full document, placeholder for now */}
-          <div className="tags-container">
-            <span className="tags-placeholder">—</span>
+        {/* Inline Metadata Display */}
+        <td className="viewer-document-cell viewer-metadata-cell" role="cell">
+          <div className="doc-row-metadata">
+            <span className="doc-meta-item">
+              <FileTextIcon className="doc-meta-icon" aria-hidden="true" />
+              <span className="doc-meta-value">{entry.item_count}</span>
+            </span>
+            <span className="doc-meta-item">
+              <CalendarIcon className="doc-meta-icon" aria-hidden="true" />
+              <time className="doc-meta-value" dateTime={entry.updated_at.toISOString()}>
+                {formatDate(entry.updated_at)}
+              </time>
+            </span>
+            {document && document.tags && document.tags.length > 0 && (
+              <div className="doc-row-tags">
+                {document.tags.slice(0, 3).map((tag) => (
+                  <span key={tag} className="doc-tag-chip">
+                    {tag}
+                  </span>
+                ))}
+                {document.tags.length > 3 && (
+                  <span className="doc-tag-more">+{document.tags.length - 3}</span>
+                )}
+              </div>
+            )}
+            <div className="doc-row-actions">
+              <button
+                type="button"
+                className="doc-row-menu-btn"
+                onClick={handleMenuClick}
+                aria-label="More actions"
+                title="More actions"
+              >
+                <DotsVerticalIcon aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </td>
       </tr>
@@ -167,7 +198,7 @@ export const DocumentRow = React.memo(function DocumentRow({
       {/* Expanded Detail Row */}
       {isExpanded && (
         <tr className="viewer-detail-row" role="row">
-          <td colSpan={6} className="viewer-detail-cell" role="cell">
+          <td colSpan={4} className="viewer-detail-cell" role="cell">
             <div className="viewer-detail-content">
               {document ? (
                 <DocumentDetail document={document} isLoading={isLoading} />

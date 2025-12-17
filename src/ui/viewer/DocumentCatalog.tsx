@@ -118,19 +118,9 @@ export function DocumentCatalog({
         sortingFn: 'alphanumeric',
       },
       {
-        accessorKey: 'item_count',
-        header: 'Items',
-        sortingFn: 'basic',
-      },
-      {
-        accessorKey: 'updated_at',
-        header: 'Updated',
-        sortingFn: 'datetime',
-      },
-      {
-        id: 'tags',
-        header: 'Tags',
-        cell: () => null, // Rendered manually in DocumentRow
+        id: 'metadata',
+        header: 'Metadata',
+        cell: () => null, // Rendered manually in DocumentRow (includes item_count, updated_at, tags)
       },
     ],
     []
@@ -283,7 +273,7 @@ export function DocumentCatalog({
             <tr className="viewer-catalog-header" role="row">
               {table.getHeaderGroups().map((headerGroup) =>
                 headerGroup.headers.map((header) => {
-                  const isSortable = ['doc_id', 'title', 'item_count', 'updated_at'].includes(
+                  const isSortable = ['doc_id', 'title'].includes(
                     header.id
                   );
 

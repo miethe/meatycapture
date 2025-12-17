@@ -14,6 +14,14 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import * as Select from '@radix-ui/react-select';
+import {
+  GlobeIcon,
+  BadgeIcon,
+  LayersIcon,
+  BarChartIcon,
+  CircleIcon,
+  ChevronDownIcon,
+} from '@radix-ui/react-icons';
 import type { FilterState, FilterOptions } from '@core/catalog';
 import { FilterDropdown } from './FilterDropdown';
 import { FilterBadge } from './FilterBadge';
@@ -239,7 +247,11 @@ export function DocumentFilters({
         <div className="filter-control">
           <Select.Root value={filterState.project_id ?? ALL_PROJECTS_VALUE} onValueChange={handleProjectChange}>
             <Select.Trigger className="filter-select-trigger input-base select-base" aria-label="Project filter">
+              <span className="filter-icon" aria-hidden="true">
+                <GlobeIcon />
+              </span>
               <Select.Value placeholder="All Projects" />
+              <ChevronDownIcon className="filter-chevron" aria-hidden="true" />
             </Select.Trigger>
             <Select.Portal>
               <Select.Content className="filter-select-content" position="popper" sideOffset={4}>
@@ -260,6 +272,7 @@ export function DocumentFilters({
 
         {/* Type Multi-Select */}
         <FilterDropdown
+          icon={<BadgeIcon />}
           label="Type"
           options={filterOptions.types}
           selected={filterState.types}
@@ -269,6 +282,7 @@ export function DocumentFilters({
 
         {/* Domain Multi-Select */}
         <FilterDropdown
+          icon={<LayersIcon />}
           label="Domain"
           options={filterOptions.domains}
           selected={filterState.domains}
@@ -278,6 +292,7 @@ export function DocumentFilters({
 
         {/* Priority Multi-Select */}
         <FilterDropdown
+          icon={<BarChartIcon />}
           label="Priority"
           options={filterOptions.priorities}
           selected={filterState.priorities}
@@ -287,6 +302,7 @@ export function DocumentFilters({
 
         {/* Status Multi-Select */}
         <FilterDropdown
+          icon={<CircleIcon />}
           label="Status"
           options={filterOptions.statuses}
           selected={filterState.statuses}
@@ -419,7 +435,7 @@ export function DocumentFilters({
         {hasActiveFilters && (
           <button
             type="button"
-            className="button small secondary"
+            className="filter-button-secondary"
             onClick={onClearFilters}
             aria-label="Clear all filters"
           >
