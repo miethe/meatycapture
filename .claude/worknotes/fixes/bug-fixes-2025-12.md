@@ -335,3 +335,31 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   - In desktop mode: `~/projects/skillmeat` → `/Users/username/projects/skillmeat`
 - **Commit(s)**: 805282c
 - **Status**: RESOLVED
+
+---
+
+### UI Refresh Layout Doesn't Match Design Render
+
+**Issue**: The UI refresh implementation didn't match the design render (`viewer-render.png`). The navbar was vertically stacked instead of horizontally distributed, and filter dropdowns were wrapping to multiple rows instead of staying in a single horizontal row.
+
+- **Location**: `src/App.tsx:104-155`, `src/index.css:84-200`, `src/ui/viewer/DocumentFilters.tsx`, `src/ui/viewer/viewer.css:119-131`
+- **Root Cause**: Two layout issues:
+  1. **Navbar**: The `.app` class used `align-items: center; justify-content: center;` causing all content to be centered. The header had brand and nav-row stacked vertically with a wrapper div preventing proper `space-between` distribution.
+  2. **Filters**: The `.viewer-filters-row` used `flex-wrap: wrap` causing dropdowns to stack vertically on narrower viewports, and min-widths were too large to fit all 5 dropdowns.
+- **Fix**:
+  1. **Navbar layout** (`src/index.css`):
+     - Removed centering from `.app`, added `header` styles with `display: flex; justify-content: space-between` for Brand LEFT | Nav CENTER | Profile RIGHT
+     - Added `main` element styling with `flex: 1` to fill remaining height
+     - Updated `.header-brand` to `text-align: left` and hidden tagline
+  2. **Header structure** (`src/App.tsx`):
+     - Removed `.header-nav-row` wrapper - brand, nav, and profile are now direct children of header
+  3. **Filter layout** (`src/ui/viewer/viewer.css`):
+     - Changed `.viewer-filters-row` to `flex-wrap: nowrap` forcing single-line layout
+     - Reduced `.filter-control` min-width from 10rem to 7rem, added max-width 10rem
+     - Reduced dropdown trigger min-widths from 120px to 80px
+     - Added `overflow-x: auto` for horizontal scroll on very small viewports
+  4. **Filter structure** (`src/ui/viewer/DocumentFilters.tsx`):
+     - Added "Filter" accent button with `MixerVerticalIcon` to first row
+     - Added "Filter all" button to second row
+- **Commit(s)**: b20cbb2
+- **Status**: RESOLVED

@@ -119,15 +119,23 @@
 /* Filter controls row - horizontal layout with even 0.75rem spacing */
 .viewer-filters-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: flex-start;
+  flex-wrap: nowrap;  /* Force single line - NO WRAPPING */
+  gap: 0.5rem;
+  align-items: center;
+  overflow-x: auto;  /* Allow horizontal scroll on very small screens */
 }
 
 /* Individual filter control wrapper */
 .filter-control {
-  flex: 1;
-  min-width: 10rem;
+  flex: 1 1 0;  /* Equal flex distribution */
+  min-width: 7rem;  /* Reduced from 10rem to fit 5 dropdowns */
+  max-width: 10rem; /* Cap growth */
+}
+
+/* Filter row actions container (for Filter button, etc.) */
+.filter-row-actions {
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 /* Text search input - prominent with refined styling */
@@ -306,7 +314,8 @@
   color: var(--color-text-secondary);
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  min-width: 120px;
+  min-width: 80px;  /* Reduced from 120px */
+  max-width: 150px;
 }
 
 .filter-dropdown-trigger:hover {
@@ -450,7 +459,8 @@
   color: var(--color-text-secondary);
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  min-width: 120px;
+  min-width: 80px;  /* Reduced from 120px */
+  max-width: 150px;
 }
 
 .filter-select-trigger:hover {

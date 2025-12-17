@@ -21,6 +21,7 @@ import {
   BarChartIcon,
   CircleIcon,
   ChevronDownIcon,
+  MixerVerticalIcon,
 } from '@radix-ui/react-icons';
 import type { FilterState, FilterOptions } from '@core/catalog';
 import { FilterDropdown } from './FilterDropdown';
@@ -309,6 +310,22 @@ export function DocumentFilters({
           onChange={(values) => handleMultiSelectChange('statuses', values)}
           placeholder="All Statuses"
         />
+
+        {/* Filter Button */}
+        <div className="filter-row-actions">
+          <button
+            type="button"
+            className="filter-button-primary"
+            onClick={() => {
+              // Filter button is currently decorative - could trigger filter panel in future
+              console.log('Filter button clicked');
+            }}
+            aria-label="Filter options"
+          >
+            <MixerVerticalIcon aria-hidden="true" />
+            <span>Filter</span>
+          </button>
+        </div>
       </div>
 
       {/* Tags and Search Row */}
@@ -402,6 +419,21 @@ export function DocumentFilters({
             placeholder="Search documents..."
             aria-label="Text search"
           />
+        </div>
+
+        {/* Filter All Button */}
+        <div className="filter-row-actions">
+          <button
+            type="button"
+            className="filter-button-secondary"
+            onClick={() => {
+              // Could be used to show/hide filter panels or reset to default view
+              console.log('Filter all button clicked');
+            }}
+            aria-label="Filter all options"
+          >
+            Filter all
+          </button>
         </div>
       </div>
 
