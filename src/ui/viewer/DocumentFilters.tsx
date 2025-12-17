@@ -20,6 +20,9 @@ import { FilterBadge } from './FilterBadge';
 import { useDebounce } from '@ui/shared/hooks/useDebounce';
 import './viewer.css';
 
+// Sentinel value for "All Projects" option (Radix UI Select prohibits empty string)
+const ALL_PROJECTS_VALUE = '__all__';
+
 export interface DocumentFiltersProps {
   /** Current filter state */
   filterState: FilterState;
@@ -86,8 +89,8 @@ export function DocumentFilters({
   // Handle project selection
   const handleProjectChange = useCallback(
     (value: string) => {
-      // Empty string means "All Projects"
-      onFilterChange('project_id', value === '' ? undefined : value);
+      // Sentinel value means "All Projects"
+      onFilterChange('project_id', value === ALL_PROJECTS_VALUE ? undefined : value);
     },
     [onFilterChange]
   );
@@ -234,14 +237,14 @@ export function DocumentFilters({
       <div className="viewer-filters-row">
         {/* Project Selector (Radix UI Select) */}
         <div className="filter-control">
-          <Select.Root value={filterState.project_id || ''} onValueChange={handleProjectChange}>
+          <Select.Root value={filterState.project_id ?? ALL_PROJECTS_VALUE} onValueChange={handleProjectChange}>
             <Select.Trigger className="filter-select-trigger input-base select-base" aria-label="Project filter">
               <Select.Value placeholder="All Projects" />
             </Select.Trigger>
             <Select.Portal>
               <Select.Content className="filter-select-content" position="popper" sideOffset={4}>
                 <Select.Viewport className="filter-select-viewport">
-                  <Select.Item value="" className="filter-select-item">
+                  <Select.Item value={ALL_PROJECTS_VALUE} className="filter-select-item">
                     <Select.ItemText>All Projects</Select.ItemText>
                   </Select.Item>
                   {filterOptions.projects.map((project) => (
