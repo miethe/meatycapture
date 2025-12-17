@@ -23,9 +23,11 @@ export interface FilterBadgeProps {
  * Displays a single active filter as a removable chip.
  * Used to show current filter selections with ability to remove individual filters.
  *
+ * Memoized to prevent unnecessary re-renders when unrelated filters change.
+ *
  * @param props - FilterBadgeProps
  */
-export function FilterBadge({ label, value, onRemove }: FilterBadgeProps): React.JSX.Element {
+export const FilterBadge = React.memo(function FilterBadge({ label, value, onRemove }: FilterBadgeProps): React.JSX.Element {
   return (
     <div className="chip viewer-filter-badge" role="status" aria-label={`Active filter: ${label} is ${value}`}>
       <span className="viewer-filter-badge-label">{label}:</span>
@@ -40,6 +42,6 @@ export function FilterBadge({ label, value, onRemove }: FilterBadgeProps): React
       </button>
     </div>
   );
-}
+});
 
 export default FilterBadge;

@@ -17,6 +17,7 @@ import * as Select from '@radix-ui/react-select';
 import type { FilterState, FilterOptions } from '@core/catalog';
 import { FilterDropdown } from './FilterDropdown';
 import { FilterBadge } from './FilterBadge';
+import { useDebounce } from '@ui/shared/hooks/useDebounce';
 import './viewer.css';
 
 export interface DocumentFiltersProps {
@@ -64,24 +65,23 @@ export function DocumentFilters({
   resultCount,
   totalCount,
 }: DocumentFiltersProps): React.JSX.Element {
-  // Local state for debounced text search
+  // Local state for text search input
   const [textInput, setTextInput] = useState(filterState.text);
+
+  // Debounce text search (300ms)
+  const debouncedTextInput = useDebounce(textInput, 300);
 
   // Sync text input with filter state when it changes externally
   useEffect(() => {
     setTextInput(filterState.text);
   }, [filterState.text]);
 
-  // Debounce text search (300ms)
+  // Update filter state when debounced value changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (textInput !== filterState.text) {
-        onFilterChange('text', textInput);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [textInput, filterState.text, onFilterChange]);
+    if (debouncedTextInput !== filterState.text) {
+      onFilterChange('text', debouncedTextInput);
+    }
+  }, [debouncedTextInput, filterState.text, onFilterChange]);
 
   // Handle project selection
   const handleProjectChange = useCallback(

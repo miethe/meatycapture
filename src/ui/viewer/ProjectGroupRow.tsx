@@ -35,10 +35,13 @@ export interface ProjectGroupRowProps {
  * Header row for a project group in the catalog.
  * Allows collapsing/expanding the project's documents.
  *
+ * Memoized to prevent unnecessary re-renders when parent state changes
+ * but this component's props remain the same.
+ *
  * @param props - ProjectGroupRowProps
  * @returns ProjectGroupRow component
  */
-export function ProjectGroupRow({
+export const ProjectGroupRow = React.memo(function ProjectGroupRow({
   project,
   documentCount,
   isExpanded,
@@ -83,6 +86,6 @@ export function ProjectGroupRow({
       </td>
     </tr>
   );
-}
+});
 
 export default ProjectGroupRow;

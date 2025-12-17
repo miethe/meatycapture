@@ -29,6 +29,7 @@ import { listAllDocuments, extractFilterOptions } from '@core/catalog/utils';
 import type { ViewerContainerProps } from './types';
 import { DocumentCatalog } from './DocumentCatalog';
 import { DocumentFilters } from './DocumentFilters';
+import { useDocumentCache } from './hooks/useDocumentCache';
 import './viewer.css';
 
 /**
@@ -76,8 +77,8 @@ export function ViewerContainer({
     tags: [],
   });
 
-  /** Cache of full documents (path -> RequestLogDoc) */
-  const [documentCache, setDocumentCache] = useState<Map<string, RequestLogDoc>>(new Map());
+  /** Document cache hook for on-demand loading */
+  const documentCache = useDocumentCache();
 
   /** Expanded document paths (for detail view) */
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
@@ -141,10 +142,10 @@ export function ViewerContainer({
    * Clears document cache and expanded paths to force re-loading.
    */
   const handleRefresh = useCallback(() => {
-    setDocumentCache(new Map()); // Clear cache
+    documentCache.invalidate(); // Clear cache
     setExpandedPaths(new Set()); // Collapse all expanded rows
     loadCatalog();
-  }, [loadCatalog]);
+  }, [documentCache, loadCatalog]);
 
   // ============================================================================
   // Filter Management
@@ -218,7 +219,7 @@ export function ViewerContainer({
         const doc = await docStore.read(path);
 
         // Cache for future use
-        setDocumentCache((prev) => new Map(prev).set(path, doc));
+        documentCache.set(path, doc);
 
         return doc;
       } catch (err) {
@@ -337,7 +338,7 @@ export function ViewerContainer({
             onLoadDocument={handleLoadDocument}
             expandedPaths={expandedPaths}
             onToggleExpand={handleToggleExpand}
-            documentCache={documentCache}
+            documentCache={documentCache.cache}
           />
         </>
       )}

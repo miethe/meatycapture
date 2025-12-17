@@ -20,7 +20,7 @@
  * - Glass/x-morphism styling for visual consistency
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -185,8 +185,9 @@ export function DocumentCatalog({
 
   /**
    * Toggle project group expansion
+   * Wrapped in useCallback to prevent unnecessary re-renders of child components
    */
-  const handleToggleProject = (projectId: string) => {
+  const handleToggleProject = useCallback((projectId: string) => {
     setExpandedProjects((prev) => {
       const next = new Set(prev);
       if (next.has(projectId)) {
@@ -196,29 +197,33 @@ export function DocumentCatalog({
       }
       return next;
     });
-  };
+  }, []);
 
   /**
    * Load document data on demand
    * Sets loading state while fetching
+   * Wrapped in useCallback with proper dependencies
    */
-  const handleLoadDocument = async (path: string) => {
-    if (loadingPaths.has(path) || documentCache.has(path)) {
-      return;
-    }
+  const handleLoadDocument = useCallback(
+    async (path: string) => {
+      if (loadingPaths.has(path) || documentCache.has(path)) {
+        return;
+      }
 
-    setLoadingPaths((prev) => new Set(prev).add(path));
+      setLoadingPaths((prev) => new Set(prev).add(path));
 
-    try {
-      await onLoadDocument(path);
-    } finally {
-      setLoadingPaths((prev) => {
-        const next = new Set(prev);
-        next.delete(path);
-        return next;
-      });
-    }
-  };
+      try {
+        await onLoadDocument(path);
+      } finally {
+        setLoadingPaths((prev) => {
+          const next = new Set(prev);
+          next.delete(path);
+          return next;
+        });
+      }
+    },
+    [loadingPaths, documentCache, onLoadDocument]
+  );
 
   // ============================================================================
   // Render Helpers
@@ -226,18 +231,22 @@ export function DocumentCatalog({
 
   /**
    * Render sort indicator icon for column headers
+   * Wrapped in useCallback to prevent recreation on every render
    */
-  const renderSortIndicator = (columnId: string) => {
-    if (sort.field !== columnId) {
-      return null;
-    }
+  const renderSortIndicator = useCallback(
+    (columnId: string) => {
+      if (sort.field !== columnId) {
+        return null;
+      }
 
-    return (
-      <span className="sort-indicator" aria-label={`Sorted ${sort.order}ending`}>
-        {sort.order === 'asc' ? '↑' : '↓'}
-      </span>
-    );
-  };
+      return (
+        <span className="sort-indicator" aria-label={`Sorted ${sort.order}ending`}>
+          {sort.order === 'asc' ? '↑' : '↓'}
+        </span>
+      );
+    },
+    [sort.field, sort.order]
+  );
 
   // ============================================================================
   // Empty State

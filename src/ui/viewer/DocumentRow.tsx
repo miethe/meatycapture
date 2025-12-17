@@ -44,10 +44,13 @@ export interface DocumentRowProps {
  * Single row in the document catalog table.
  * Displays all document metadata and handles expansion.
  *
+ * Memoized to prevent unnecessary re-renders when parent state changes
+ * but this component's props remain the same.
+ *
  * @param props - DocumentRowProps
  * @returns DocumentRow component
  */
-export function DocumentRow({
+export const DocumentRow = React.memo(function DocumentRow({
   entry,
   isExpanded,
   onToggle,
@@ -183,6 +186,6 @@ export function DocumentRow({
       )}
     </>
   );
-}
+});
 
 export default DocumentRow;
