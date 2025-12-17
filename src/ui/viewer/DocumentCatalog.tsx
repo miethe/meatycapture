@@ -337,6 +337,7 @@ export function DocumentCatalog({
                         onToggle={() => onToggleExpand(entry.path)}
                         onLoadDocument={() => handleLoadDocument(entry.path)}
                         isLoading={loadingPaths.has(entry.path)}
+                        document={documentCache.get(entry.path) || null}
                       />
                     ))}
                 </React.Fragment>

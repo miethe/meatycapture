@@ -15,6 +15,8 @@
 
 import React from 'react';
 import type { CatalogEntry } from '@core/catalog';
+import type { RequestLogDoc } from '@core/models';
+import { DocumentDetail } from './DocumentDetail';
 
 export interface DocumentRowProps {
   /** Catalog entry metadata */
@@ -31,6 +33,9 @@ export interface DocumentRowProps {
 
   /** Loading state while fetching document */
   isLoading: boolean;
+
+  /** Full document data (cached) */
+  document: RequestLogDoc | null;
 }
 
 /**
@@ -48,6 +53,7 @@ export function DocumentRow({
   onToggle,
   onLoadDocument,
   isLoading,
+  document,
 }: DocumentRowProps): React.JSX.Element {
   /**
    * Handle row click for expansion
@@ -160,14 +166,17 @@ export function DocumentRow({
         <tr className="viewer-detail-row" role="row">
           <td colSpan={6} className="viewer-detail-cell" role="cell">
             <div className="viewer-detail-content">
-              {/* Placeholder for DocumentDetail component (TASK-2.5) */}
-              <div className="detail-placeholder glass">
-                <p>
-                  <strong>Document Detail View</strong>
-                </p>
-                <p>Path: {entry.path}</p>
-                <p>This will be replaced with DocumentDetail component in TASK-2.5</p>
-              </div>
+              {document ? (
+                <DocumentDetail document={document} isLoading={isLoading} />
+              ) : (
+                <div className="detail-placeholder glass">
+                  <p>
+                    <strong>Failed to load document</strong>
+                  </p>
+                  <p>Path: {entry.path}</p>
+                  <p>Document data could not be loaded. Check console for errors.</p>
+                </div>
+              )}
             </div>
           </td>
         </tr>
