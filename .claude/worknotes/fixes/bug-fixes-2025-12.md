@@ -361,5 +361,5 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   4. **Filter structure** (`src/ui/viewer/DocumentFilters.tsx`):
      - Added "Filter" accent button with `MixerVerticalIcon` to first row
      - Added "Filter all" button to second row
-- **Commit(s)**: b20cbb2
+- **Commit(s)**: 2218fe3
 - **Status**: RESOLVED
