@@ -1,0 +1,119 @@
+/**
+ * Viewer Styles
+ *
+ * Styles for the Request Log Viewer components.
+ * Uses glass/x-morphism aesthetic from shared.css.
+ */
+
+/* Main Container */
+.viewer-container {
+  width: 100%;
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Header */
+.viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.viewer-header h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* Loading State */
+.viewer-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+}
+
+/* Error State */
+.viewer-error {
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  text-align: center;
+}
+
+.viewer-error .error-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 32rem;
+}
+
+.viewer-error .error-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.viewer-error h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.viewer-error p {
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Placeholder Components (temporary) */
+.viewer-filters-placeholder,
+.viewer-catalog-placeholder {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.viewer-filters-placeholder h3,
+.viewer-catalog-placeholder h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.viewer-filters-placeholder p,
+.viewer-catalog-placeholder p {
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .viewer-container {
+    max-width: 100%;
+    padding: var(--spacing-lg);
+  }
+
+  .viewer-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .viewer-header h2 {
+    font-size: 1.5rem;
+  }
+}
