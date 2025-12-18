@@ -431,3 +431,18 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   **Example**: Project name "My Awesome Project" → default path `~/projects/my-awesome-project`
 - **Commit(s)**: 4b984ec
 - **Status**: RESOLVED
+
+### Tags Dropdown Transparency Too High
+
+**Issue**: When clicking on the Tags field to add tags, the dropdown multi-select menu appears with excessive transparency, making it very difficult for users to read the available options.
+
+- **Location**: `src/ui/shared/shared.css:458` (`.multiselect-options` class)
+- **Root Cause**: The dropdown used `--color-bg-glass` which is `rgba(255, 255, 255, 0.08)` - only 8% opacity. Combined with the backdrop blur, this created an overly transparent glass effect that sacrificed readability for aesthetics.
+- **Fix**: 
+  1. Added new CSS variable `--color-bg-dropdown: rgba(20, 20, 30, 0.92)` - a dark background with 92% opacity
+  2. Updated `.multiselect-options` to use `var(--color-bg-dropdown)` instead of `var(--color-bg-glass)`
+  3. Preserved the `backdrop-filter: blur(16px)` to maintain subtle glassmorphism effect
+  
+  The fix maintains the design aesthetic while ensuring WCAG-compliant contrast for text readability.
+- **Commit(s)**: c1613be
+- **Status**: RESOLVED
