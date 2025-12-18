@@ -406,3 +406,28 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   ```
 - **Commit(s)**: 11aae0e
 - **Status**: RESOLVED
+
+---
+
+### Default Path Not Auto-Populated During Project Creation
+
+**Issue**: When adding a new project, the Default Path field is empty and requires manual entry. Users expect an auto-generated path based on the project name.
+
+- **Location**: `src/ui/wizard/ProjectStep.tsx:70-82`, `src/core/validation/index.ts:301-338`
+- **Root Cause**: The project creation modal only pre-populated the name field, leaving default_path empty. No pattern-based path generation existed.
+- **Fix**: Implemented configurable default path generation with security:
+  1. Added `sanitizePathSegment()` function in `core/validation` with defense-in-depth security:
+     - Removes null bytes and control characters
+     - Strips path separators (`/`, `\`)
+     - Eliminates traversal patterns (`..`, `.`)
+     - Applies `slugify()` for final alphanumeric normalization
+  2. Added `generateDefaultProjectPath(pattern, projectName)` helper function
+  3. Updated `handleAddNew` in ProjectStep to generate default path from pattern
+  4. Added `MEATYCAPTURE_DEFAULT_PROJECT_PATH` env variable (default: `~/projects/{name}`)
+  5. Updated `docker-compose.yml` and `Dockerfile.web` for Docker builds
+
+  **Security**: Path sanitization prevents directory traversal attacks. Input like `../etc/passwd` becomes `etcpasswd` after sanitization.
+
+  **Example**: Project name "My Awesome Project" → default path `~/projects/my-awesome-project`
+- **Commit(s)**: (pending)
+- **Status**: RESOLVED

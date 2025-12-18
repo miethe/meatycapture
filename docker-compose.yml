@@ -42,6 +42,9 @@ services:
         # IMPORTANT: Must use HOST URL, not Docker service name, because
         # this is embedded in browser JS which runs on the user's machine
         MEATYCAPTURE_API_URL: ${MEATYCAPTURE_API_URL:-http://localhost:3737}
+        # Default path pattern for new projects (embedded at build time)
+        # Uses {name} placeholder which gets replaced with sanitized project name
+        MEATYCAPTURE_DEFAULT_PROJECT_PATH: ${MEATYCAPTURE_DEFAULT_PROJECT_PATH:-~/projects/{name}}
 
     # Image name for built container
     image: meatycapture-web:latest

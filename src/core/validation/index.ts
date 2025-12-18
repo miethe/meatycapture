@@ -277,6 +277,67 @@ export function slugify(text: string): string {
 }
 
 /**
+ * Sanitizes a string for safe use as a path segment.
+ *
+ * Builds on slugify() with additional security measures to prevent
+ * path traversal attacks and filesystem vulnerabilities.
+ *
+ * Security measures:
+ * - Removes path separators (/, \)
+ * - Removes path traversal patterns (.., .)
+ * - Removes null bytes and control characters
+ * - Only allows alphanumeric characters and hyphens
+ *
+ * @param text - The text to sanitize for path usage
+ * @returns A safe path segment, or empty string if input is invalid
+ *
+ * @example
+ * ```typescript
+ * sanitizePathSegment('My Project')        // 'my-project'
+ * sanitizePathSegment('../etc/passwd')     // 'etcpasswd'
+ * sanitizePathSegment('project/../../bad') // 'projectbad'
+ * ```
+ */
+export function sanitizePathSegment(text: string): string {
+  if (!text || typeof text !== 'string') {
+    return '';
+  }
+
+  // Remove null bytes and control characters first
+  let sanitized = text.replace(/[\x00-\x1f\x7f]/g, '');
+
+  // Remove path separators
+  sanitized = sanitized.replace(/[/\\]/g, '');
+
+  // Remove explicit traversal patterns
+  sanitized = sanitized.replace(/\.\./g, '').replace(/^\.$/, '');
+
+  // Apply slugify for final alphanumeric normalization
+  return slugify(sanitized);
+}
+
+/**
+ * Generates a default project path by substituting {name} placeholder.
+ *
+ * @param pattern - Path pattern with {name} placeholder (e.g., "~/projects/{name}")
+ * @param projectName - The project name to substitute (will be sanitized)
+ * @returns The generated path with sanitized project name
+ *
+ * @example
+ * ```typescript
+ * generateDefaultProjectPath('~/projects/{name}', 'My Project')
+ * // Returns: '~/projects/my-project'
+ * ```
+ */
+export function generateDefaultProjectPath(pattern: string, projectName: string): string {
+  const safeName = sanitizePathSegment(projectName);
+  if (!safeName) {
+    return pattern.replace('{name}', 'untitled');
+  }
+  return pattern.replace('{name}', safeName);
+}
+
+/**
  * Validates a document ID format.
  *
  * Checks if the ID matches the expected pattern: REQ-YYYYMMDD-<project-slug>

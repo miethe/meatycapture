@@ -7,6 +7,7 @@
 
 import React, { useState, useCallback } from 'react';
 import type { Project } from '../../core/models';
+import { generateDefaultProjectPath } from '../../core/validation';
 import { DropdownWithAdd } from '../shared/DropdownWithAdd';
 import { StepShell } from '../shared/StepShell';
 import { PathField } from '../shared/PathField';
@@ -67,10 +68,14 @@ export function ProjectStep({
 
   // Handle opening the "Add new" modal
   const handleAddNew = useCallback(async (name: string) => {
+    const pathPattern = import.meta.env.MEATYCAPTURE_DEFAULT_PROJECT_PATH || '~/projects/{name}';
+    const defaultPath = generateDefaultProjectPath(pathPattern, name);
+
     setIsModalOpen(true);
     setFormData({
       ...DEFAULT_FORM_STATE,
       name: name,
+      default_path: defaultPath,
     });
     setFormErrors({});
     setCreateError(null);

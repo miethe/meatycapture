@@ -7,6 +7,7 @@
 #
 # Build arguments:
 #   - MEATYCAPTURE_API_URL: Backend API URL (required, embedded at build time)
+#   - MEATYCAPTURE_DEFAULT_PROJECT_PATH: Default project path pattern (default: ~/projects/{name})
 #   - NODE_VERSION: Node.js version (default: 20)
 #
 # IMPORTANT: Vite embeds environment variables at BUILD time, not runtime.
@@ -66,6 +67,11 @@ COPY src ./src
 # This will be available to Vite as MEATYCAPTURE_API_URL at build time
 ARG MEATYCAPTURE_API_URL
 ENV MEATYCAPTURE_API_URL=${MEATYCAPTURE_API_URL}
+
+# Build argument for default project path pattern (optional)
+# Uses {name} placeholder which gets replaced with sanitized project name
+ARG MEATYCAPTURE_DEFAULT_PROJECT_PATH=~/projects/{name}
+ENV MEATYCAPTURE_DEFAULT_PROJECT_PATH=${MEATYCAPTURE_DEFAULT_PROJECT_PATH}
 
 # Validate that API URL is provided
 RUN if [ -z "$MEATYCAPTURE_API_URL" ]; then \
