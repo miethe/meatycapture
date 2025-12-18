@@ -469,3 +469,24 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   5. Added `.input-group` styles for visual field grouping
 - **Commit(s)**: 1f9bf1c
 - **Status**: RESOLVED
+
+### Tooltip Visibility and Form Styling Issues
+
+**Issue**: Tooltips had text overlapping the formatted box due to low opacity background, and form fields appeared static/non-interactive. Overall form layout needed cleanup.
+
+- **Location**: `src/ui/shared/Tooltip.css:44-57`, `src/ui/shared/shared.css`, `src/ui/shared/FormField.css`, `src/ui/wizard/ItemStep.css`
+- **Root Cause**: 
+  1. Tooltip used `--color-bg-glass` (8% opacity) making content nearly invisible
+  2. Form fields lacked visual affordance (cursor styles, focus states)
+  3. Form layout lacked visual grouping and hierarchy
+- **Fix**: 
+  1. Tooltip now uses `--color-bg-dropdown` (98% opacity) with blue accent border
+  2. Changed `white-space: nowrap` to `normal` allowing text wrapping
+  3. Added cursor styles: `text` for inputs, `pointer` for selects
+  4. Enhanced focus states with blue glow: `rgba(99, 150, 255, 0.15)` shadow
+  5. Added visual grouping to `.item-form-grid` with subtle background/border
+  6. Full-width fields (Tags, Notes) now have matching visual treatment
+  7. Improved helper text: smaller font (0.75rem), proper margins
+  8. Bolder labels (font-weight: 600) with letter-spacing
+- **Commit(s)**: f57b8e1
+- **Status**: RESOLVED
