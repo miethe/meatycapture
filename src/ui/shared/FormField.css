@@ -14,8 +14,9 @@
 .form-field-label-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
   justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
 }
 
 /* Tooltip trigger button */
@@ -52,10 +53,12 @@
 
 /* Helper text */
 .form-field-helper {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
-  line-height: 1.4;
-  margin-top: calc(var(--spacing-xs) * -1);
+  line-height: 1.3;
+  margin-top: 0;
+  margin-bottom: var(--spacing-xs);
+  opacity: 0.8;
 }
 
 /* Input wrapper with validation state */

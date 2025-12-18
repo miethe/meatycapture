@@ -6,14 +6,18 @@
 .item-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
 }
 
 /* Two-column grid for dropdowns */
 .item-form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
 }
 
 /* Notes textarea styling */
@@ -64,4 +68,14 @@
 /* Additional spacing for better visual hierarchy */
 .item-form .field-container:last-child {
   margin-bottom: 0;
+}
+
+/* Full width fields (Tags, Notes) */
+.item-form > .field-container,
+.item-form > .tags-input-container,
+.item-form > .form-field {
+  padding: var(--spacing-md);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
 }
