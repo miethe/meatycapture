@@ -8,6 +8,7 @@
   --color-bg-glass: rgba(255, 255, 255, 0.08);
   --color-bg-glass-hover: rgba(255, 255, 255, 0.12);
   --color-bg-glass-active: rgba(255, 255, 255, 0.16);
+  --color-bg-dropdown: rgba(20, 20, 30, 0.92); /* High-opacity dark background for dropdowns */
   --color-border: rgba(255, 255, 255, 0.18);
   --color-border-focus: rgba(255, 255, 255, 0.35);
   --color-text: rgba(255, 255, 255, 0.95);
@@ -455,7 +456,7 @@
   right: 0;
   max-height: 15rem;
   overflow-y: auto;
-  background: var(--color-bg-glass);
+  background: var(--color-bg-dropdown);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--color-border);
