@@ -1,12 +1,13 @@
 /**
- * MultiSelectWithAdd Component
+ * MultiSelectWithAdd Component (Tags Input)
  *
- * Multi-select component for tags with Add+ capability.
- * Shows selected values as removable chips and provides suggestions dropdown.
+ * Modern tags input component with inline search/filter.
+ * Shows selected tags as removable badges above the input.
+ * Provides filtered suggestions dropdown with "Create new" option.
  * Enhanced with tooltip and helper text support.
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Tooltip } from './Tooltip';
 import './shared.css';
 
@@ -41,16 +42,15 @@ export function MultiSelectWithAdd({
   values,
   onChange,
   onAddNew,
-  placeholder = 'Select tags...',
+  placeholder = 'Add tags...',
   label,
   error,
   helperText,
   tooltip,
 }: MultiSelectWithAddProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
-  const [newValue, setNewValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -59,8 +59,7 @@ export function MultiSelectWithAdd({
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
-        setIsAdding(false);
-        setNewValue('');
+        setSearchQuery('');
       }
     };
 
@@ -68,73 +67,103 @@ export function MultiSelectWithAdd({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Focus input when entering add mode
-  useEffect(() => {
-    if (isAdding && inputRef.current) {
-      inputRef.current.focus();
+  // Filter options based on search query and exclude already selected
+  const filteredOptions = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) {
+      return options.filter((opt) => !values.includes(opt.id));
     }
-  }, [isAdding]);
+    return options.filter(
+      (opt) => !values.includes(opt.id) && opt.label.toLowerCase().includes(query)
+    );
+  }, [options, values, searchQuery]);
 
-  const toggleOption = useCallback(
+  // Check if search query exactly matches an existing option
+  const exactMatch = useMemo(() => {
+    const query = searchQuery.trim();
+    return options.some((opt) => opt.label.toLowerCase() === query.toLowerCase());
+  }, [options, searchQuery]);
+
+  // Get selected option objects
+  const selectedOptions = useMemo(() => {
+    return options.filter((opt) => values.includes(opt.id));
+  }, [options, values]);
+
+  // Handle input change - filter options
+  const handleInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+    setIsOpen(true);
+  }, []);
+
+  // Handle input focus - show dropdown
+  const handleInputFocus = useCallback(() => {
+    setIsOpen(true);
+  }, []);
+
+  // Handle selecting an option
+  const handleSelectOption = useCallback(
     (optionId: string) => {
-      if (values.includes(optionId)) {
-        onChange(values.filter((id) => id !== optionId));
-      } else {
-        onChange([...values, optionId]);
-      }
+      onChange([...values, optionId]);
+      setSearchQuery('');
+      setIsOpen(true); // Keep open for multiple selections
+      inputRef.current?.focus();
     },
     [values, onChange]
   );
 
-  const removeValue = useCallback(
+  // Handle removing a tag
+  const handleRemoveTag = useCallback(
     (valueId: string) => {
       onChange(values.filter((id) => id !== valueId));
+      inputRef.current?.focus();
     },
     [values, onChange]
   );
 
-  const handleConfirmAdd = useCallback(async () => {
-    if (!newValue.trim()) {
+  // Handle creating a new tag
+  const handleCreateTag = useCallback(async () => {
+    const newValue = searchQuery.trim();
+    if (!newValue || exactMatch) {
       return;
     }
 
-    setIsLoading(true);
+    setIsCreating(true);
     try {
-      await onAddNew(newValue.trim());
-      setNewValue('');
-      setIsAdding(false);
+      await onAddNew(newValue);
+      setSearchQuery('');
+      setIsOpen(true); // Keep open after creation
+      inputRef.current?.focus();
     } catch (error) {
-      console.error('Failed to add new option:', error);
+      console.error('Failed to add new tag:', error);
     } finally {
-      setIsLoading(false);
+      setIsCreating(false);
     }
-  }, [newValue, onAddNew]);
+  }, [searchQuery, exactMatch, onAddNew]);
 
-  const handleCancelAdd = useCallback(() => {
-    setNewValue('');
-    setIsAdding(false);
-  }, []);
-
+  // Handle keyboard navigation
   const handleInputKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === 'Enter') {
+      if (event.key === 'Enter' && searchQuery.trim() && !exactMatch) {
         event.preventDefault();
-        handleConfirmAdd();
+        handleCreateTag();
       } else if (event.key === 'Escape') {
         event.preventDefault();
-        handleCancelAdd();
+        setIsOpen(false);
+        setSearchQuery('');
+      } else if (event.key === 'Backspace' && !searchQuery && values.length > 0) {
+        // Remove last tag on backspace when input is empty
+        event.preventDefault();
+        onChange(values.slice(0, -1));
       }
     },
-    [handleConfirmAdd, handleCancelAdd]
+    [searchQuery, exactMatch, values, onChange, handleCreateTag]
   );
-
-  const selectedOptions = options.filter((opt) => values.includes(opt.id));
 
   return (
     <div className="field-container">
       {/* Label with optional tooltip */}
       <div className="form-field-label-row">
-        <label className="field-label" htmlFor={`multiselect-${label}`}>
+        <label className="field-label" htmlFor={`tags-input-${label}`}>
           {label}
         </label>
         {tooltip && (
@@ -153,23 +182,24 @@ export function MultiSelectWithAdd({
 
       {/* Helper text */}
       {helperText && !error && (
-        <div className="form-field-helper" id={`multiselect-${label}-helper`}>
+        <div className="form-field-helper" id={`tags-input-${label}-helper`}>
           {helperText}
         </div>
       )}
 
-      <div className="multiselect-container" ref={containerRef}>
-        {/* Selected chips */}
+      <div className="tags-input-container" ref={containerRef}>
+        {/* Selected tags as badges */}
         {selectedOptions.length > 0 && (
-          <div className="multiselect-chips" role="list" aria-label="Selected tags">
+          <div className="tags-badges" role="list" aria-label="Selected tags">
             {selectedOptions.map((option) => (
-              <div key={option.id} className="chip" role="listitem">
+              <div key={option.id} className="tag-badge" role="listitem">
                 <span aria-label={`Selected: ${option.label}`}>{option.label}</span>
                 <button
                   type="button"
-                  onClick={() => removeValue(option.id)}
+                  onClick={() => handleRemoveTag(option.id)}
                   aria-label={`Remove ${option.label}`}
                   title={`Remove ${option.label}`}
+                  disabled={isCreating}
                 >
                   ×
                 </button>
@@ -178,105 +208,77 @@ export function MultiSelectWithAdd({
           </div>
         )}
 
-        {/* Dropdown trigger */}
-        <div className="multiselect-dropdown">
-          <button
-            id={`multiselect-${label}`}
-            type="button"
-            className="input-base select-base"
-            onClick={() => setIsOpen(!isOpen)}
+        {/* Input with dropdown */}
+        <div className="tags-input-wrapper">
+          <input
+            ref={inputRef}
+            id={`tags-input-${label}`}
+            type="text"
+            className="input-base tags-search-input"
+            value={searchQuery}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
+            onKeyDown={handleInputKeyDown}
+            placeholder={placeholder}
+            disabled={isCreating}
+            aria-label={label}
             aria-expanded={isOpen}
             aria-haspopup="listbox"
-            aria-label={label}
-            style={{ width: '100%', textAlign: 'left' }}
-          >
-            {selectedOptions.length === 0 ? placeholder : `${selectedOptions.length} selected`}
-          </button>
+            aria-autocomplete="list"
+            aria-describedby={helperText ? `tags-input-${label}-helper` : undefined}
+            autoComplete="off"
+          />
 
-          {/* Options dropdown */}
-          {isOpen && (
-            <div className="multiselect-options" role="listbox" aria-label={`${label} options`}>
-              {/* Existing options */}
-              {options.map((option) => {
-                const isSelected = values.includes(option.id);
-                return (
-                  <div
-                    key={option.id}
-                    className={`multiselect-option ${isSelected ? 'selected' : ''}`}
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => toggleOption(option.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggleOption(option.id);
-                      }
-                    }}
-                    tabIndex={0}
-                    aria-label={`${option.label}${isSelected ? ', selected' : ''}`}
-                  >
-                    <div className={`multiselect-checkbox ${isSelected ? 'checked' : ''}`} aria-hidden="true">
-                      {isSelected && '✓'}
-                    </div>
-                    <span>{option.label}</span>
-                  </div>
-                );
-              })}
-
-              {/* Add new option */}
-              {!isAdding ? (
+          {/* Dropdown content */}
+          {isOpen && (filteredOptions.length > 0 || (searchQuery.trim() && !exactMatch)) && (
+            <div
+              className="tags-popover-content"
+              role="listbox"
+              aria-label={`${label} suggestions`}
+            >
+              {/* Filtered options */}
+              {filteredOptions.map((option) => (
                 <div
-                  className="multiselect-option"
+                  key={option.id}
+                  className="tags-popover-option"
                   role="option"
-                  onClick={() => setIsAdding(true)}
+                  aria-selected={false}
+                  onClick={() => handleSelectOption(option.id)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      setIsAdding(true);
+                      handleSelectOption(option.id);
                     }
                   }}
                   tabIndex={0}
-                  style={{ fontStyle: 'italic' }}
                 >
-                  + Add new...
+                  <span>{option.label}</span>
                 </div>
-              ) : (
-                <div
-                  className="dropdown-inline-form"
-                  role="form"
-                  aria-label="Add new option"
-                  onClick={(e) => e.stopPropagation()}
+              ))}
+
+              {/* Create new option if query doesn't match */}
+              {searchQuery.trim() && !exactMatch && (
+                <button
+                  type="button"
+                  className="tags-popover-create"
+                  onClick={handleCreateTag}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleCreateTag();
+                    }
+                  }}
+                  disabled={isCreating}
+                  aria-label={`Create new tag: ${searchQuery.trim()}`}
                 >
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    className="input-base"
-                    value={newValue}
-                    onChange={(e) => setNewValue(e.target.value)}
-                    onKeyDown={handleInputKeyDown}
-                    placeholder="Enter new tag..."
-                    disabled={isLoading}
-                    aria-label="New tag value"
-                  />
-                  <button
-                    type="button"
-                    className="button small primary"
-                    onClick={handleConfirmAdd}
-                    disabled={!newValue.trim() || isLoading}
-                    aria-label="Confirm add"
-                  >
-                    {isLoading ? <span className="spinner" /> : 'Add'}
-                  </button>
-                  <button
-                    type="button"
-                    className="button small secondary"
-                    onClick={handleCancelAdd}
-                    disabled={isLoading}
-                    aria-label="Cancel add"
-                  >
-                    Cancel
-                  </button>
-                </div>
+                  {isCreating ? (
+                    <>
+                      <span className="spinner" /> Creating...
+                    </>
+                  ) : (
+                    <>Create "{searchQuery.trim()}"</>
+                  )}
+                </button>
               )}
             </div>
           )}

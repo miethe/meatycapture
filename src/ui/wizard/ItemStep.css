@@ -41,6 +41,26 @@
   }
 }
 
+/* Input group for related fields */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-bg-glass);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.input-group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: calc(var(--spacing-xs) * -1);
+}
+
 /* Additional spacing for better visual hierarchy */
 .item-form .field-container:last-child {
   margin-bottom: 0;

@@ -8,7 +8,7 @@
   --color-bg-glass: rgba(255, 255, 255, 0.08);
   --color-bg-glass-hover: rgba(255, 255, 255, 0.12);
   --color-bg-glass-active: rgba(255, 255, 255, 0.16);
-  --color-bg-dropdown: rgba(20, 20, 30, 0.92); /* High-opacity dark background for dropdowns */
+  --color-bg-dropdown: rgba(15, 15, 25, 0.98); /* Near-solid dark background for dropdowns */
   --color-border: rgba(255, 255, 255, 0.18);
   --color-border-focus: rgba(255, 255, 255, 0.35);
   --color-text: rgba(255, 255, 255, 0.95);
@@ -60,7 +60,6 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
-  justify-content: space-between;
 }
 
 /* Tooltip trigger button (shared across components) */
@@ -459,9 +458,9 @@
   background: var(--color-bg-dropdown);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--color-border);
+  border: 1px solid rgba(99, 150, 255, 0.3);
   border-radius: var(--radius-md);
-  box-shadow: 0 8px 16px var(--color-shadow);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   z-index: 100;
   animation: dropdownOpen var(--transition-fast);
 }
@@ -671,6 +670,131 @@ textarea:focus-visible {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-bg-glass-hover);
+}
+
+/* Tags Input Styles (Redesigned MultiSelectWithAdd) */
+.tags-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.tags-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  min-height: 2rem;
+  align-items: center;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
+  background: rgba(99, 150, 255, 0.2);
+  border: 1px solid rgba(99, 150, 255, 0.4);
+  border-radius: var(--radius-full);
+  color: var(--color-text);
+  animation: chipAdd var(--transition-normal);
+}
+
+.tag-badge button {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0.25rem;
+  font-size: 1rem;
+  line-height: 1;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+}
+
+.tag-badge button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text);
+}
+
+.tag-badge button:focus-visible {
+  outline: 2px solid rgba(99, 150, 255, 0.8);
+  outline-offset: 1px;
+}
+
+.tags-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.tags-popover-content {
+  position: absolute;
+  top: calc(100% + var(--spacing-xs));
+  left: 0;
+  right: 0;
+  background: var(--color-bg-dropdown);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(99, 150, 255, 0.3);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  padding: var(--spacing-sm);
+  min-width: 200px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  animation: dropdownOpen var(--transition-fast);
+}
+
+.tags-popover-option {
+  padding: var(--spacing-sm);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.tags-popover-option:hover {
+  background: var(--color-bg-glass-hover);
+}
+
+.tags-popover-option.selected {
+  background: var(--color-bg-glass-active);
+}
+
+.tags-popover-create {
+  padding: var(--spacing-sm);
+  color: rgba(99, 150, 255, 0.9);
+  font-style: italic;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: inherit;
+}
+
+.tags-popover-create:hover {
+  background: var(--color-bg-glass-hover);
+}
+
+.tags-popover-create:focus-visible {
+  outline: 2px solid rgba(99, 150, 255, 0.8);
+  outline-offset: 1px;
+}
+
+.tags-search-input {
+  width: 100%;
 }
 
 /* Accessibility: Respect reduced motion preference */
