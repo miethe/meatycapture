@@ -429,5 +429,5 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   **Security**: Path sanitization prevents directory traversal attacks. Input like `../etc/passwd` becomes `etcpasswd` after sanitization.
 
   **Example**: Project name "My Awesome Project" → default path `~/projects/my-awesome-project`
-- **Commit(s)**: (pending)
+- **Commit(s)**: 4b984ec
 - **Status**: RESOLVED
