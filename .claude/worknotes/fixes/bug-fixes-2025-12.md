@@ -446,3 +446,26 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   The fix maintains the design aesthetic while ensuring WCAG-compliant contrast for text readability.
 - **Commit(s)**: c1613be
 - **Status**: RESOLVED
+
+### Tags Dropdown Redesign and Form Layout Improvements
+
+**Issue**: The Tags multi-select dropdown was difficult to read due to excessive transparency (even after initial fix), tooltips were positioned far from labels making the form confusing, and the overall interaction pattern was suboptimal.
+
+- **Location**: `src/ui/shared/MultiSelectWithAdd.tsx`, `src/ui/shared/shared.css:11,59-63,451-466,675-792`, `src/ui/wizard/ItemStep.css:44-62`
+- **Root Cause**: 
+  1. Initial dropdown opacity fix (92%) was insufficient - dropdown still hard to read against complex backgrounds
+  2. `.form-field-label-row` used `justify-content: space-between` pushing tooltips to far right
+  3. Tags dropdown used basic checkbox list pattern instead of modern search/create UX
+- **Fix**: 
+  1. Increased `--color-bg-dropdown` to `rgba(15, 15, 25, 0.98)` (98% opacity)
+  2. Added blue border `rgba(99, 150, 255, 0.3)` and enhanced shadow to `.multiselect-options`
+  3. Removed `justify-content: space-between` from label row - tooltips now appear immediately after labels
+  4. Complete redesign of MultiSelectWithAdd component:
+     - Search/filter input that opens dropdown on focus
+     - Selected tags appear as removable badges ABOVE the input (like GitHub labels)
+     - Filtered suggestions with "Create [value]" option for new tags
+     - Keyboard navigation: Enter creates tag, Backspace removes last tag
+     - Maintains backwards compatibility and accessibility
+  5. Added `.input-group` styles for visual field grouping
+- **Commit(s)**: 1f9bf1c
+- **Status**: RESOLVED
