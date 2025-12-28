@@ -3,9 +3,9 @@ type: progress
 prd: "cli-v1"
 phase: 1
 title: "Core Log Operations (MVP)"
-status: "in_progress"
+status: "completed"
 started: "2025-12-27T00:00:00Z"
-completed: null
+completed: "2025-12-28T00:00:00Z"
 
 overall_progress: 100
 completion_estimate: "on-track"
