@@ -1,24 +1,27 @@
 /**
  * Config Command Group (Phase 4)
  *
- * Manages global configuration: show, get, set, list, path.
+ * Manages global configuration: init, show, get, set, list, path.
  *
  * Subcommands:
+ *   meatycapture config init          Initialize default configuration (implemented)
  *   meatycapture config show          Display current configuration (implemented)
+ *   meatycapture config set <key>     Set config value (implemented)
  *   meatycapture config get <key>     Get config value (planned)
- *   meatycapture config set <key>     Set config value (planned)
  *   meatycapture config list          List all config values (planned)
  *   meatycapture config path          Show config directory path (planned)
  */
 
 import { Command } from 'commander';
+import { registerInitCommand } from './init.js';
 import { registerShowCommand } from './show.js';
+import { registerSetCommand } from './set.js';
 
 /**
  * Creates and configures the config command group.
  *
  * Implements Phase 4 configuration management commands.
- * Currently includes: show command.
+ * Currently includes: init, show, set commands.
  */
 export function createConfigCommand(): Command {
   const config = new Command('config')
@@ -27,11 +30,12 @@ export function createConfigCommand(): Command {
       'after',
       `
 Subcommands:
-  show          Display current configuration and environment variables
+  init              Initialize default configuration
+  show              Display current configuration and environment variables
+  set <key> <val>   Set a configuration value
 
 Planned Subcommands (Phase 4):
   get <key>     Get a configuration value
-  set <key>     Set a configuration value (interactive)
   list          List all configuration values
   path          Show configuration directory path
 
@@ -48,7 +52,9 @@ Environment Variables:
     );
 
   // Register subcommands
+  registerInitCommand(config);
   registerShowCommand(config);
+  registerSetCommand(config);
 
   return config;
 }

@@ -2,12 +2,33 @@
  * Domain Models
  *
  * Core domain types for MeatyCapture:
+ * - AppConfig: Global application configuration
  * - Project: Project configuration with paths and metadata
  * - FieldOption: Field catalog options (global/project scoped)
  * - ItemDraft: Request log item being created
  * - RequestLogItem: Persisted item in request-log document
  * - RequestLogDoc: Complete request-log document structure
  */
+
+/**
+ * Application configuration entity
+ * Stores global application settings
+ */
+export interface AppConfig {
+  /** Application version (semver format) */
+  version: string;
+  /** Default project ID for new documents */
+  default_project?: string;
+  /** Timestamp when config was created */
+  created_at: Date;
+  /** Timestamp of last modification */
+  updated_at: Date;
+}
+
+/**
+ * Valid configuration keys that can be set
+ */
+export type ConfigKey = 'default_project';
 
 /**
  * Field names that support configurable options

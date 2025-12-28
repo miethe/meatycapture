@@ -3,6 +3,7 @@
  *
  * Port/Adapter pattern for storage abstraction:
  * - Clock: Time abstraction for deterministic testing
+ * - ConfigStore: Application configuration management
  * - ProjectStore: Project CRUD operations
  * - FieldCatalogStore: Field option catalog management (global + project-scoped)
  * - DocStore: Request-log document read/write/append operations
@@ -10,7 +11,7 @@
  * Implementations live in adapters/ (fs-local, config-local)
  */
 
-import type { Project, FieldOption, FieldName, ItemDraft, RequestLogDoc } from '@core/models';
+import type { AppConfig, ConfigKey, Project, FieldOption, FieldName, ItemDraft, RequestLogDoc } from '@core/models';
 
 /**
  * Clock abstraction for time-dependent operations
@@ -23,6 +24,34 @@ export interface Clock {
    * In tests: returns controlled fixed or incrementing time
    */
   now(): Date;
+}
+
+/**
+ * Application configuration store interface
+ * Manages global application settings
+ */
+export interface ConfigStore {
+  /**
+   * Get the current application configuration
+   * Creates default config if it doesn't exist
+   * @returns Current application configuration
+   */
+  get(): Promise<AppConfig>;
+
+  /**
+   * Set a configuration value
+   * Automatically updates updated_at timestamp
+   * @param key - Configuration key to set
+   * @param value - Configuration value
+   * @returns Updated application configuration
+   */
+  set(key: ConfigKey, value: string): Promise<AppConfig>;
+
+  /**
+   * Check if configuration file exists
+   * @returns true if config file exists, false otherwise
+   */
+  exists(): Promise<boolean>;
 }
 
 /**

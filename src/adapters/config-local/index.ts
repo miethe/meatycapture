@@ -11,8 +11,8 @@
 import { promises as fs } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import type { ProjectStore, FieldCatalogStore } from '@core/ports';
-import type { Project, FieldOption, FieldName } from '@core/models';
+import type { ConfigStore, ProjectStore, FieldCatalogStore } from '@core/ports';
+import type { AppConfig, ConfigKey, Project, FieldOption, FieldName } from '@core/models';
 import { DEFAULT_FIELD_OPTIONS } from '@core/models';
 import { slugify } from '@core/validation';
 
@@ -44,6 +44,173 @@ async function ensureConfigDir(configDir: string): Promise<void> {
     throw new Error(
       `Failed to create config directory ${configDir}: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
+  }
+}
+
+// ============================================================================
+// ConfigStore Implementation
+// ============================================================================
+
+/**
+ * Application configuration file structure.
+ */
+interface ConfigFile {
+  version: string;
+  default_project?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Local filesystem implementation of ConfigStore.
+ *
+ * Stores application configuration in a JSON file at ~/.meatycapture/config.json
+ * Automatically initializes with defaults on first access.
+ *
+ * @example
+ * ```typescript
+ * import { createConfigStore } from '@adapters/config-local';
+ *
+ * const store = createConfigStore();
+ * const config = await store.get();
+ * const updated = await store.set('default_project', 'my-project');
+ * ```
+ */
+export class LocalConfigStore implements ConfigStore {
+  private readonly configDir: string;
+  private readonly configFile: string;
+  private static readonly CURRENT_VERSION = '1.0.0';
+
+  constructor(configDir?: string) {
+    this.configDir = configDir || getConfigDir();
+    this.configFile = join(this.configDir, 'config.json');
+  }
+
+  /**
+   * Reads the config file from disk.
+   *
+   * Returns default config if file doesn't exist yet.
+   * Creates config directory if needed.
+   *
+   * @returns Application configuration
+   */
+  private async readConfig(): Promise<AppConfig> {
+    await ensureConfigDir(this.configDir);
+
+    try {
+      const content = await fs.readFile(this.configFile, 'utf-8');
+      const data = JSON.parse(content) as ConfigFile;
+
+      // Deserialize Date objects
+      const config: AppConfig = {
+        version: data.version,
+        created_at: new Date(data.created_at),
+        updated_at: new Date(data.updated_at),
+      };
+
+      // Conditionally add optional properties
+      if (data.default_project !== undefined) {
+        config.default_project = data.default_project;
+      }
+
+      return config;
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        // File doesn't exist yet - return default config without writing
+        const now = new Date();
+        return {
+          version: LocalConfigStore.CURRENT_VERSION,
+          created_at: now,
+          updated_at: now,
+        };
+      }
+      throw new Error(
+        `Failed to read config file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Writes config to disk.
+   *
+   * @param config - Application configuration to write
+   */
+  private async writeConfig(config: AppConfig): Promise<void> {
+    await ensureConfigDir(this.configDir);
+
+    const data: ConfigFile = {
+      version: config.version,
+      created_at: config.created_at.toISOString(),
+      updated_at: config.updated_at.toISOString(),
+    };
+
+    // Conditionally add optional properties
+    if (config.default_project !== undefined) {
+      data.default_project = config.default_project;
+    }
+
+    const content = JSON.stringify(data, null, 2);
+
+    try {
+      await fs.writeFile(this.configFile, content, 'utf-8');
+    } catch (error) {
+      throw new Error(
+        `Failed to write config file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Gets the current application configuration.
+   *
+   * Returns default config if file doesn't exist yet.
+   * Does not create the file until first set() call.
+   *
+   * @returns Current application configuration
+   */
+  async get(): Promise<AppConfig> {
+    return this.readConfig();
+  }
+
+  /**
+   * Sets a configuration value.
+   *
+   * Automatically updates the updated_at timestamp.
+   * Creates the config file if it doesn't exist.
+   *
+   * @param key - Configuration key to set
+   * @param value - Configuration value
+   * @returns Updated application configuration
+   */
+  async set(key: ConfigKey, value: string): Promise<AppConfig> {
+    const config = await this.readConfig();
+
+    // Update the specified key
+    if (key === 'default_project') {
+      config.default_project = value;
+    }
+
+    // Update timestamp
+    config.updated_at = new Date();
+
+    // Write to disk
+    await this.writeConfig(config);
+
+    return config;
+  }
+
+  /**
+   * Checks if configuration file exists.
+   *
+   * @returns true if config file exists, false otherwise
+   */
+  async exists(): Promise<boolean> {
+    try {
+      await fs.access(this.configFile);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 
@@ -566,6 +733,22 @@ export class LocalFieldCatalogStore implements FieldCatalogStore {
 // ============================================================================
 // Factory Functions
 // ============================================================================
+
+/**
+ * Creates a new ConfigStore instance.
+ *
+ * @param configDir - Optional custom config directory (defaults to ~/.meatycapture)
+ * @returns A new LocalConfigStore instance
+ *
+ * @example
+ * ```typescript
+ * const store = createConfigStore();
+ * const config = await store.get();
+ * ```
+ */
+export function createConfigStore(configDir?: string): ConfigStore {
+  return new LocalConfigStore(configDir);
+}
 
 /**
  * Creates a new ProjectStore instance.
