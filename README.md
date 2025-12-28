@@ -67,6 +67,73 @@ pnpm tauri:build
 
 See [src-tauri/README.md](./src-tauri/README.md) for detailed Tauri setup instructions and platform-specific dependencies.
 
+## CLI Installation & Usage
+
+The MeatyCapture CLI provides headless batch document creation and management—ideal for automation, scripting, and CI/CD pipelines.
+
+### Prerequisites
+
+- Node.js 18.0.0 or higher
+- pnpm 8.0.0 or higher
+
+### Installation (From Source)
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/meatycapture.git
+cd meatycapture
+
+# Install dependencies
+pnpm install
+
+# Build the CLI
+pnpm build:cli
+
+# Link globally (makes 'meatycapture' command available system-wide)
+npm link
+```
+
+### Verify Installation
+
+```bash
+meatycapture --version
+meatycapture --help
+```
+
+### Quick Start
+
+```bash
+# Initialize configuration
+meatycapture config init
+
+# Create your first project (interactive mode)
+meatycapture project add --interactive
+
+# Create a request log document
+meatycapture log create --interactive
+
+# Or from JSON file
+meatycapture log create input.json
+```
+
+### Command Groups
+
+| Group     | Description                                      |
+| --------- | ------------------------------------------------ |
+| `log`     | Create, append, view, search, list documents     |
+| `project` | Manage project configurations                    |
+| `field`   | Manage field catalogs (type, domain, priority)   |
+| `config`  | Manage global configuration                      |
+
+### Documentation
+
+For complete CLI documentation:
+
+- [CLI Overview](docs/user/cli/index.md) - Quick start and overview
+- [Commands Reference](docs/user/cli/commands-reference.md) - All 19 commands
+- [Examples](docs/user/cli/examples.md) - Common usage patterns
+- [Configuration](docs/user/cli/configuration.md) - Environment and settings
+
 ## Project Status
 
 Phase: Pre-implementation (scaffolding)
