@@ -14,12 +14,18 @@
 
 import { Command } from 'commander';
 import { registerListCommand } from './list.js';
+import { registerAddCommand } from './add.js';
+import { registerRemoveCommand } from './remove.js';
+import { registerImportCommand } from './import.js';
 
 /**
  * Creates and configures the field command group.
  *
- * Phase 3 Task 3.1: list command implemented
- * Remaining commands (add, remove, import) planned for future Phase 3 tasks.
+ * Phase 3 Tasks:
+ * - 3.1: list command implemented
+ * - 3.2: add command implemented
+ * - 3.3: remove command implemented
+ * - 3.4: import command implemented
  */
 export function createFieldCommand(): Command {
   const field = new Command('field')
@@ -29,11 +35,9 @@ export function createFieldCommand(): Command {
       `
 Available Subcommands:
   list                  List field options (global or project-specific)
-
-Planned Subcommands (Phase 3):
   add <field> <value>   Add new option to a field catalog (type, domain, etc.)
   remove <id>           Remove option from field catalog
-  import <json-file>    Batch import field options from JSON file
+  import <file>         Batch import field options from JSON/YAML file
 
 Supported Fields:
   type      Item types (enhancement, bug, idea, task, question)
@@ -48,11 +52,16 @@ Examples:
   meatycapture field list --field type       # List only type field options
   meatycapture field list --project my-proj  # Show effective options for project
   meatycapture field list --json             # Output as JSON
+  meatycapture field add type spike          # Add new type option
+  meatycapture field remove type-spike-123   # Remove a field option
 `
     );
 
   // Register implemented subcommands
   registerListCommand(field);
+  registerAddCommand(field);
+  registerRemoveCommand(field);
+  registerImportCommand(field);
 
   return field;
 }
