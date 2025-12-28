@@ -1,19 +1,25 @@
 /**
  * Log Command Group
  *
- * Manages request-log documents: create, append, list.
+ * Manages request-log documents: create, append, list, view, delete, search.
  * This is the primary command group for document operations.
  *
  * Usage:
  *   meatycapture log create <json-file>     Create new document
  *   meatycapture log append <doc> <json>    Append items to document
  *   meatycapture log list [project]         List documents
+ *   meatycapture log view <doc-path>        View document contents
+ *   meatycapture log delete <doc-path>      Delete document (with confirmation)
+ *   meatycapture log search <query>         Search documents
  */
 
 import { Command } from 'commander';
 import { registerCreateCommand } from './create';
 import { registerAppendCommand } from './append';
 import { registerListCommand } from './list';
+import { registerViewCommand } from './view';
+import { registerDeleteCommand } from './delete';
+import { registerSearchCommand } from './search';
 
 /**
  * Creates and configures the log command group.
@@ -34,6 +40,14 @@ Examples:
   meatycapture log list                        List all documents
   meatycapture log list my-project             List documents for project
   meatycapture log list -p ./docs              List documents in directory
+  meatycapture log view doc.md                 View document contents
+  meatycapture log view doc.md --json          View as JSON
+  meatycapture log view doc.md --filter-type bug  Filter by type
+  meatycapture log delete doc.md               Delete document (with confirmation)
+  meatycapture log delete doc.md --force       Delete without confirmation
+  meatycapture log search "bug"                Search for items with "bug"
+  meatycapture log search "tag:ux"             Search by tag
+  meatycapture log search "type:enhancement"   Search by type
 `
     );
 
@@ -41,6 +55,9 @@ Examples:
   registerCreateCommand(log);
   registerAppendCommand(log);
   registerListCommand(log);
+  registerViewCommand(log);
+  registerDeleteCommand(log);
+  registerSearchCommand(log);
 
   return log;
 }
@@ -49,3 +66,6 @@ Examples:
 export { createAction } from './create';
 export { appendAction } from './append';
 export { listAction } from './list';
+export { viewAction } from './view';
+export { deleteAction } from './delete';
+export { searchAction } from './search';

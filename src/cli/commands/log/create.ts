@@ -1,13 +1,29 @@
 /**
  * Log Create Command
  *
- * Creates a new request-log document from JSON input file.
+ * Creates a new request-log document from JSON input file or stdin.
  * Generates document ID, assigns item IDs, aggregates tags.
+ *
+ * Supports multiple output formats for AI-agent pipelines and human consumption.
+ * Uses standardized exit codes for reliable scripting.
+ *
+ * Usage:
+ * ```bash
+ * # From file
+ * meatycapture log create input.json
+ *
+ * # From stdin (piped)
+ * echo '{"project":"app","items":[...]}' | meatycapture log create -
+ *
+ * # With output format
+ * meatycapture log create input.json --json
+ * meatycapture log create input.json --yaml --no-backup
+ * ```
  */
 
 import type { Command } from 'commander';
 import { promises as fs } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, resolve, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import type { ItemDraft, RequestLogDoc } from '@core/models';
 import { generateDocId } from '@core/validation';
@@ -15,6 +31,16 @@ import { aggregateTags, updateItemsIndex } from '@core/serializer';
 import { createFsDocStore } from '@adapters/fs-local';
 import { createProjectStore } from '@adapters/config-local';
 import { realClock } from '@adapters/clock';
+import { readInput, isStdinInput, StdinError } from '@cli/handlers/stdin';
+import {
+  withErrorHandling,
+  ValidationError,
+  PermissionError,
+  setQuietMode,
+  isQuietMode,
+} from '@cli/handlers/errors';
+import { ExitCodes } from '@cli/handlers/exitCodes';
+import { formatOutput, type OutputFormat } from '@cli/formatters';
 
 /**
  * CLI input JSON structure for creating documents.
@@ -85,45 +111,89 @@ function isValidItemDraft(obj: unknown): obj is ItemDraft {
 }
 
 /**
- * Reads and parses JSON input file.
- *
- * @param jsonPath - Path to JSON file
- * @returns Parsed and validated CLI input
- * @throws Error if file not found, JSON parsing fails, or validation fails
+ * Generates expected JSON structure hint for error messages.
  */
-async function readCliInput(jsonPath: string): Promise<CreateCliInput> {
-  try {
-    const content = await fs.readFile(jsonPath, 'utf-8');
-    const data = JSON.parse(content) as unknown;
+function getExpectedFormatHint(): string {
+  return (
+    '{\n' +
+    '  "project": "project-slug",\n' +
+    '  "title": "Optional doc title",\n' +
+    '  "items": [{\n' +
+    '    "title": "Item title",\n' +
+    '    "type": "enhancement",\n' +
+    '    "domain": "web",\n' +
+    '    "context": "Context",\n' +
+    '    "priority": "medium",\n' +
+    '    "status": "triage",\n' +
+    '    "tags": ["tag1"],\n' +
+    '    "notes": "Description"\n' +
+    '  }]\n' +
+    '}'
+  );
+}
 
-    if (!isValidCliInput(data)) {
-      throw new Error(
-        'Invalid JSON structure. Expected format:\n' +
-          '{\n' +
-          '  "project": "project-slug",\n' +
-          '  "title": "Optional doc title",\n' +
-          '  "items": [{\n' +
-          '    "title": "Item title",\n' +
-          '    "type": "enhancement",\n' +
-          '    "domain": "web",\n' +
-          '    "context": "Context",\n' +
-          '    "priority": "medium",\n' +
-          '    "status": "triage",\n' +
-          '    "tags": ["tag1"],\n' +
-          '    "notes": "Description"\n' +
-          '  }]\n' +
-          '}'
+/**
+ * Parses and validates JSON content from file or stdin.
+ *
+ * @param content - Raw JSON string content
+ * @param source - Description of source for error messages (file path or 'stdin')
+ * @returns Validated CLI input
+ * @throws ValidationError if JSON parsing or validation fails
+ */
+function parseCliInput(content: string, source: string): CreateCliInput {
+  let data: unknown;
+
+  try {
+    data = JSON.parse(content);
+  } catch (error) {
+    throw new ValidationError(
+      `Invalid JSON in ${source}: ${error instanceof Error ? error.message : 'Parse error'}`,
+      `Check for missing commas, quotes, or brackets. Expected format:\n${getExpectedFormatHint()}`
+    );
+  }
+
+  if (!isValidCliInput(data)) {
+    throw new ValidationError(
+      `Invalid JSON structure in ${source}. Missing required fields or incorrect types.`,
+      `Expected format:\n${getExpectedFormatHint()}`
+    );
+  }
+
+  return data;
+}
+
+/**
+ * Reads and parses JSON input from file or stdin.
+ *
+ * Handles both file paths and stdin (when inputPath is '-').
+ * Maps underlying errors to appropriate CLI error types.
+ *
+ * @param inputPath - Path to JSON file or '-' for stdin
+ * @returns Parsed and validated CLI input
+ * @throws ValidationError for JSON/structure issues
+ * @throws Error for file I/O issues (mapped by error handler)
+ */
+async function readCliInput(inputPath: string): Promise<CreateCliInput> {
+  const source = isStdinInput(inputPath) ? 'stdin' : inputPath;
+
+  try {
+    const content = await readInput(inputPath);
+    return parseCliInput(content, source);
+  } catch (error) {
+    // Re-throw ValidationError as-is
+    if (error instanceof ValidationError) {
+      throw error;
+    }
+
+    // Map stdin-specific errors
+    if (error instanceof StdinError) {
+      throw new ValidationError(
+        `Failed to read from stdin: ${error.message}`,
+        'Ensure data is piped correctly, e.g., echo \'{"project":"test",...}\' | meatycapture log create -'
       );
     }
 
-    return data;
-  } catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      throw new Error(`Input file not found: ${jsonPath}`);
-    }
-    if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in ${jsonPath}: ${error.message}`);
-    }
+    // Let other errors propagate (file not found, etc.) - they'll be mapped by error handler
     throw error;
   }
 }
@@ -156,74 +226,149 @@ async function getProjectDocPath(projectId: string): Promise<string> {
  * Command options for create command.
  */
 interface CreateOptions {
+  /** Output path for the document (default: auto-generated) */
   output?: string;
+  /** Output as JSON */
+  json?: boolean;
+  /** Output as YAML */
+  yaml?: boolean;
+  /** Output as CSV */
+  csv?: boolean;
+  /** Output as table */
+  table?: boolean;
+  /** Suppress non-error output */
+  quiet?: boolean;
+  /** Skip backup creation (via --no-backup flag) */
+  backup?: boolean;
+}
+
+/**
+ * Determines the output format from command options.
+ * Flags take precedence in order: json > yaml > csv > table > human (default)
+ */
+function getOutputFormat(options: CreateOptions): OutputFormat {
+  if (options.json) return 'json';
+  if (options.yaml) return 'yaml';
+  if (options.csv) return 'csv';
+  if (options.table) return 'table';
+  return 'human';
 }
 
 /**
  * Creates a new request-log document from JSON input.
  *
  * Steps:
- * 1. Read and validate JSON input
+ * 1. Read and validate JSON input (from file or stdin)
  * 2. Verify project exists (or use default path)
  * 3. Generate document ID and file path
  * 4. Create document with all items
- * 5. Write to filesystem
+ * 5. Write to filesystem (with optional backup)
+ * 6. Output result in specified format
  */
-export async function createAction(jsonPath: string, options: CreateOptions): Promise<void> {
-  try {
-    const input = await readCliInput(jsonPath);
+async function createActionImpl(
+  inputPath: string,
+  options: CreateOptions
+): Promise<void> {
+  // Handle quiet mode globally
+  if (options.quiet) {
+    setQuietMode(true);
+  }
 
-    let outputPath: string;
-    if (options.output) {
-      outputPath = resolve(options.output);
-    } else {
-      const projectPath = await getProjectDocPath(input.project);
-      const now = realClock.now();
-      const docId = generateDocId(input.project, now);
-      outputPath = join(projectPath, `${docId}.md`);
-    }
+  const format = getOutputFormat(options);
+  const shouldBackup = options.backup !== false; // Default to true, --no-backup sets to false
 
+  // Read and validate input
+  const input = await readCliInput(inputPath);
+
+  // Determine output path
+  let outputPath: string;
+  if (options.output) {
+    outputPath = resolve(options.output);
+  } else {
+    const projectPath = await getProjectDocPath(input.project);
     const now = realClock.now();
     const docId = generateDocId(input.project, now);
-
-    const items = input.items.map((itemDraft, index) => {
-      const itemNumber = index + 1;
-      const itemId = `${docId}-${String(itemNumber).padStart(2, '0')}`;
-
-      return {
-        ...itemDraft,
-        id: itemId,
-        created_at: now,
-      };
-    });
-
-    const doc: RequestLogDoc = {
-      doc_id: docId,
-      title: input.title || `Request Log - ${input.project}`,
-      project_id: input.project,
-      items,
-      items_index: updateItemsIndex(items),
-      tags: aggregateTags(items),
-      item_count: items.length,
-      created_at: now,
-      updated_at: now,
-    };
-
-    const docStore = createFsDocStore();
-    await docStore.write(outputPath, doc);
-
-    console.log(`Created document: ${outputPath}`);
-    console.log(`  Doc ID: ${docId}`);
-    console.log(`  Items: ${items.length}`);
-    console.log(`  Tags: ${doc.tags.join(', ')}`);
-
-    process.exit(0);
-  } catch (error) {
-    console.error('Error creating document:');
-    console.error(error instanceof Error ? error.message : String(error));
-    process.exit(1);
+    outputPath = join(projectPath, `${docId}.md`);
   }
+
+  // Generate document
+  const now = realClock.now();
+  const docId = generateDocId(input.project, now);
+
+  const items = input.items.map((itemDraft, index) => {
+    const itemNumber = index + 1;
+    const itemId = `${docId}-${String(itemNumber).padStart(2, '0')}`;
+
+    return {
+      ...itemDraft,
+      id: itemId,
+      created_at: now,
+    };
+  });
+
+  const doc: RequestLogDoc = {
+    doc_id: docId,
+    title: input.title || `Request Log - ${input.project}`,
+    project_id: input.project,
+    items,
+    items_index: updateItemsIndex(items),
+    tags: aggregateTags(items),
+    item_count: items.length,
+    created_at: now,
+    updated_at: now,
+  };
+
+  // Ensure output directory exists
+  const outputDir = dirname(outputPath);
+  try {
+    await fs.mkdir(outputDir, { recursive: true });
+  } catch {
+    throw new PermissionError(
+      outputDir,
+      'write',
+      'Ensure the directory exists and you have write permissions'
+    );
+  }
+
+  // Handle backup if file exists and backup is enabled
+  const docStore = createFsDocStore();
+
+  if (shouldBackup) {
+    try {
+      // Check if file exists before backup attempt
+      await fs.access(outputPath);
+      await docStore.backup(outputPath);
+    } catch {
+      // File doesn't exist yet or backup not needed - continue
+    }
+  }
+
+  // Write document (use lower-level write to bypass automatic backup in docStore)
+  // We handle backup manually above to respect --no-backup flag
+  await docStore.write(outputPath, doc);
+
+  // Format and output result
+  if (!isQuietMode()) {
+    const output = formatOutput(doc, { format, quiet: false });
+
+    if (output) {
+      console.log(output);
+    }
+
+    // For human format, also show the path
+    if (format === 'human') {
+      console.log(`\nCreated: ${outputPath}`);
+    }
+  }
+
+  process.exit(ExitCodes.SUCCESS);
 }
+
+/**
+ * Wrapped action handler with standardized error handling.
+ * Maps all errors to appropriate exit codes.
+ */
+export const createAction = withErrorHandling(createActionImpl);
 
 /**
  * Registers the create command with a Commander program/command.
@@ -232,7 +377,13 @@ export function registerCreateCommand(program: Command): void {
   program
     .command('create')
     .description('Create a new request-log document from JSON input')
-    .argument('<json-file>', 'Path to JSON input file')
+    .argument('<json-file>', 'Path to JSON input file, or "-" for stdin')
     .option('-o, --output <path>', 'Output path for the document (default: auto-generated)')
+    .option('--json', 'Output as JSON')
+    .option('--yaml', 'Output as YAML')
+    .option('--csv', 'Output as CSV')
+    .option('--table', 'Output as table')
+    .option('-q, --quiet', 'Suppress non-error output')
+    .option('--no-backup', 'Skip backup creation')
     .action(createAction);
 }

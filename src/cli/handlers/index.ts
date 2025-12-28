@@ -93,3 +93,18 @@ export { setupInterruptHandler } from './errors.js';
 // ============================================================================
 
 export { setQuietMode, isQuietMode } from './errors.js';
+
+// ============================================================================
+// Search Handlers
+// ============================================================================
+
+export {
+  parseQuery,
+  parseMatchMode,
+  searchDocument,
+  searchDocuments,
+  DEFAULT_SEARCH_OPTIONS,
+  type MatchMode,
+  type QueryComponent,
+  type SearchOptions,
+} from './search.js';
