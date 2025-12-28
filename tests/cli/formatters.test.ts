@@ -11,7 +11,7 @@
  * Uses snapshot tests for output consistency.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   createMockDoc,
   createMockItem,

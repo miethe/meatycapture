@@ -13,7 +13,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'node:fs';
-import { join, basename } from 'node:path';
+import { join } from 'node:path';
 import {
   createTempDir,
   cleanupTempDir,
@@ -22,14 +22,13 @@ import {
   mockConsole,
   restoreConsole,
   getCapturedLogs,
-  getCapturedErrors,
   clearCapturedOutput,
   resetQuietMode,
   isValidJson,
 } from './helpers';
 
 import { ExitCodes } from '@cli/handlers/exitCodes';
-import { parse, serialize } from '@core/serializer';
+import { parse } from '@core/serializer';
 
 /**
  * Custom error class for capturing process.exit calls in tests.
@@ -43,16 +42,17 @@ class ExitError extends Error {
 
 describe('CLI Integration Tests', () => {
   let tempDir: string;
-  let mockExit: ReturnType<typeof vi.spyOn>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockExit: any;
 
   beforeEach(async () => {
     tempDir = await createTempDir();
     mockConsole();
     await resetQuietMode();
 
-    mockExit = vi.spyOn(process, 'exit').mockImplementation((code?: number) => {
+    mockExit = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
       throw new ExitError(code ?? 0);
-    });
+    }) as never);
   });
 
   afterEach(async () => {

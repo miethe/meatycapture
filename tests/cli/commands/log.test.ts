@@ -26,7 +26,6 @@ import {
   createTestDocs,
   createValidCliInput,
   createMockItemDraft,
-  createMockDoc,
   createMockItem,
   createJsonInputFile,
   mockConsole,
@@ -39,14 +38,15 @@ import {
 } from '../helpers';
 
 import { ExitCodes } from '@cli/handlers/exitCodes';
-import { parse, serialize } from '@core/serializer';
+import { parse } from '@core/serializer';
 
 // Note: We test the action functions directly rather than going through Commander
 // because process.exit behavior makes end-to-end testing complex in vitest
 
 describe('Log Commands', () => {
   let tempDir: string;
-  let mockExit: ReturnType<typeof vi.spyOn>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockExit: any;
 
   beforeEach(async () => {
     tempDir = await createTempDir();
@@ -54,9 +54,9 @@ describe('Log Commands', () => {
     await resetQuietMode();
 
     // Mock process.exit to capture exit codes
-    mockExit = vi.spyOn(process, 'exit').mockImplementation((code?: number) => {
+    mockExit = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
       throw new ExitError(code ?? 0);
-    });
+    }) as never);
   });
 
   afterEach(async () => {

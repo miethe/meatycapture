@@ -18,7 +18,6 @@ import {
   createMockItem,
   mockConsole,
   restoreConsole,
-  getCapturedErrors,
   clearCapturedOutput,
 } from './helpers';
 
@@ -42,7 +41,6 @@ import {
   UserInterruptError,
   formatError,
   mapToCliError,
-  handleError,
   withErrorHandling,
   setQuietMode,
   isQuietMode,
@@ -64,8 +62,6 @@ import {
   searchDocument,
   searchDocuments,
   DEFAULT_SEARCH_OPTIONS,
-  type QueryComponent,
-  type MatchMode,
 } from '@cli/handlers/search';
 
 describe('Stdin Handler', () => {

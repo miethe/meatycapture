@@ -51,7 +51,6 @@ export async function createTestDoc(
   doc?: Partial<RequestLogDoc>,
   filename?: string
 ): Promise<string> {
-  const now = new Date('2025-12-03T10:00:00Z');
   const fullDoc = createMockDoc(doc);
   const content = serialize(fullDoc);
   const fname = filename ?? `${fullDoc.doc_id}.md`;
@@ -91,7 +90,6 @@ export async function createTestDocs(
 
 // Store original stdin properties
 let originalIsTTY: boolean | undefined;
-let originalReadable: boolean;
 
 /**
  * Mocks stdin with the provided content.
@@ -100,7 +98,6 @@ let originalReadable: boolean;
 export function mockStdin(content: string): void {
   // Save original state
   originalIsTTY = process.stdin.isTTY;
-  originalReadable = process.stdin.readable;
 
   // Make stdin appear as piped
   Object.defineProperty(process.stdin, 'isTTY', {
@@ -118,11 +115,7 @@ export function mockStdin(content: string): void {
     },
   });
 
-  // Replace stdin methods
-  const originalOn = process.stdin.on.bind(process.stdin);
-  const originalOnce = process.stdin.once.bind(process.stdin);
-  const originalRemoveListener = process.stdin.removeListener.bind(process.stdin);
-
+  // Replace stdin methods with mock stream methods
   process.stdin.on = mockStream.on.bind(mockStream);
   process.stdin.once = mockStream.once.bind(mockStream);
   process.stdin.removeListener = mockStream.removeListener.bind(mockStream);
