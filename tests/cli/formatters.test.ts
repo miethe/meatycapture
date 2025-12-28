@@ -143,7 +143,7 @@ describe('JSON Formatter', () => {
       const output = formatDocAsJson(doc);
 
       expect(output).toContain('\n');
-      expect(output).toMatch(/^{\n  "/);
+      expect(output).toMatch(/^{\n {2}"/);
     });
   });
 
