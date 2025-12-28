@@ -32,10 +32,13 @@
     "@tanstack/react-table": "^8.11.0",
     "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/plugin-fs": "^2.0.3",
+    "chalk": "^5.6.2",
+    "cli-table3": "^0.6.5",
     "clsx": "^2.0.0",
     "commander": "^14.0.2",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

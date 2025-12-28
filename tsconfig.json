@@ -42,7 +42,8 @@
       "@ui/*": ["./src/ui/*"],
       "@platform": ["./src/platform/index.ts"],
       "@platform/*": ["./src/platform/*"],
-      "@server/*": ["./src/server/*"]
+      "@server/*": ["./src/server/*"],
+      "@cli/*": ["./src/cli/*"]
     }
   },
   "include": [
