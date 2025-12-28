@@ -1046,16 +1046,37 @@ meatycapture config show --config-dir
 
 ### Output Structure
 
+**Local Mode:**
 ```json
 {
   "config_dir": "/home/user/.meatycapture",
   "projects_file": "/home/user/.meatycapture/projects.json",
   "fields_file": "/home/user/.meatycapture/fields.json",
+  "config_file": "/home/user/.meatycapture/config.json",
   "default_project": "my-project",
+  "adapter_mode": "local",
   "environment": {
     "MEATYCAPTURE_CONFIG_DIR": null,
     "MEATYCAPTURE_DEFAULT_PROJECT": null,
-    "MEATYCAPTURE_DEFAULT_PROJECT_PATH": null
+    "MEATYCAPTURE_DEFAULT_PROJECT_PATH": null,
+    "MEATYCAPTURE_API_URL": null
+  }
+}
+```
+
+**API Mode:**
+```json
+{
+  "config_dir": "/home/user/.meatycapture",
+  "config_file": "/home/user/.meatycapture/config.json",
+  "api_url": "http://localhost:3737",
+  "default_project": "my-project",
+  "adapter_mode": "api",
+  "environment": {
+    "MEATYCAPTURE_CONFIG_DIR": null,
+    "MEATYCAPTURE_DEFAULT_PROJECT": null,
+    "MEATYCAPTURE_DEFAULT_PROJECT_PATH": null,
+    "MEATYCAPTURE_API_URL": "http://localhost:3737"
   }
 }
 ```
@@ -1089,8 +1110,15 @@ meatycapture config set <key> <value> [options]
 
 | Key | Description |
 |-----|-------------|
-| `default_project` | Default project ID |
-| `config_dir` | Configuration directory (via env var) |
+| `default_project` | Default project ID for commands without explicit project |
+| `api_url` | API server URL for remote mode (empty string or 'none' to disable) |
+
+### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--json` | boolean | false | Output as JSON |
+| `-q, --quiet` | boolean | false | Suppress output |
 
 ### Examples
 
@@ -1098,9 +1126,32 @@ meatycapture config set <key> <value> [options]
 # Set default project
 meatycapture config set default_project my-project
 
-# Via environment variable
-export MEATYCAPTURE_CONFIG_DIR=/custom/config
-export MEATYCAPTURE_DEFAULT_PROJECT=my-project
+# Enable API mode with server URL
+meatycapture config set api_url http://localhost:3737
+
+# Verify mode changed
+meatycapture config show
+
+# Disable API mode (switch back to local)
+meatycapture config set api_url ''
+meatycapture config set api_url 'none'
+
+# Clear setting (quiet mode)
+meatycapture config set default_project '' --quiet
+```
+
+### API Mode Configuration
+
+```bash
+# Set different API servers
+meatycapture config set api_url http://api.example.com:3737
+meatycapture config set api_url https://meatycapture.internal.corp
+
+# Temporary override via environment variable (doesn't modify config)
+export MEATYCAPTURE_API_URL=http://localhost:3737
+meatycapture log list
+
+# Environment variable takes precedence over config file
 ```
 
 ### Exit Codes
@@ -1108,7 +1159,7 @@ export MEATYCAPTURE_DEFAULT_PROJECT=my-project
 | Code | Meaning |
 |------|---------|
 | 0 | Setting updated |
-| 1 | Validation error |
+| 1 | Validation error (invalid key or value) |
 
 ---
 

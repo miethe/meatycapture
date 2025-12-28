@@ -190,6 +190,37 @@ For file-based input, use this JSON structure:
 
 ## Configuration
 
+### Operating Modes
+
+MeatyCapture supports two operating modes:
+
+**Local Mode (Default)**
+- Uses local filesystem storage at `~/.meatycapture/`
+- No server required
+- Data stored in JSON files (projects.json, fields.json, config.json)
+- Perfect for single-user workflows and local development
+
+**API Mode**
+- Connects to a MeatyCapture server via HTTP
+- Centralized storage for teams or multi-device usage
+- Requires running MeatyCapture server
+- All commands work identically in both modes
+
+### Switching Between Modes
+
+```bash
+# Enable API mode
+meatycapture config set api_url http://localhost:3737
+
+# Verify mode
+meatycapture config show
+# Shows: Adapter Mode: api
+
+# Disable API mode (return to local)
+meatycapture config set api_url ''
+# Or: meatycapture config set api_url none
+```
+
 ### Default Paths
 
 ```bash
@@ -201,6 +232,9 @@ For file-based input, use this JSON structure:
 
 # Field catalog
 ~/.meatycapture/fields.json
+
+# Configuration
+~/.meatycapture/config.json
 
 # Documents (per project)
 ~/.meatycapture/docs/<project-id>/
@@ -217,6 +251,9 @@ export MEATYCAPTURE_DEFAULT_PROJECT=my-project
 
 # Override default document path for all projects
 export MEATYCAPTURE_DEFAULT_PROJECT_PATH=/custom/docs/path
+
+# Set API server URL (overrides config file)
+export MEATYCAPTURE_API_URL=http://localhost:3737
 ```
 
 See: [Configuration Guide](configuration.md)

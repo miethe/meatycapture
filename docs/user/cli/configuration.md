@@ -17,12 +17,17 @@ Complete guide to configuring MeatyCapture CLI, managing configuration files, an
 
 ## Configuration Overview
 
-MeatyCapture stores configuration in a local directory with two main files:
+MeatyCapture operates in two modes:
+
+### Local Mode (Default)
+
+Local mode stores configuration and documents in a directory on your machine:
 
 ```
 ~/.meatycapture/                 # Configuration root
 ├── projects.json                # Project registry
 ├── fields.json                  # Global field catalog
+├── config.json                  # Local configuration
 └── docs/                        # Document storage
     ├── project-1/
     │   └── REQ-*.md
@@ -30,6 +35,16 @@ MeatyCapture stores configuration in a local directory with two main files:
     │   └── REQ-*.md
     └── ...
 ```
+
+### API Mode
+
+API mode connects the CLI to a remote MeatyCapture server:
+
+- All commands work identically
+- Projects, fields, and documents are stored on the server
+- Configured via `api_url` setting or `MEATYCAPTURE_API_URL` environment variable
+- Perfect for team collaboration and multi-device access
+- Client-side config still stored locally (~/.meatycapture/config.json)
 
 ---
 
@@ -168,6 +183,85 @@ meatycapture config init --force
 
 ---
 
+## Operating Modes
+
+### Switching to API Mode
+
+To use API mode instead of local storage, configure the API server URL:
+
+```bash
+# Enable API mode with server URL
+meatycapture config set api_url http://localhost:3737
+
+# Verify mode
+meatycapture config show
+# Output includes: Adapter Mode: api
+
+# Disable API mode (return to local)
+meatycapture config set api_url ''
+meatycapture config set api_url 'none'
+```
+
+### Configuration Priority
+
+When determining the API URL, the CLI checks in this order:
+
+1. **Environment variable** - `MEATYCAPTURE_API_URL` (highest priority)
+2. **Config file** - `api_url` in `~/.meatycapture/config.json`
+3. **Local mode** - If neither is set, uses local filesystem (default)
+
+### Using Environment Variable for API Mode
+
+For temporary API mode without modifying your config file:
+
+```bash
+# Single command with API mode
+MEATYCAPTURE_API_URL=http://localhost:3737 meatycapture log list my-project
+
+# Set for entire shell session
+export MEATYCAPTURE_API_URL=http://localhost:3737
+meatycapture log list
+meatycapture project list
+meatycapture field list type
+
+# Clear to return to local mode
+unset MEATYCAPTURE_API_URL
+```
+
+### API Server Requirements
+
+When using API mode, ensure:
+
+- MeatyCapture server is running and accessible
+- Server is listening on the configured URL
+- Network connectivity between CLI and server
+- Server is authorized if authentication is required
+
+**Example server startup:**
+
+```bash
+# In terminal 1: Start MeatyCapture server
+meatycapture serve --port 3737
+
+# In terminal 2: Use API mode
+export MEATYCAPTURE_API_URL=http://localhost:3737
+meatycapture project list
+```
+
+### Local vs API Mode Comparison
+
+| Feature | Local Mode | API Mode |
+|---------|-----------|----------|
+| Storage | Local filesystem | Remote server |
+| Setup | Zero setup | Requires server |
+| Collaboration | Single-user | Multi-user |
+| Offline Access | Yes | No |
+| Data Backup | Manual or scripted | Server-managed |
+| Configuration | JSON files | JSON + server |
+| Commands | All work | All work |
+
+---
+
 ## Environment Variables
 
 MeatyCapture respects standard environment variables for configuration override.
@@ -230,6 +324,36 @@ export MEATYCAPTURE_DEFAULT_PROJECT_PATH=/data/logs
 - Docker volume mapping
 - Centralized document repository
 
+### MEATYCAPTURE_API_URL
+
+**Purpose:** Set API server URL for remote mode (overrides config file)
+
+**Default:** Unset (uses local mode)
+
+```bash
+# Set API server URL
+export MEATYCAPTURE_API_URL=http://localhost:3737
+
+# All commands now use API mode
+meatycapture log list my-project
+meatycapture project list
+
+# Clear to return to local mode
+unset MEATYCAPTURE_API_URL
+```
+
+**Use cases:**
+- Team collaboration on shared server
+- Multi-device access to same data
+- Temporary API mode without config changes
+- CI/CD pipelines with centralized storage
+- Docker/container deployments
+
+**Priority:**
+- Environment variable takes precedence over config file
+- Allows temporary overrides without modifying persistent config
+- Perfect for testing different servers
+
 ---
 
 ## Configuration Management Commands
@@ -240,15 +364,29 @@ export MEATYCAPTURE_DEFAULT_PROJECT_PATH=/data/logs
 # Show all configuration
 meatycapture config show
 
-# Output:
+# Output (Local Mode):
 # config_dir: /home/user/.meatycapture
 # projects_file: /home/user/.meatycapture/projects.json
 # fields_file: /home/user/.meatycapture/fields.json
+# config_file: /home/user/.meatycapture/config.json
 # default_project: my-app
+# adapter_mode: local
 # environment:
 #   MEATYCAPTURE_CONFIG_DIR: null
 #   MEATYCAPTURE_DEFAULT_PROJECT: my-app
 #   MEATYCAPTURE_DEFAULT_PROJECT_PATH: null
+#   MEATYCAPTURE_API_URL: null
+
+# Output (API Mode):
+# config_dir: /home/user/.meatycapture
+# config_file: /home/user/.meatycapture/config.json
+# api_url: http://localhost:3737
+# default_project: my-app
+# adapter_mode: api
+# environment:
+#   MEATYCAPTURE_CONFIG_DIR: null
+#   MEATYCAPTURE_DEFAULT_PROJECT: null
+#   MEATYCAPTURE_API_URL: http://localhost:3737
 ```
 
 ### JSON Output

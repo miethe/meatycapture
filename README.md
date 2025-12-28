@@ -106,6 +106,9 @@ meatycapture --help
 # Initialize configuration
 meatycapture config init
 
+# Verify your configuration and current mode
+meatycapture config show
+
 # Create your first project (interactive mode)
 meatycapture project add --interactive
 
@@ -115,6 +118,32 @@ meatycapture log create --interactive
 # Or from JSON file
 meatycapture log create input.json
 ```
+
+### Configuration
+
+The CLI can operate in two modes:
+
+**Local Mode (Default)**
+Uses local filesystem storage at `~/.meatycapture/`. No server required.
+
+**API Mode**
+Connects to a MeatyCapture server for centralized storage. Set the API URL:
+
+```bash
+# Set API URL persistently
+meatycapture config set api_url http://localhost:3737
+
+# View current configuration and mode
+meatycapture config show
+
+# Clear API URL to return to local mode
+meatycapture config set api_url ''
+```
+
+**Configuration Priority:**
+1. `MEATYCAPTURE_API_URL` environment variable (highest)
+2. `api_url` in `~/.meatycapture/config.json`
+3. Local filesystem (default)
 
 ### Command Groups
 
