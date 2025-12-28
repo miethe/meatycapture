@@ -137,10 +137,16 @@ export class HttpClient {
    * @param config - Client configuration
    */
   constructor(config: HttpClientConfig = {}) {
-    // Resolve base URL: config > env var > default
-    const resolvedBaseUrl = config.baseUrl
-      || (typeof process !== 'undefined' ? process.env.MEATYCAPTURE_API_URL : undefined)
-      || DEFAULT_CONFIG.baseUrl;
+    // Resolve base URL: config > env var (process.env or import.meta.env) > default
+    // Check both process.env (Node/Bun) and import.meta.env (Vite browser builds)
+    const envBaseUrl =
+      (typeof process !== 'undefined' && process.env?.MEATYCAPTURE_API_URL)
+        ? process.env.MEATYCAPTURE_API_URL
+        : (typeof import.meta !== 'undefined' && import.meta.env?.MEATYCAPTURE_API_URL)
+          ? (import.meta.env.MEATYCAPTURE_API_URL as string)
+          : undefined;
+
+    const resolvedBaseUrl = config.baseUrl || envBaseUrl || DEFAULT_CONFIG.baseUrl;
 
     // Ensure baseUrl doesn't end with slash for consistent URL joining
     this.baseUrl = resolvedBaseUrl.endsWith('/')

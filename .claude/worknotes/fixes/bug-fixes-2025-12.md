@@ -558,3 +558,35 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
 1. Copy `.env.example` to `.env`
 2. Set `MEATYCAPTURE_API_URL=http://<your-server-ip>:3737`
 3. Rebuild: `docker compose build meatycapture-web && docker compose up -d`
+
+---
+
+### HttpClient Falls Back to localhost in Browser Builds
+
+**Issue**: Even after setting `MEATYCAPTURE_API_URL` in `.env` and rebuilding, remote access still fails with "Network request failed after 3 attempts: Load failed". API requests go to `localhost:3737` instead of the configured server IP.
+
+- **Location**: `src/adapters/api-client/http-client.ts:139-149`
+- **Root Cause**: The `HttpClient` constructor only checked `process.env.MEATYCAPTURE_API_URL` for the API URL:
+  ```typescript
+  const resolvedBaseUrl = config.baseUrl
+    || (typeof process !== 'undefined' ? process.env.MEATYCAPTURE_API_URL : undefined)
+    || DEFAULT_CONFIG.baseUrl;
+  ```
+  In browsers, `typeof process !== 'undefined'` is **FALSE** because `process` doesn't exist. So the code skipped the env var check entirely and fell back to the hardcoded `http://localhost:3737` default. Vite embeds env vars in `import.meta.env`, not `process.env`, but the HttpClient wasn't checking that.
+- **Fix**: Updated the constructor to check both `process.env` (Node/Bun) AND `import.meta.env` (Vite browser builds):
+  ```typescript
+  const envBaseUrl =
+    (typeof process !== 'undefined' && process.env?.MEATYCAPTURE_API_URL)
+      ? process.env.MEATYCAPTURE_API_URL
+      : (typeof import.meta !== 'undefined' && import.meta.env?.MEATYCAPTURE_API_URL)
+        ? (import.meta.env.MEATYCAPTURE_API_URL as string)
+        : undefined;
+
+  const resolvedBaseUrl = config.baseUrl || envBaseUrl || DEFAULT_CONFIG.baseUrl;
+  ```
+- **Commit(s)**: b68d228
+- **Status**: RESOLVED
+
+**Note**: After this fix, remote access requires:
+1. Set `MEATYCAPTURE_API_URL=http://<your-server-ip>:3737` in `.env`
+2. Rebuild: `docker compose build --no-cache meatycapture-web && docker compose up -d`
