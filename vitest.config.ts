@@ -9,6 +9,7 @@ export default defineConfig({
       '@ui': resolve(__dirname, './src/ui'),
       '@platform': resolve(__dirname, './src/platform'),
       '@server': resolve(__dirname, './src/server'),
+      '@cli': resolve(__dirname, './src/cli'),
     },
   },
   test: {
