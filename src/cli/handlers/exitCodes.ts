@@ -49,10 +49,16 @@ export const ExitCodes = {
   IO_ERROR: 2,
 
   /**
+   * Resource conflict or already exists
+   * Examples: Project ID already exists, duplicate entry
+   */
+  RESOURCE_CONFLICT: 3,
+
+  /**
    * Resource not found (application-level)
    * Examples: Project doesn't exist, document not registered
    */
-  RESOURCE_NOT_FOUND: 3,
+  RESOURCE_NOT_FOUND: 4,
 
   /**
    * Command line usage error (BSD sysexits.h EX_USAGE)
@@ -80,6 +86,7 @@ export const ExitCodeDescriptions: Record<ExitCode, string> = {
   [ExitCodes.SUCCESS]: 'Command completed successfully',
   [ExitCodes.VALIDATION_ERROR]: 'Validation or input error',
   [ExitCodes.IO_ERROR]: 'File system or I/O error',
+  [ExitCodes.RESOURCE_CONFLICT]: 'Resource conflict or already exists',
   [ExitCodes.RESOURCE_NOT_FOUND]: 'Resource not found',
   [ExitCodes.COMMAND_LINE_ERROR]: 'Invalid command line usage',
   [ExitCodes.USER_INTERRUPTED]: 'User interrupted',

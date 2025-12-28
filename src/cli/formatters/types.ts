@@ -11,7 +11,7 @@
  * - SearchResult extends items with match context for search commands
  */
 
-import type { RequestLogDoc, RequestLogItem } from '@core/models';
+import type { RequestLogDoc, RequestLogItem, Project } from '@core/models';
 import type { DocMeta } from '@core/ports';
 
 /**
@@ -78,7 +78,9 @@ export type FormattableData =
   | RequestLogItem
   | RequestLogItem[]
   | SearchMatch
-  | SearchMatch[];
+  | SearchMatch[]
+  | Project
+  | Project[];
 
 /**
  * Generic formatter interface.
@@ -196,4 +198,27 @@ export function isSearchMatchArray(data: unknown): data is SearchMatch[] {
  */
 export function isEmptyArray(data: unknown): data is [] {
   return Array.isArray(data) && data.length === 0;
+}
+
+/**
+ * Type guard for Project.
+ */
+export function isProject(data: unknown): data is Project {
+  if (!data || typeof data !== 'object') return false;
+  const p = data as Partial<Project>;
+  return (
+    typeof p.id === 'string' &&
+    typeof p.name === 'string' &&
+    typeof p.default_path === 'string' &&
+    typeof p.enabled === 'boolean' &&
+    p.created_at instanceof Date &&
+    p.updated_at instanceof Date
+  );
+}
+
+/**
+ * Type guard for Project array.
+ */
+export function isProjectArray(data: unknown): data is Project[] {
+  return Array.isArray(data) && data.length > 0 && isProject(data[0]);
 }

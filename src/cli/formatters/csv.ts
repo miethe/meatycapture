@@ -16,7 +16,7 @@
  * - Date fields use ISO 8601 format
  */
 
-import type { RequestLogDoc, RequestLogItem } from '@core/models';
+import type { RequestLogDoc, RequestLogItem, Project } from '@core/models';
 import type { DocMeta } from '@core/ports';
 import type {
   SearchMatch,
@@ -33,6 +33,8 @@ import {
   isSearchMatch,
   isSearchMatchArray,
   isEmptyArray,
+  isProject,
+  isProjectArray,
 } from './types.js';
 
 /**
@@ -276,6 +278,53 @@ export function formatSearchMatchesAsCsv(matches: SearchMatch[]): string {
 }
 
 // ============================================================================
+// Project CSV
+// ============================================================================
+
+const PROJECT_HEADERS = [
+  'id',
+  'name',
+  'default_path',
+  'repo_url',
+  'enabled',
+  'created_at',
+  'updated_at',
+] as const;
+
+/**
+ * Formats a Project as a CSV row (without header).
+ */
+function projectToRow(project: Project): string {
+  return createRow([
+    project.id,
+    project.name,
+    project.default_path,
+    project.repo_url ?? '',
+    project.enabled,
+    project.created_at,
+    project.updated_at,
+  ]);
+}
+
+/**
+ * Formats a single Project as CSV with header.
+ */
+export function formatProjectAsCsv(project: Project): string {
+  return [createRow([...PROJECT_HEADERS]), projectToRow(project)].join('\n');
+}
+
+/**
+ * Formats an array of Projects as CSV.
+ */
+export function formatProjectsAsCsv(projects: Project[]): string {
+  if (projects.length === 0) {
+    return createRow([...PROJECT_HEADERS]);
+  }
+  const rows = projects.map(projectToRow);
+  return [createRow([...PROJECT_HEADERS]), ...rows].join('\n');
+}
+
+// ============================================================================
 // Generic Formatter
 // ============================================================================
 
@@ -309,6 +358,10 @@ export function formatAsCsv<T extends FormattableData>(data: T): string {
     return formatItemsAsCsv(data);
   }
 
+  if (isProjectArray(data)) {
+    return formatProjectsAsCsv(data);
+  }
+
   // Handle single items
   if (isSearchMatch(data)) {
     return formatSearchMatchAsCsv(data);
@@ -324,6 +377,10 @@ export function formatAsCsv<T extends FormattableData>(data: T): string {
 
   if (isRequestLogItem(data)) {
     return formatItemAsCsv(data);
+  }
+
+  if (isProject(data)) {
+    return formatProjectAsCsv(data);
   }
 
   // Fallback: attempt generic CSV serialization

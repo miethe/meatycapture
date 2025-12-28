@@ -11,7 +11,7 @@
  */
 
 import { stringify as yamlStringify } from 'yaml';
-import type { RequestLogDoc, RequestLogItem } from '@core/models';
+import type { RequestLogDoc, RequestLogItem, Project } from '@core/models';
 import type { DocMeta } from '@core/ports';
 import type { SearchMatch, FormattableData } from './types.js';
 import { serializeDate } from './types.js';
@@ -104,6 +104,20 @@ export function formatSearchMatchAsYaml(match: SearchMatch): string {
  */
 export function formatSearchMatchesAsYaml(matches: SearchMatch[]): string {
   return yamlStringify(transformDates(matches), YAML_OPTIONS);
+}
+
+/**
+ * Formats a single Project as YAML.
+ */
+export function formatProjectAsYaml(project: Project): string {
+  return yamlStringify(transformDates(project), YAML_OPTIONS);
+}
+
+/**
+ * Formats an array of Projects as YAML.
+ */
+export function formatProjectsAsYaml(projects: Project[]): string {
+  return yamlStringify(transformDates(projects), YAML_OPTIONS);
 }
 
 /**

@@ -147,6 +147,32 @@ export class ParseError extends CliError {
 }
 
 /**
+ * Resource conflict error (application-level)
+ *
+ * Thrown when:
+ * - Project ID already exists in registry
+ * - Attempting to create duplicate resource
+ * - Resource name/ID collision
+ *
+ * Exit code: 3 (RESOURCE_CONFLICT)
+ */
+export class ResourceConflictError extends CliError {
+  constructor(
+    public readonly resourceType: 'project' | 'document' | 'field',
+    public readonly resourceId: string,
+    suggestion?: string
+  ) {
+    super(
+      `${capitalize(resourceType)} already exists: ${resourceId}`,
+      ExitCodes.RESOURCE_CONFLICT,
+      suggestion ?? `Use a different ID or remove the existing ${resourceType} first`
+    );
+    this.name = 'ResourceConflictError';
+    Error.captureStackTrace?.(this, ResourceConflictError);
+  }
+}
+
+/**
  * Resource not found error (application-level)
  *
  * Thrown when:
@@ -154,7 +180,7 @@ export class ParseError extends CliError {
  * - Document ID not found in project
  * - Referenced resource is missing
  *
- * Exit code: 3 (RESOURCE_NOT_FOUND)
+ * Exit code: 4 (RESOURCE_NOT_FOUND)
  */
 export class ResourceNotFoundError extends CliError {
   constructor(
@@ -516,6 +542,17 @@ export const createError = {
    */
   parse(path: string, reason: string, suggestion?: string): ParseError {
     return new ParseError(path, reason, suggestion);
+  },
+
+  /**
+   * Create a resource conflict error
+   */
+  conflict(
+    resourceType: 'project' | 'document' | 'field',
+    resourceId: string,
+    suggestion?: string
+  ): ResourceConflictError {
+    return new ResourceConflictError(resourceType, resourceId, suggestion);
   },
 
   /**

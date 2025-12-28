@@ -65,6 +65,7 @@ export {
   FileNotFoundError,
   PermissionError,
   ParseError,
+  ResourceConflictError,
   ResourceNotFoundError,
   CommandLineError,
   UserInterruptError,
@@ -108,3 +109,14 @@ export {
   type QueryComponent,
   type SearchOptions,
 } from './search.js';
+
+// ============================================================================
+// Project Handlers
+// ============================================================================
+
+export {
+  validateProjectId,
+  validatePathExists,
+  validatePathWritable,
+  generateProjectIdFromName,
+} from './project.js';

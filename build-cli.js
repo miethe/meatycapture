@@ -23,8 +23,11 @@ async function buildCli() {
       external: [
         // Don't bundle Node.js built-ins
         'node:*',
-        // Don't bundle commander - it has dynamic requires
+        // Don't bundle packages with dynamic requires
         'commander',
+        'yaml',
+        'chalk',
+        'cli-table3',
       ],
       alias: {
         '@core/logging': './src/cli/logging-stub.ts',

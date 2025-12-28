@@ -257,6 +257,13 @@ export function clearCapturedOutput(): void {
   capturedErrors = [];
 }
 
+/**
+ * Gets the last captured error message.
+ */
+export function getLastError(): string | undefined {
+  return capturedErrors[capturedErrors.length - 1];
+}
+
 // ============================================================================
 // Test Data Factories
 // ============================================================================

@@ -12,7 +12,7 @@
  */
 
 import chalk, { Chalk, type ChalkInstance } from 'chalk';
-import type { RequestLogDoc, RequestLogItem } from '@core/models';
+import type { RequestLogDoc, RequestLogItem, Project } from '@core/models';
 import type { DocMeta } from '@core/ports';
 import type {
   SearchMatch,
@@ -30,6 +30,8 @@ import {
   isSearchMatch,
   isSearchMatchArray,
   isEmptyArray,
+  isProject,
+  isProjectArray,
 } from './types.js';
 
 /**
@@ -381,6 +383,69 @@ export function formatSearchMatchesAsHuman(
 }
 
 // ============================================================================
+// Project Formatters
+// ============================================================================
+
+/**
+ * Formats enabled status with color.
+ */
+function enabledColor(c: ChalkInstance, enabled: boolean): string {
+  return enabled ? c.green('enabled') : c.red('disabled');
+}
+
+/**
+ * Formats a single Project for human display.
+ */
+export function formatProjectAsHuman(
+  project: Project,
+  options?: Partial<FormatOptions>
+): string {
+  const c = getChalk(options);
+  const lines: string[] = [];
+
+  lines.push(c.bold.white(project.name));
+  lines.push(c.dim(`ID: ${project.id}`));
+  lines.push('');
+
+  lines.push(`${c.dim('Path:')} ${c.cyan(project.default_path)}`);
+  if (project.repo_url) {
+    lines.push(`${c.dim('Repo:')} ${c.blue(project.repo_url)}`);
+  }
+  lines.push(`${c.dim('Status:')} ${enabledColor(c, project.enabled)}`);
+  lines.push(`${c.dim('Created:')} ${c.gray(formatDate(project.created_at))}`);
+  lines.push(`${c.dim('Updated:')} ${c.gray(formatDate(project.updated_at))}`);
+
+  return lines.join('\n');
+}
+
+/**
+ * Formats an array of Projects for human display.
+ */
+export function formatProjectsAsHuman(
+  projects: Project[],
+  options?: Partial<FormatOptions>
+): string {
+  const c = getChalk(options);
+
+  if (projects.length === 0) {
+    return c.yellow('No projects found.');
+  }
+
+  const output: string[] = [];
+  const enabledCount = projects.filter((p) => p.enabled).length;
+  output.push(c.bold(`Found ${projects.length} project(s) (${enabledCount} enabled):`));
+  output.push('');
+
+  for (const project of projects) {
+    output.push(c.dim('─'.repeat(60)));
+    output.push(formatProjectAsHuman(project, options));
+    output.push('');
+  }
+
+  return output.join('\n');
+}
+
+// ============================================================================
 // Generic Formatter
 // ============================================================================
 
@@ -420,6 +485,10 @@ export function formatAsHuman<T extends FormattableData>(
     return formatItemsAsHuman(data, options);
   }
 
+  if (isProjectArray(data)) {
+    return formatProjectsAsHuman(data, options);
+  }
+
   // Handle single items
   if (isSearchMatch(data)) {
     return formatSearchMatchAsHuman(data, options);
@@ -435,6 +504,10 @@ export function formatAsHuman<T extends FormattableData>(
 
   if (isRequestLogItem(data)) {
     return formatItemAsHuman(data, options);
+  }
+
+  if (isProject(data)) {
+    return formatProjectAsHuman(data, options);
   }
 
   // Fallback

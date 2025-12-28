@@ -46,6 +46,8 @@ export {
   isSearchMatch,
   isSearchMatchArray,
   isEmptyArray,
+  isProject,
+  isProjectArray,
 } from './types.js';
 
 // Re-export individual formatters
@@ -59,6 +61,8 @@ export {
   formatItemsAsJson,
   formatSearchMatchAsJson,
   formatSearchMatchesAsJson,
+  formatProjectAsJson,
+  formatProjectsAsJson,
 } from './json.js';
 
 export {
@@ -71,6 +75,8 @@ export {
   formatItemsAsYaml,
   formatSearchMatchAsYaml,
   formatSearchMatchesAsYaml,
+  formatProjectAsYaml,
+  formatProjectsAsYaml,
 } from './yaml.js';
 
 export {
@@ -83,6 +89,8 @@ export {
   formatItemsAsCsv,
   formatSearchMatchAsCsv,
   formatSearchMatchesAsCsv,
+  formatProjectAsCsv,
+  formatProjectsAsCsv,
 } from './csv.js';
 
 export {
@@ -95,6 +103,8 @@ export {
   formatItemsAsTable,
   formatSearchMatchAsTable,
   formatSearchMatchesAsTable,
+  formatProjectAsTable,
+  formatProjectsAsTable,
 } from './table.js';
 
 export {
@@ -107,6 +117,8 @@ export {
   formatItemsAsHuman,
   formatSearchMatchAsHuman,
   formatSearchMatchesAsHuman,
+  formatProjectAsHuman,
+  formatProjectsAsHuman,
 } from './human.js';
 
 // Import for dispatcher

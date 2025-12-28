@@ -10,7 +10,7 @@
  * - Preserves all data fields without transformation
  */
 
-import type { RequestLogDoc, RequestLogItem } from '@core/models';
+import type { RequestLogDoc, RequestLogItem, Project } from '@core/models';
 import type { DocMeta } from '@core/ports';
 import type { SearchMatch, FormattableData } from './types.js';
 
@@ -79,6 +79,20 @@ export function formatSearchMatchAsJson(match: SearchMatch): string {
  */
 export function formatSearchMatchesAsJson(matches: SearchMatch[]): string {
   return JSON.stringify(matches, dateReplacer, 2);
+}
+
+/**
+ * Formats a single Project as JSON.
+ */
+export function formatProjectAsJson(project: Project): string {
+  return JSON.stringify(project, dateReplacer, 2);
+}
+
+/**
+ * Formats an array of Projects as JSON.
+ */
+export function formatProjectsAsJson(projects: Project[]): string {
+  return JSON.stringify(projects, dateReplacer, 2);
 }
 
 /**

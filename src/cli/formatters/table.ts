@@ -12,7 +12,7 @@
  */
 
 import Table from 'cli-table3';
-import type { RequestLogDoc, RequestLogItem } from '@core/models';
+import type { RequestLogDoc, RequestLogItem, Project } from '@core/models';
 import type { DocMeta } from '@core/ports';
 import type {
   SearchMatch,
@@ -29,6 +29,8 @@ import {
   isSearchMatch,
   isSearchMatchArray,
   isEmptyArray,
+  isProject,
+  isProjectArray,
 } from './types.js';
 
 /**
@@ -300,6 +302,60 @@ export function formatSearchMatchesAsTable(matches: SearchMatch[]): string {
 }
 
 // ============================================================================
+// Project Table
+// ============================================================================
+
+/**
+ * Formats a single Project as an ASCII table.
+ */
+export function formatProjectAsTable(project: Project): string {
+  const table = new Table({
+    head: ['Field', 'Value'],
+    colWidths: [15, 60],
+  });
+
+  table.push(
+    ['ID', project.id],
+    ['Name', project.name],
+    ['Path', truncate(project.default_path, 55)],
+    ['Repo URL', project.repo_url ? truncate(project.repo_url, 55) : '(none)'],
+    ['Enabled', project.enabled ? 'Yes' : 'No'],
+    ['Created', formatDate(project.created_at)],
+    ['Updated', formatDate(project.updated_at)]
+  );
+
+  return table.toString();
+}
+
+/**
+ * Formats an array of Projects as an ASCII table.
+ */
+export function formatProjectsAsTable(projects: Project[]): string {
+  if (projects.length === 0) {
+    return 'No projects found.';
+  }
+
+  const table = new Table({
+    head: ['ID', 'Name', 'Path', 'Repo URL', 'Enabled', 'Created'],
+    colWidths: [18, 20, 35, 30, 9, 22],
+    wordWrap: true,
+  });
+
+  for (const project of projects) {
+    table.push([
+      project.id,
+      truncate(project.name, 17),
+      truncate(project.default_path, 32),
+      project.repo_url ? truncate(project.repo_url, 27) : '(none)',
+      project.enabled ? 'Yes' : 'No',
+      formatDate(project.created_at),
+    ]);
+  }
+
+  return table.toString();
+}
+
+// ============================================================================
 // Generic Formatter
 // ============================================================================
 
@@ -333,6 +389,10 @@ export function formatAsTable<T extends FormattableData>(data: T): string {
     return formatItemsAsTable(data);
   }
 
+  if (isProjectArray(data)) {
+    return formatProjectsAsTable(data);
+  }
+
   // Handle single items
   if (isSearchMatch(data)) {
     return formatSearchMatchAsTable(data);
@@ -348,6 +408,10 @@ export function formatAsTable<T extends FormattableData>(data: T): string {
 
   if (isRequestLogItem(data)) {
     return formatItemAsTable(data);
+  }
+
+  if (isProject(data)) {
+    return formatProjectAsTable(data);
   }
 
   // Fallback

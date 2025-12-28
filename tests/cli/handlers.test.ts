@@ -501,8 +501,12 @@ describe('Exit Codes', () => {
       expect(ExitCodes.IO_ERROR).toBe(2);
     });
 
-    it('should define RESOURCE_NOT_FOUND as 3', () => {
-      expect(ExitCodes.RESOURCE_NOT_FOUND).toBe(3);
+    it('should define RESOURCE_CONFLICT as 3', () => {
+      expect(ExitCodes.RESOURCE_CONFLICT).toBe(3);
+    });
+
+    it('should define RESOURCE_NOT_FOUND as 4', () => {
+      expect(ExitCodes.RESOURCE_NOT_FOUND).toBe(4);
     });
 
     it('should define COMMAND_LINE_ERROR as 64', () => {
@@ -519,6 +523,7 @@ describe('Exit Codes', () => {
       expect(ExitCodeDescriptions[ExitCodes.SUCCESS]).toBeDefined();
       expect(ExitCodeDescriptions[ExitCodes.VALIDATION_ERROR]).toBeDefined();
       expect(ExitCodeDescriptions[ExitCodes.IO_ERROR]).toBeDefined();
+      expect(ExitCodeDescriptions[ExitCodes.RESOURCE_CONFLICT]).toBeDefined();
       expect(ExitCodeDescriptions[ExitCodes.RESOURCE_NOT_FOUND]).toBeDefined();
       expect(ExitCodeDescriptions[ExitCodes.COMMAND_LINE_ERROR]).toBeDefined();
       expect(ExitCodeDescriptions[ExitCodes.USER_INTERRUPTED]).toBeDefined();
