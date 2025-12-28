@@ -119,7 +119,7 @@ services:
 
       # CORS allowed origins (comma-separated)
       # Default allows common dev ports; override in .env for production
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:4173,http://localhost:3000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
 
       # Optional: Authentication token for API access
       # Uncomment in .env to enable authentication
@@ -135,7 +135,7 @@ services:
       # Mount local ./data directory to container's /data directory
       # This persists request-log files, project metadata, and field catalogs
       # Format: HOST_PATH:CONTAINER_PATH:OPTIONS
-      - ./data:/data
+      - /Users/miethe/data/projects:/data
 
       # Alternative: Use named volume for better Docker management
       # Uncomment below and comment out ./data mount to use named volume

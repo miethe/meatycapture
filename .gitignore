@@ -2,6 +2,7 @@
 node_modules/
 .pnp
 .pnp.js
+__pycache__/*
 
 # Testing
 coverage/
@@ -66,3 +67,4 @@ platform/dist/
 src-tauri/target/
 src-tauri/Cargo.lock
 src-tauri/WixTools/
+data
