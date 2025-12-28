@@ -526,3 +526,35 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   5. `--force` flag still works for non-interactive/scripted use
 - **Commit(s)**: 951b839
 - **Status**: RESOLVED
+
+---
+
+### Web App Not Remotely Accessible - API URL Baked at Build Time
+
+**Issue**: Web app cannot be accessed remotely from IP `10.0.2.218`. The page loads but API calls fail because frontend is trying to connect to `localhost:3737` instead of the server's actual IP.
+
+- **Location**: `docker-compose.yml:44`, `.env` (missing), `src/adapters/factory.ts:68-80`
+- **Root Cause**: Three contributing factors:
+  1. **Build-time embedding**: Vite inlines `MEATYCAPTURE_API_URL` into the JavaScript bundle at build time, not runtime. If the variable isn't set during `docker compose build`, the default `http://localhost:3737` is permanently embedded.
+  2. **Missing .env file**: No `.env.example` existed to document required configuration. Users didn't know to set `MEATYCAPTURE_API_URL=http://10.0.2.218:3737` before building.
+  3. **CLI doesn't read .env**: The CLI configuration system only read `config.json`, ignoring `.env` files that users might configure for server deployment.
+- **Fix**:
+  1. Created `.env.example` with comprehensive documentation:
+     - Critical warning that `MEATYCAPTURE_API_URL` must be browser-accessible (not just server-accessible)
+     - Note that Vite embeds at BUILD time, requiring rebuild for changes
+     - Examples for local vs remote access scenarios
+     - All environment variables documented with defaults
+  2. Added CLI `.env` file loading (`src/cli/env-loader.ts`):
+     - Reads `.env` from current working directory at CLI startup
+     - Simple KEY=VALUE parsing (no external dependencies)
+     - Supports comments, quoted values, whitespace
+     - Environment precedence: existing env vars override `.env` values
+     - Integrated into CLI entry point (`src/cli/index.ts`)
+  3. CORS was already correctly configured (echoes origin when using wildcard with credentials)
+- **Commit(s)**: e0dd5db
+- **Status**: RESOLVED
+
+**User Action Required**: To enable remote access:
+1. Copy `.env.example` to `.env`
+2. Set `MEATYCAPTURE_API_URL=http://<your-server-ip>:3737`
+3. Rebuild: `docker compose build meatycapture-web && docker compose up -d`

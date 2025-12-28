@@ -37,6 +37,11 @@
  */
 
 import { Command } from 'commander';
+import { loadEnvFile } from './env-loader.js';
+
+// Load .env file from current working directory before any config reads
+// Environment variables take precedence over .env values
+loadEnvFile();
 
 // Command group factories
 import { createLogCommand, createAction, appendAction, listAction } from './commands/log';
