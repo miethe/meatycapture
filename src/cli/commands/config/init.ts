@@ -9,24 +9,28 @@
  * - Creates projects.json with sample "meatycapture" project
  * - Creates fields.json with default field options (via auto-initialization)
  * - Custom config directory via --config-dir flag
- * - Force overwrite with --force flag
- * - Fails with exit code 3 if config exists without --force
+ * - Prompts for confirmation if config exists (interactive mode)
+ * - Force overwrite with --force flag (non-interactive/scripted use)
+ * - Graceful Ctrl+C handling (exit 130)
  *
  * Exit codes:
  * - 0: Success
  * - 2: I/O error (permission denied, etc.)
- * - 3: Config already exists (without --force)
+ * - 130: User cancelled (declined overwrite or Ctrl+C)
  */
 
 import type { Command } from 'commander';
 import { promises as fs } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
+import * as readline from 'node:readline/promises';
+import { stdin, stdout } from 'node:process';
 import {
   withErrorHandling,
   setQuietMode,
   isQuietMode,
   createError,
+  UserInterruptError,
 } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 import { createFieldCatalogStore } from '@adapters/config-local';
@@ -112,7 +116,7 @@ async function createConfigDir(configDir: string): Promise<boolean> {
     try {
       await fs.mkdir(configDir, { recursive: true });
       return true;
-    } catch (error) {
+    } catch {
       throw createError.permission(
         configDir,
         'write',
@@ -141,7 +145,7 @@ async function createConfigFile(configDir: string): Promise<void> {
 
   try {
     await fs.writeFile(configFile, content, 'utf-8');
-  } catch (error) {
+  } catch {
     throw createError.permission(
       configFile,
       'write',
@@ -176,7 +180,7 @@ async function createProjectsFile(configDir: string): Promise<void> {
 
   try {
     await fs.writeFile(projectsFile, content, 'utf-8');
-  } catch (error) {
+  } catch {
     throw createError.permission(
       projectsFile,
       'write',
@@ -216,9 +220,48 @@ async function removeExistingConfig(configDir: string): Promise<void> {
 
     try {
       await fs.unlink(filePath);
-    } catch (error) {
+    } catch {
       // Ignore errors - file might not exist
     }
+  }
+}
+
+/**
+ * Prompts user for overwrite confirmation.
+ *
+ * Displays the config directory and asks for y/N confirmation.
+ * Handles Ctrl+C gracefully by throwing UserInterruptError.
+ *
+ * @param configDir - Path to existing configuration directory
+ * @returns True if user confirmed with 'y' or 'yes', false otherwise
+ * @throws UserInterruptError if user presses Ctrl+C
+ */
+async function confirmOverwrite(configDir: string): Promise<boolean> {
+  const rl = readline.createInterface({ input: stdin, output: stdout });
+
+  // Handle Ctrl+C during readline
+  const handleSigint = (): void => {
+    rl.close();
+    throw new UserInterruptError();
+  };
+  process.once('SIGINT', handleSigint);
+
+  try {
+    const answer = await rl.question(
+      `Configuration already exists at ${configDir}. Do you want to overwrite? (y/N) `
+    );
+    const normalized = answer.toLowerCase().trim();
+    return normalized === 'y' || normalized === 'yes';
+  } catch (error) {
+    // readline throws on Ctrl+C in some environments
+    if (error instanceof UserInterruptError) {
+      throw error;
+    }
+    // Any other readline error (e.g., closed input) treated as cancellation
+    throw new UserInterruptError();
+  } finally {
+    process.removeListener('SIGINT', handleSigint);
+    rl.close();
   }
 }
 
@@ -234,7 +277,7 @@ async function removeExistingConfig(configDir: string): Promise<void> {
  * Exit codes:
  * - 0: Success
  * - 2: I/O error (permission denied, etc.)
- * - 3: Config already exists (without --force)
+ * - 130: User cancelled (declined overwrite or Ctrl+C)
  */
 export async function initAction(options: InitOptions): Promise<void> {
   // Set quiet mode globally for formatters
@@ -248,12 +291,12 @@ export async function initAction(options: InitOptions): Promise<void> {
   const exists = await configExists(configDir);
 
   if (exists && !options.force) {
-    // Config exists and --force not provided
-    throw createError.generic(
-      `Configuration already exists at ${configDir}`,
-      ExitCodes.RESOURCE_CONFLICT,
-      'Use --force to overwrite existing configuration'
-    );
+    // Config exists and --force not provided - prompt user for confirmation
+    const confirmed = await confirmOverwrite(configDir);
+    if (!confirmed) {
+      console.log('Initialization cancelled.');
+      process.exit(ExitCodes.USER_INTERRUPTED);
+    }
   }
 
   // Start initialization
@@ -261,8 +304,8 @@ export async function initAction(options: InitOptions): Promise<void> {
     console.log('Initializing MeatyCapture configuration...');
   }
 
-  // Remove existing config if --force
-  if (exists && options.force) {
+  // Remove existing config if overwriting (user confirmed or --force)
+  if (exists) {
     await removeExistingConfig(configDir);
   }
 

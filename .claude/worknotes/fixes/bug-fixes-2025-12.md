@@ -490,3 +490,39 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   8. Bolder labels (font-weight: 600) with letter-spacing
 - **Commit(s)**: f57b8e1
 - **Status**: RESOLVED
+
+---
+
+### CLI `log list` Returns 0 Documents Due to Wrong Project Path
+
+**Issue**: The CLI correctly lists projects but `log list` returns 0 documents because it looks in the wrong directory. Projects created via `project add` use `./docs/<slug>` as default path instead of the `MEATYCAPTURE_DEFAULT_PROJECT_PATH` environment variable.
+
+- **Location**: `src/cli/commands/project/add.ts:89-93`
+- **Root Cause**: The interactive `project add` command hardcoded `./docs/${generateProjectIdFromName(name)}` as the default path suggestion, ignoring the `MEATYCAPTURE_DEFAULT_PROJECT_PATH` environment variable. When projects were created, their `default_path` was stored relative to the current directory instead of the configured storage location. The `log list` command correctly uses `project.default_path`, but that value was wrong from project creation.
+- **Fix**: Updated `interactiveProjectAdd()` to check for `MEATYCAPTURE_DEFAULT_PROJECT_PATH` first:
+  ```typescript
+  const envPath = process.env['MEATYCAPTURE_DEFAULT_PROJECT_PATH'];
+  const projectSlug = generateProjectIdFromName(name);
+  const defaultPath = envPath
+    ? join(envPath, projectSlug)
+    : `./docs/${projectSlug}`;
+  ```
+- **Commit(s)**: 951b839
+- **Status**: RESOLVED
+
+---
+
+### CLI `config init` Overwrites Existing Config Without Prompting
+
+**Issue**: Running `config init` when configuration already exists would fail with exit code 3, requiring the `--force` flag to overwrite. Users expected an interactive prompt asking for confirmation.
+
+- **Location**: `src/cli/commands/config/init.ts:247-257`
+- **Root Cause**: The command only supported two modes: error-on-conflict (default) or force-overwrite (`--force` flag). No interactive confirmation was implemented for the common case of reinitializing an existing configuration.
+- **Fix**: Added interactive `confirmOverwrite()` function using `readline/promises`:
+  1. When config exists without `--force`, prompts: "Configuration already exists at {path}. Do you want to overwrite? (y/N)"
+  2. User confirms with 'y'/'yes' → proceeds with overwrite
+  3. User declines or empty input → exits gracefully with "Initialization cancelled" (exit code 130)
+  4. Ctrl+C → throws `UserInterruptError` (exit code 130)
+  5. `--force` flag still works for non-interactive/scripted use
+- **Commit(s)**: 951b839
+- **Status**: RESOLVED

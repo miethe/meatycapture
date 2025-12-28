@@ -19,6 +19,7 @@
  */
 
 import type { Command } from 'commander';
+import { join } from 'node:path';
 import { createAdapters } from '@adapters/factory';
 import type { Project } from '@core/models';
 import {
@@ -86,7 +87,13 @@ async function interactiveProjectAdd(): Promise<{
     (v) => validateNonEmpty(v, 'Project name')
   );
 
-  const defaultPath = `./docs/${generateProjectIdFromName(name)}`;
+  // Resolve default path: env var takes precedence, then fallback to ./docs/
+  const envPath = process.env['MEATYCAPTURE_DEFAULT_PROJECT_PATH'];
+  const projectSlug = generateProjectIdFromName(name);
+  const defaultPath = envPath
+    ? join(envPath, projectSlug)
+    : `./docs/${projectSlug}`;
+
   const path = await promptWithValidation(
     'Default path',
     validatePath,
