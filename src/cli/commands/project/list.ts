@@ -15,7 +15,7 @@
  */
 
 import type { Command } from 'commander';
-import { createProjectStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import type { Project } from '@core/models';
 import {
   formatOutput,
@@ -149,7 +149,7 @@ export async function listAction(options: ListOptions): Promise<void> {
   const sortField = parseSortField(options.sort);
 
   // Fetch projects from store
-  const projectStore = createProjectStore();
+  const { projectStore } = await createAdapters();
   let projects = await projectStore.list();
 
   // Apply filtering

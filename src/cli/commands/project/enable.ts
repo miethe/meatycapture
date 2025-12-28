@@ -16,7 +16,7 @@
  */
 
 import type { Command } from 'commander';
-import { createProjectStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import {
   formatOutput,
   type OutputFormat,
@@ -79,7 +79,7 @@ export async function enableAction(
   };
 
   // Get project from store
-  const projectStore = createProjectStore();
+  const { projectStore } = await createAdapters();
   const project = await projectStore.get(id);
 
   if (!project) {

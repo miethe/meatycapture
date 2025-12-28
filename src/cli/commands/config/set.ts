@@ -18,7 +18,7 @@
  */
 
 import type { Command } from 'commander';
-import { createConfigStore, createProjectStore } from '@adapters/config-local';
+import { createConfigStore, createAdapters } from '@adapters/factory';
 import type { ConfigKey } from '@core/models';
 import {
   withErrorHandling,
@@ -39,7 +39,7 @@ interface SetOptions {
  * Valid configuration keys that can be set.
  * Used for validation and error messages.
  */
-const VALID_KEYS: ConfigKey[] = ['default_project'];
+const VALID_KEYS: ConfigKey[] = ['default_project', 'api_url'];
 
 /**
  * Validates that the provided key is a recognized configuration key.
@@ -58,11 +58,12 @@ function validateKey(key: string): asserts key is ConfigKey {
  * Validates the value for a specific configuration key.
  *
  * For 'default_project': validates that the project exists in the registry.
- * Throws ResourceNotFoundError if project doesn't exist.
+ * For 'api_url': validates URL format and protocol (http/https only).
+ * Throws ValidationError or ResourceNotFoundError if validation fails.
  */
 async function validateValue(key: ConfigKey, value: string): Promise<void> {
   if (key === 'default_project') {
-    const projectStore = createProjectStore();
+    const { projectStore } = await createAdapters();
     const project = await projectStore.get(value);
 
     if (!project) {
@@ -71,6 +72,30 @@ async function validateValue(key: ConfigKey, value: string): Promise<void> {
         value,
         "Run 'meatycapture project list' to see available projects"
       );
+    }
+  } else if (key === 'api_url') {
+    // Allow empty string to clear the api_url
+    if (value === '' || value.toLowerCase() === 'null' || value.toLowerCase() === 'none') {
+      return; // Empty value is valid - will clear the setting
+    }
+    // Validate URL format
+    try {
+      const url = new URL(value);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        throw createError.validation(
+          `Invalid URL protocol: ${url.protocol}`,
+          'Use http:// or https:// protocol'
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Invalid URL')) {
+        throw createError.validation(
+          `Invalid URL format: ${value}`,
+          "Use a valid URL like http://localhost:3737, or '' to clear"
+        );
+      }
+      // Re-throw validation errors from above
+      throw error;
     }
   }
 }
@@ -131,15 +156,22 @@ export function registerSetCommand(program: Command): void {
       `
 Configuration Keys:
   default_project    Set the default project for new documents
+  api_url           Set the API server URL for remote mode
 
 Examples:
   meatycapture config set default_project my-app
+  meatycapture config set api_url http://localhost:3737
+  meatycapture config set api_url https://meatycapture.example.com
+  meatycapture config set api_url ''        # Clear API URL (switch to local mode)
   meatycapture config set default_project another-project --quiet
 
 Notes:
   - For 'default_project', the project must exist in the registry
+  - For 'api_url', must be a valid http:// or https:// URL
+  - Use '', 'null', or 'none' to clear the api_url setting
   - Use 'meatycapture project list' to see available projects
   - Creates config.json if it doesn't exist
+  - API URL can also be set via MEATYCAPTURE_API_URL environment variable
 `
     )
     .action(withErrorHandling(setAction));

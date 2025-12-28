@@ -15,7 +15,7 @@ import type { Command } from 'commander';
 import { promises as fs } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ItemDraft, RequestLogDoc, RequestLogItem } from '@core/models';
-import { createFsDocStore } from '@adapters/fs-local';
+import { createAdapters } from '@adapters/factory';
 import { realClock } from '@adapters/clock';
 import { aggregateTags, updateItemsIndex, serialize, parse } from '@core/serializer';
 import { generateItemId, getNextItemNumber } from '@core/validation';
@@ -278,7 +278,7 @@ async function appendWithBackup(
   docPath: string,
   input: AppendCliInput
 ): Promise<RequestLogDoc> {
-  const docStore = createFsDocStore();
+  const { docStore } = await createAdapters();
   let updatedDoc: RequestLogDoc | null = null;
 
   for (const item of input.items) {

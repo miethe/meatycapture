@@ -26,7 +26,7 @@ import {
   isQuietMode,
 } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
-import { createProjectStore } from '@adapters/config-local';
+import { createConfigStore, createAdapters } from '@adapters/factory';
 
 /**
  * Configuration display structure.
@@ -37,10 +37,13 @@ interface ConfigDisplay {
   projects_file: string;
   fields_file: string;
   default_project: string | null;
+  api_url: string | null;
+  adapter_mode: 'api' | 'local';
   environment: {
     MEATYCAPTURE_CONFIG_DIR: string | null;
     MEATYCAPTURE_DEFAULT_PROJECT: string | null;
     MEATYCAPTURE_DEFAULT_PROJECT_PATH: string | null;
+    MEATYCAPTURE_API_URL: string | null;
   };
 }
 
@@ -91,7 +94,7 @@ async function getDefaultProject(): Promise<string | null> {
 
   // Try to get from project registry
   try {
-    const projectStore = createProjectStore();
+    const { projectStore } = await createAdapters();
     const projects = await projectStore.list();
     const enabledProjects = projects.filter((p) => p.enabled);
 
@@ -104,21 +107,63 @@ async function getDefaultProject(): Promise<string | null> {
 }
 
 /**
+ * Gets the API URL from persistent config or environment
+ *
+ * Priority:
+ * 1. MEATYCAPTURE_API_URL environment variable
+ * 2. api_url in config.json
+ * 3. null (not set)
+ */
+async function getApiUrl(): Promise<string | null> {
+  // Check environment variable first
+  const envApiUrl = process.env['MEATYCAPTURE_API_URL'];
+  if (envApiUrl) {
+    return envApiUrl;
+  }
+
+  // Try to get from config file
+  try {
+    const configStore = createConfigStore();
+    const config = await configStore.get();
+    return config.api_url || null;
+  } catch {
+    // Config file doesn't exist or can't be read
+    return null;
+  }
+}
+
+/**
+ * Detects the current adapter mode based on API URL configuration
+ *
+ * If api_url is set (either in env or config), mode is 'api'.
+ * Otherwise, mode is 'local'.
+ */
+async function getAdapterMode(): Promise<'api' | 'local'> {
+  const apiUrl = await getApiUrl();
+  return apiUrl ? 'api' : 'local';
+}
+
+/**
  * Collects current configuration data.
  */
 async function getConfigData(): Promise<ConfigDisplay> {
   const configDir = getConfigDir();
   const defaultProject = await getDefaultProject();
+  const apiUrl = await getApiUrl();
+  const adapterMode = await getAdapterMode();
 
   return {
     config_dir: configDir,
     projects_file: join(configDir, 'projects.json'),
     fields_file: join(configDir, 'fields.json'),
     default_project: defaultProject,
+    api_url: apiUrl,
+    adapter_mode: adapterMode,
     environment: {
       MEATYCAPTURE_CONFIG_DIR: process.env['MEATYCAPTURE_CONFIG_DIR'] || null,
       MEATYCAPTURE_DEFAULT_PROJECT: process.env['MEATYCAPTURE_DEFAULT_PROJECT'] || null,
       MEATYCAPTURE_DEFAULT_PROJECT_PATH: process.env['MEATYCAPTURE_DEFAULT_PROJECT_PATH'] || null,
+      MEATYCAPTURE_API_URL: process.env['MEATYCAPTURE_API_URL'] || null,
     },
   };
 }
@@ -134,11 +179,14 @@ function formatHumanOutput(config: ConfigDisplay): string {
   lines.push(`  Projects File:    ${config.projects_file}`);
   lines.push(`  Fields File:      ${config.fields_file}`);
   lines.push(`  Default Project:  ${config.default_project || '(not set)'}`);
+  lines.push(`  API URL:          ${config.api_url || '(not set)'}`);
+  lines.push(`  Adapter Mode:     ${config.adapter_mode}`);
   lines.push('');
   lines.push('Environment Variables:');
   lines.push(`  MEATYCAPTURE_CONFIG_DIR:            ${config.environment.MEATYCAPTURE_CONFIG_DIR || '(not set)'}`);
   lines.push(`  MEATYCAPTURE_DEFAULT_PROJECT:       ${config.environment.MEATYCAPTURE_DEFAULT_PROJECT || '(not set)'}`);
   lines.push(`  MEATYCAPTURE_DEFAULT_PROJECT_PATH:  ${config.environment.MEATYCAPTURE_DEFAULT_PROJECT_PATH || '(not set)'}`);
+  lines.push(`  MEATYCAPTURE_API_URL:               ${config.environment.MEATYCAPTURE_API_URL || '(not set)'}`);
 
   return lines.join('\n');
 }
@@ -153,10 +201,13 @@ function formatYamlOutput(config: ConfigDisplay): string {
   lines.push('projects_file: ' + config.projects_file);
   lines.push('fields_file: ' + config.fields_file);
   lines.push('default_project: ' + (config.default_project || 'null'));
+  lines.push('api_url: ' + (config.api_url || 'null'));
+  lines.push('adapter_mode: ' + config.adapter_mode);
   lines.push('environment:');
   lines.push('  MEATYCAPTURE_CONFIG_DIR: ' + (config.environment.MEATYCAPTURE_CONFIG_DIR || 'null'));
   lines.push('  MEATYCAPTURE_DEFAULT_PROJECT: ' + (config.environment.MEATYCAPTURE_DEFAULT_PROJECT || 'null'));
   lines.push('  MEATYCAPTURE_DEFAULT_PROJECT_PATH: ' + (config.environment.MEATYCAPTURE_DEFAULT_PROJECT_PATH || 'null'));
+  lines.push('  MEATYCAPTURE_API_URL: ' + (config.environment.MEATYCAPTURE_API_URL || 'null'));
 
   return lines.join('\n');
 }

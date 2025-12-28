@@ -19,7 +19,7 @@
  */
 
 import type { Command } from 'commander';
-import { createProjectStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import type { Project } from '@core/models';
 import {
   formatOutput,
@@ -190,7 +190,7 @@ export async function addAction(
   await validatePathWritable(path);
 
   // Check if project with this ID already exists
-  const projectStore = createProjectStore();
+  const { projectStore } = await createAdapters();
   const existingProject = await projectStore.get(projectId);
   if (existingProject) {
     throw createError.conflict(

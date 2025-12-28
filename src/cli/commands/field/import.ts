@@ -31,7 +31,7 @@ import type { Command } from 'commander';
 import { promises as fs } from 'node:fs';
 import { extname } from 'node:path';
 import YAML from 'yaml';
-import { createFieldCatalogStore, createProjectStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import type { FieldName } from '@core/models';
 import {
   withErrorHandling,
@@ -218,15 +218,15 @@ export async function importAction(filePath: string, options: ImportOptions): Pr
   const input = validateImportInput(rawInput);
 
   // If --project specified, verify project exists
+  const { projectStore, fieldStore } = await createAdapters();
+
   if (options.project) {
-    const projectStore = createProjectStore();
     const project = await projectStore.get(options.project);
     if (!project) {
       throw createError.resource('project', options.project);
     }
   }
 
-  const fieldStore = createFieldCatalogStore();
   const scope = options.project ? ('project' as const) : ('global' as const);
 
   // Pre-check for duplicates if not in merge mode

@@ -15,7 +15,7 @@ import { resolve, basename } from 'node:path';
 import { promises as fs } from 'node:fs';
 import * as readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
-import { createFsDocStore } from '@adapters/fs-local';
+import { createAdapters } from '@adapters/factory';
 import type { RequestLogDoc } from '@core/models';
 import {
   FileNotFoundError,
@@ -101,7 +101,7 @@ function output(message: string): void {
  */
 export async function deleteAction(docPath: string, options: DeleteOptions): Promise<void> {
   const resolvedPath = resolve(docPath);
-  const docStore = createFsDocStore();
+  const { docStore } = await createAdapters();
 
   // Step 1: Read document (verifies existence and gets metadata for confirmation)
   let doc: RequestLogDoc;

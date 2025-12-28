@@ -57,6 +57,7 @@ async function ensureConfigDir(configDir: string): Promise<void> {
 interface ConfigFile {
   version: string;
   default_project?: string;
+  api_url?: string;
   created_at: string;
   updated_at: string;
 }
@@ -112,6 +113,9 @@ export class LocalConfigStore implements ConfigStore {
       if (data.default_project !== undefined) {
         config.default_project = data.default_project;
       }
+      if (data.api_url !== undefined) {
+        config.api_url = data.api_url;
+      }
 
       return config;
     } catch (error) {
@@ -147,6 +151,9 @@ export class LocalConfigStore implements ConfigStore {
     // Conditionally add optional properties
     if (config.default_project !== undefined) {
       data.default_project = config.default_project;
+    }
+    if (config.api_url !== undefined) {
+      data.api_url = config.api_url;
     }
 
     const content = JSON.stringify(data, null, 2);
@@ -188,6 +195,8 @@ export class LocalConfigStore implements ConfigStore {
     // Update the specified key
     if (key === 'default_project') {
       config.default_project = value;
+    } else if (key === 'api_url') {
+      config.api_url = value;
     }
 
     // Update timestamp

@@ -26,7 +26,7 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { slugify } from '@core/validation';
 import { createError } from './errors.js';
-import { createProjectStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import type { Project } from '@core/models';
 
 /**
@@ -284,7 +284,7 @@ export async function setConfig(config: Config): Promise<void> {
  */
 export async function setDefaultProject(projectId: string): Promise<Project> {
   // Validate project exists
-  const projectStore = createProjectStore();
+  const { projectStore } = await createAdapters();
   const project = await projectStore.get(projectId);
 
   if (!project) {
@@ -327,6 +327,6 @@ export async function getDefaultProject(): Promise<Project | null> {
   }
 
   // Verify project still exists
-  const projectStore = createProjectStore();
+  const { projectStore } = await createAdapters();
   return projectStore.get(config.default_project);
 }

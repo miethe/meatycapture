@@ -16,7 +16,7 @@
  */
 
 import type { Command } from 'commander';
-import { createFieldCatalogStore, createProjectStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import type { FieldOption, FieldName } from '@core/models';
 import {
   withErrorHandling,
@@ -315,8 +315,9 @@ export async function listAction(options: ListOptions): Promise<void> {
   }
 
   // Validate project exists if --project specified
+  const { projectStore, fieldStore } = await createAdapters();
+
   if (options.project) {
-    const projectStore = createProjectStore();
     const project = await projectStore.get(options.project);
 
     if (!project) {
@@ -325,18 +326,17 @@ export async function listAction(options: ListOptions): Promise<void> {
   }
 
   // Fetch field options based on options
-  const fieldCatalogStore = createFieldCatalogStore();
   let fieldOptions: FieldOption[];
 
   if (options.project) {
     // Get effective options for project (global + project-specific)
-    fieldOptions = await fieldCatalogStore.getForProject(options.project);
+    fieldOptions = await fieldStore.getForProject(options.project);
   } else if (options.globalOnly) {
     // Get only global options
-    fieldOptions = await fieldCatalogStore.getGlobal();
+    fieldOptions = await fieldStore.getGlobal();
   } else {
     // Default: get global options
-    fieldOptions = await fieldCatalogStore.getGlobal();
+    fieldOptions = await fieldStore.getGlobal();
   }
 
   // Filter by field name if specified

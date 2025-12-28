@@ -19,7 +19,7 @@
  */
 
 import type { Command } from 'commander';
-import { createFieldCatalogStore, createProjectStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import type { FieldName } from '@core/models';
 import {
   withErrorHandling,
@@ -173,8 +173,9 @@ export async function addAction(
   }
 
   // If project specified, verify project exists
+  const { projectStore, fieldStore } = await createAdapters();
+
   if (projectId) {
-    const projectStore = createProjectStore();
     const project = await projectStore.get(projectId);
 
     if (!project) {
@@ -183,8 +184,6 @@ export async function addAction(
   }
 
   // Create the option via FieldCatalogStore
-  const fieldStore = createFieldCatalogStore();
-
   try {
     // Build option data with proper type handling for project_id
     const optionData = projectId

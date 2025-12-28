@@ -19,8 +19,7 @@
 import type { Command } from 'commander';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
-import { createFsDocStore } from '@adapters/fs-local';
-import { createProjectStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import type { DocMeta } from '@core/ports';
 import {
   formatOutput,
@@ -148,7 +147,7 @@ function sortDocuments(
  * @throws ResourceNotFoundError if project ID specified but not found
  */
 async function getProjectDocPath(projectId: string): Promise<string> {
-  const projectStore = createProjectStore();
+  const { projectStore } = await createAdapters();
   const project = await projectStore.get(projectId);
 
   if (project) {
@@ -170,7 +169,7 @@ async function getProjectDocPath(projectId: string): Promise<string> {
  * Used to distinguish "project not found" from "default path fallback".
  */
 async function projectExists(projectId: string): Promise<boolean> {
-  const projectStore = createProjectStore();
+  const { projectStore } = await createAdapters();
   const project = await projectStore.get(projectId);
   return project !== null;
 }
@@ -228,7 +227,7 @@ export async function listAction(
   }
 
   // Fetch documents
-  const docStore = createFsDocStore();
+  const { docStore } = await createAdapters();
   let docs: DocMeta[];
 
   try {

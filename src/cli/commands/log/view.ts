@@ -19,7 +19,7 @@
 
 import type { Command } from 'commander';
 import { resolve } from 'node:path';
-import { createFsDocStore } from '@adapters/fs-local';
+import { createAdapters } from '@adapters/factory';
 import { serialize } from '@core/serializer';
 import type { RequestLogDoc, RequestLogItem } from '@core/models';
 import {
@@ -220,7 +220,7 @@ export async function viewAction(
 
   try {
     const resolvedPath = resolve(docPath);
-    const docStore = createFsDocStore();
+    const { docStore } = await createAdapters();
 
     // Read the document - may throw on file not found or parse error
     let doc: RequestLogDoc;

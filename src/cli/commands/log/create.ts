@@ -28,8 +28,7 @@ import { homedir } from 'node:os';
 import type { ItemDraft, RequestLogDoc } from '@core/models';
 import { generateDocId } from '@core/validation';
 import { aggregateTags, updateItemsIndex } from '@core/serializer';
-import { createFsDocStore } from '@adapters/fs-local';
-import { createProjectStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import { realClock } from '@adapters/clock';
 import { readInput, isStdinInput, StdinError } from '@cli/handlers/stdin';
 import {
@@ -213,7 +212,7 @@ async function readCliInput(inputPath: string): Promise<CreateCliInput> {
  * 3. ~/.meatycapture/docs/<project-id>/
  */
 async function getProjectDocPath(projectId: string): Promise<string> {
-  const projectStore = createProjectStore();
+  const { projectStore } = await createAdapters();
   const project = await projectStore.get(projectId);
 
   if (project) {
@@ -394,7 +393,7 @@ async function createActionImpl(
   }
 
   // Handle backup if file exists and backup is enabled
-  const docStore = createFsDocStore();
+  const { docStore } = await createAdapters();
 
   if (shouldBackup) {
     try {

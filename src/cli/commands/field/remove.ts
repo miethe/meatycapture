@@ -19,7 +19,7 @@
 import type { Command } from 'commander';
 import * as readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
-import { createFieldCatalogStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import type { FieldOption } from '@core/models';
 import {
   UserInterruptError,
@@ -50,7 +50,7 @@ interface RemoveOptions {
  * @returns The field option if found, null otherwise
  */
 async function findOptionById(id: string): Promise<FieldOption | null> {
-  const fieldStore = createFieldCatalogStore();
+  const { fieldStore } = await createAdapters();
 
   // Check global options first
   const globalOptions = await fieldStore.getGlobal();
@@ -147,7 +147,7 @@ export async function removeAction(
     setQuietMode(true);
   }
 
-  const fieldStore = createFieldCatalogStore();
+  const { fieldStore } = await createAdapters();
 
   // Step 1: Find option for confirmation display
   // Note: This only searches global scope; project options may not be found

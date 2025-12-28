@@ -5,7 +5,7 @@
  */
 
 import type { Project, FieldOption, ItemDraft, FieldName } from '@core/models';
-import { createProjectStore, createFieldCatalogStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import { confirm, selectFromList, promptWithValidation, promptMultiValue } from './prompts.js';
 import { validateNonEmpty } from './validators.js';
 
@@ -16,7 +16,7 @@ import { validateNonEmpty } from './validators.js';
  * @throws Error if no projects available
  */
 export async function selectProject(): Promise<Project> {
-  const projectStore = createProjectStore();
+  const { projectStore } = await createAdapters();
   const projects = await projectStore.list();
 
   const enabledProjects = projects.filter((p) => p.enabled);
@@ -50,7 +50,7 @@ export async function promptFieldValue(
   projectId?: string,
   required = true
 ): Promise<string> {
-  const fieldStore = createFieldCatalogStore();
+  const { fieldStore } = await createAdapters();
 
   // Get available options for this field
   let options: FieldOption[] = [];
@@ -85,7 +85,7 @@ export async function promptFieldValue(
  * @returns Array of tag strings
  */
 export async function promptTags(projectId?: string): Promise<string[]> {
-  const fieldStore = createFieldCatalogStore();
+  const { fieldStore } = await createAdapters();
 
   // Get available tag options
   let options: FieldOption[] = [];

@@ -23,8 +23,7 @@
 import type { Command } from 'commander';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
-import { createFsDocStore } from '@adapters/fs-local';
-import { createProjectStore } from '@adapters/config-local';
+import { createAdapters } from '@adapters/factory';
 import {
   formatOutput,
   type OutputFormat,
@@ -53,7 +52,7 @@ import { ExitCodes } from '@cli/handlers/exitCodes.js';
  * 3. ~/.meatycapture/docs/<project-id>/
  */
 async function getProjectDocPath(projectId: string): Promise<string> {
-  const projectStore = createProjectStore();
+  const { projectStore } = await createAdapters();
   const project = await projectStore.get(projectId);
 
   if (project) {
@@ -150,7 +149,7 @@ export async function searchAction(
     }
 
     // Load documents
-    const docStore = createFsDocStore();
+    const { docStore } = await createAdapters();
     const docMetas = await docStore.list(searchPath);
 
     if (docMetas.length === 0) {

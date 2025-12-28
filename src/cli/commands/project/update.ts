@@ -18,8 +18,7 @@
  */
 
 import type { Command } from 'commander';
-import { createProjectStore } from '@adapters/config-local';
-import { createFsDocStore } from '@adapters/fs-local';
+import { createAdapters } from '@adapters/factory';
 import type { Project } from '@core/models';
 import {
   formatOutput,
@@ -76,7 +75,7 @@ function validateUpdateFields(options: UpdateOptions): void {
  * Throws ValidationError if path is invalid.
  */
 async function validatePath(path: string): Promise<void> {
-  const docStore = createFsDocStore();
+  const { docStore } = await createAdapters();
   const isWritable = await docStore.isWritable(path);
 
   if (!isWritable) {
@@ -116,7 +115,7 @@ export async function updateAction(
   }
 
   // Get project store
-  const projectStore = createProjectStore();
+  const { projectStore } = await createAdapters();
 
   // Check if project exists
   const existingProject = await projectStore.get(id);

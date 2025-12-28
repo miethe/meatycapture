@@ -19,6 +19,8 @@ export interface AppConfig {
   version: string;
   /** Default project ID for new documents */
   default_project?: string;
+  /** API server URL for remote mode (e.g., 'http://localhost:3737') */
+  api_url?: string;
   /** Timestamp when config was created */
   created_at: Date;
   /** Timestamp of last modification */
@@ -28,7 +30,7 @@ export interface AppConfig {
 /**
  * Valid configuration keys that can be set
  */
-export type ConfigKey = 'default_project';
+export type ConfigKey = 'default_project' | 'api_url';
 
 /**
  * Field names that support configurable options
