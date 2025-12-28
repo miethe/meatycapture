@@ -37,6 +37,14 @@ import {
   validatePathWritable,
   generateProjectIdFromName,
 } from '@cli/handlers';
+import {
+  confirm,
+  promptWithValidation,
+  validateNonEmpty,
+  validateProjectId as validateProjectIdInteractive,
+  validatePath,
+  validateUrl,
+} from '@cli/interactive';
 
 /**
  * Command options for project add command.
@@ -47,6 +55,7 @@ interface AddOptions {
   json?: boolean;
   yaml?: boolean;
   quiet?: boolean;
+  interactive?: boolean;
 }
 
 /**
@@ -57,6 +66,49 @@ function resolveOutputFormat(options: AddOptions): OutputFormat {
   if (options.json) return 'json';
   if (options.yaml) return 'yaml';
   return 'human';
+}
+
+/**
+ * Collects project data interactively via prompts.
+ *
+ * @returns Object with name, path, customId, and repoUrl
+ */
+async function interactiveProjectAdd(): Promise<{
+  name: string;
+  path: string;
+  customId?: string | undefined;
+  repoUrl?: string | undefined;
+}> {
+  console.log('--- Add New Project ---\n');
+
+  const name = await promptWithValidation(
+    'Project name',
+    (v) => validateNonEmpty(v, 'Project name')
+  );
+
+  const defaultPath = `./docs/${generateProjectIdFromName(name)}`;
+  const path = await promptWithValidation(
+    'Default path',
+    validatePath,
+    defaultPath
+  );
+
+  const useCustomId = await confirm('Use custom project ID?', false);
+  let customId: string | undefined;
+  if (useCustomId) {
+    customId = await promptWithValidation(
+      'Custom project ID (kebab-case)',
+      validateProjectIdInteractive
+    );
+  }
+
+  const addRepoUrl = await confirm('Add repository URL?', false);
+  let repoUrl: string | undefined;
+  if (addRepoUrl) {
+    repoUrl = await promptWithValidation('Repository URL', validateUrl);
+  }
+
+  return { name, path, customId, repoUrl };
 }
 
 /**
@@ -76,13 +128,33 @@ function resolveOutputFormat(options: AddOptions): OutputFormat {
  * - 3: Resource conflict (ID already exists)
  */
 export async function addAction(
-  name: string,
-  path: string,
+  nameArg: string | undefined,
+  pathArg: string | undefined,
   options: AddOptions
 ): Promise<void> {
   // Set quiet mode globally for formatters
   if (options.quiet) {
     setQuietMode(true);
+  }
+
+  let name: string;
+  let path: string;
+  let customId: string | undefined;
+  let repoUrl: string | undefined;
+
+  // Interactive mode
+  if (options.interactive) {
+    const result = await interactiveProjectAdd();
+    name = result.name;
+    path = result.path;
+    customId = result.customId ?? undefined;
+    repoUrl = result.repoUrl ?? undefined;
+  } else {
+    // Non-interactive mode - use arguments
+    name = nameArg!;
+    path = pathArg!;
+    customId = options.id;
+    repoUrl = options.repoUrl;
   }
 
   // Validate required arguments
@@ -102,10 +174,10 @@ export async function addAction(
 
   // Determine project ID (custom or auto-generated)
   let projectId: string;
-  if (options.id) {
+  if (customId) {
     // Validate custom ID format
-    validateProjectId(options.id);
-    projectId = options.id;
+    validateProjectId(customId);
+    projectId = customId;
   } else {
     // Auto-generate from name
     projectId = generateProjectIdFromName(name);
@@ -124,7 +196,7 @@ export async function addAction(
     throw createError.conflict(
       'project',
       projectId,
-      options.id
+      customId
         ? 'Choose a different ID or remove the existing project'
         : `Project ID "${projectId}" is auto-generated from the name. Use --id to specify a custom ID`
     );
@@ -138,8 +210,8 @@ export async function addAction(
   };
 
   // Only add repo_url if provided
-  if (options.repoUrl) {
-    projectData.repo_url = options.repoUrl;
+  if (repoUrl) {
+    projectData.repo_url = repoUrl;
   }
 
   const newProject: Project = await projectStore.create(projectData);
@@ -166,8 +238,8 @@ export async function addAction(
         `\nProject "${name}" created successfully with ID: ${projectId}`
       );
       console.log(`Documents will be stored in: ${path}`);
-      if (options.repoUrl) {
-        console.log(`Repository: ${options.repoUrl}`);
+      if (repoUrl) {
+        console.log(`Repository: ${repoUrl}`);
       }
     }
   }
@@ -182,8 +254,9 @@ export function registerAddCommand(program: Command): void {
   program
     .command('add')
     .description('Create a new project in the registry')
-    .argument('<name>', 'Project name (used to generate ID if --id not provided)')
-    .argument('<path>', 'Default path for request-log documents')
+    .argument('[name]', 'Project name (used to generate ID if --id not provided)')
+    .argument('[path]', 'Default path for request-log documents')
+    .option('-i, --interactive', 'Interactive guided prompts')
     .option('--id <id>', 'Custom project ID (kebab-case, auto-generated from name if not provided)')
     .option('--repo-url <url>', 'Optional repository URL for context')
     .option('--json', 'Output created project as JSON')
@@ -193,6 +266,9 @@ export function registerAddCommand(program: Command): void {
       'after',
       `
 Examples:
+  # Interactive mode (guided prompts)
+  meatycapture project add --interactive
+
   # Create project with auto-generated ID
   meatycapture project add "My Project" "/path/to/docs"
   → Creates project with ID: my-project

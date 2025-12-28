@@ -312,6 +312,12 @@ export function mapToCliError(
     return error;
   }
 
+  // Handle UserInterruptError (Ctrl+C from interactive prompts)
+  // Check by name since we can't import from interactive module (circular dependency)
+  if (error instanceof Error && error.name === 'UserInterruptError') {
+    return new CliError('Cancelled', ExitCodes.USER_INTERRUPTED);
+  }
+
   // Handle Node.js file system errors
   if (isNodeError(error)) {
     switch (error.code) {

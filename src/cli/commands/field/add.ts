@@ -30,6 +30,13 @@ import {
 } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 import YAML from 'yaml';
+import {
+  promptWithValidation,
+  validateNonEmpty,
+  validateFieldName,
+  selectProject,
+  confirm,
+} from '@cli/interactive';
 
 /**
  * Valid field names for field catalog.
@@ -52,6 +59,7 @@ interface AddOptions {
   yaml?: boolean;
   quiet?: boolean;
   project?: string;
+  interactive?: boolean;
 }
 
 /**
@@ -72,6 +80,39 @@ function isValidFieldName(value: string): value is FieldName {
 }
 
 /**
+ * Collects field data interactively via prompts.
+ *
+ * @returns Object with field, value, and optional projectId
+ */
+async function interactiveFieldAdd(): Promise<{
+  field: string;
+  value: string;
+  projectId?: string | undefined;
+}> {
+  console.log('--- Add Field Option ---\n');
+
+  const field = await promptWithValidation(
+    `Field name (${VALID_FIELD_NAMES.join('|')})`,
+    validateFieldName
+  );
+
+  const value = await promptWithValidation(
+    'Field value',
+    (v) => validateNonEmpty(v, 'Value')
+  );
+
+  const isProjectScoped = await confirm('Add as project-specific option?', false);
+  let projectId: string | undefined;
+
+  if (isProjectScoped) {
+    const project = await selectProject();
+    projectId = project.id;
+  }
+
+  return { field: field.toLowerCase() as FieldName, value, projectId };
+}
+
+/**
  * Adds a new field option to the field catalog.
  *
  * Process:
@@ -88,8 +129,8 @@ function isValidFieldName(value: string): value is FieldName {
  * - 4: Project not found
  */
 export async function addAction(
-  fieldArg: string,
-  valueArg: string,
+  fieldArg: string | undefined,
+  valueArg: string | undefined,
   options: AddOptions
 ): Promise<void> {
   // Set quiet mode globally for suppressing output
@@ -97,30 +138,47 @@ export async function addAction(
     setQuietMode(true);
   }
 
+  let field: string;
+  let value: string;
+  let projectId: string | undefined;
+
+  // Interactive mode
+  if (options.interactive) {
+    const result = await interactiveFieldAdd();
+    field = result.field;
+    value = result.value;
+    projectId = result.projectId ?? undefined;
+  } else {
+    // Non-interactive mode - use arguments
+    field = fieldArg!;
+    value = valueArg!;
+    projectId = options.project;
+  }
+
   // Validate field name
-  if (!isValidFieldName(fieldArg)) {
+  if (!isValidFieldName(field)) {
     throw createError.validation(
-      `Invalid field name: ${fieldArg}`,
+      `Invalid field name: ${field}`,
       `Valid field names: ${VALID_FIELD_NAMES.join(', ')}`
     );
   }
 
   // Validate value is non-empty
-  const value = valueArg.trim();
-  if (!value) {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
     throw createError.validation(
       'Value cannot be empty',
       'Provide a non-empty value for the field option'
     );
   }
 
-  // If --project specified, verify project exists
-  if (options.project) {
+  // If project specified, verify project exists
+  if (projectId) {
     const projectStore = createProjectStore();
-    const project = await projectStore.get(options.project);
+    const project = await projectStore.get(projectId);
 
     if (!project) {
-      throw createError.resource('project', options.project);
+      throw createError.resource('project', projectId);
     }
   }
 
@@ -129,16 +187,16 @@ export async function addAction(
 
   try {
     // Build option data with proper type handling for project_id
-    const optionData = options.project
+    const optionData = projectId
       ? {
-          field: fieldArg,
-          value,
+          field,
+          value: trimmedValue,
           scope: 'project' as const,
-          project_id: options.project,
+          project_id: projectId,
         }
       : {
-          field: fieldArg,
-          value,
+          field,
+          value: trimmedValue,
           scope: 'global' as const,
         };
 
@@ -194,7 +252,7 @@ export async function addAction(
     // Handle duplicate error from store
     // Store throws generic Error with message pattern: "already exists for {field}: {value}"
     if (error instanceof Error && error.message.includes('already exists')) {
-      throw new ResourceConflictError('field', `${fieldArg}:${value}`);
+      throw new ResourceConflictError('field', `${field}:${trimmedValue}`);
     }
     // Re-throw other errors for central error handler
     throw error;
@@ -208,8 +266,9 @@ export function registerAddCommand(program: Command): void {
   program
     .command('add')
     .description('Add a new field option')
-    .argument('<field>', `Field name (${VALID_FIELD_NAMES.join('|')})`)
-    .argument('<value>', 'Option value to add')
+    .argument('[field]', `Field name (${VALID_FIELD_NAMES.join('|')})`)
+    .argument('[value]', 'Option value to add')
+    .option('-i, --interactive', 'Interactive guided prompts')
     .option('--json', 'Output created option as JSON')
     .option('--yaml', 'Output created option as YAML')
     .option('-q, --quiet', 'Suppress non-error output')
@@ -218,6 +277,9 @@ export function registerAddCommand(program: Command): void {
       'after',
       `
 Examples:
+  # Interactive mode (guided prompts)
+  meatycapture field add --interactive
+
   # Add global field option
   meatycapture field add type spike
   → Adds "spike" to global type field options

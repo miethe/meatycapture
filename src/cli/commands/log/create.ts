@@ -41,6 +41,12 @@ import {
 } from '@cli/handlers/errors';
 import { ExitCodes } from '@cli/handlers/exitCodes';
 import { formatOutput, type OutputFormat } from '@cli/formatters';
+import {
+  selectProject,
+  promptItemDraft,
+  confirm,
+  prompt,
+} from '@cli/interactive';
 
 /**
  * CLI input JSON structure for creating documents.
@@ -240,6 +246,8 @@ interface CreateOptions {
   quiet?: boolean;
   /** Skip backup creation (via --no-backup flag) */
   backup?: boolean;
+  /** Interactive mode */
+  interactive?: boolean;
 }
 
 /**
@@ -255,6 +263,47 @@ function getOutputFormat(options: CreateOptions): OutputFormat {
 }
 
 /**
+ * Collects log data interactively via prompts.
+ *
+ * @returns CreateCliInput with project, title, and items
+ */
+async function interactiveLogCreate(): Promise<CreateCliInput> {
+  console.log('--- Create Request Log ---\n');
+
+  // Select project
+  const project = await selectProject();
+
+  // Optional document title
+  const title = await prompt('Document title (optional): ');
+
+  // Collect items
+  const items: ItemDraft[] = [];
+  let addMore = true;
+
+  while (addMore) {
+    const item = await promptItemDraft(project.id);
+    items.push(item);
+
+    if (items.length === 1) {
+      addMore = await confirm('Add another item?', false);
+    } else {
+      addMore = await confirm(`Add another item? (currently ${items.length})`, false);
+    }
+  }
+
+  const result: CreateCliInput = {
+    project: project.id,
+    items,
+  };
+
+  if (title) {
+    result.title = title;
+  }
+
+  return result;
+}
+
+/**
  * Creates a new request-log document from JSON input.
  *
  * Steps:
@@ -266,7 +315,7 @@ function getOutputFormat(options: CreateOptions): OutputFormat {
  * 6. Output result in specified format
  */
 async function createActionImpl(
-  inputPath: string,
+  inputPath: string | undefined,
   options: CreateOptions
 ): Promise<void> {
   // Handle quiet mode globally
@@ -278,7 +327,21 @@ async function createActionImpl(
   const shouldBackup = options.backup !== false; // Default to true, --no-backup sets to false
 
   // Read and validate input
-  const input = await readCliInput(inputPath);
+  let input: CreateCliInput;
+
+  if (options.interactive) {
+    // Interactive mode
+    input = await interactiveLogCreate();
+  } else {
+    // Non-interactive mode - require input path
+    if (!inputPath) {
+      throw new ValidationError(
+        'Input file path is required in non-interactive mode',
+        'Provide a JSON file path or use --interactive for guided prompts'
+      );
+    }
+    input = await readCliInput(inputPath);
+  }
 
   // Determine output path
   let outputPath: string;
@@ -376,8 +439,9 @@ export const createAction = withErrorHandling(createActionImpl);
 export function registerCreateCommand(program: Command): void {
   program
     .command('create')
-    .description('Create a new request-log document from JSON input')
-    .argument('<json-file>', 'Path to JSON input file, or "-" for stdin')
+    .description('Create a new request-log document from JSON input or interactively')
+    .argument('[json-file]', 'Path to JSON input file, or "-" for stdin (not required with --interactive)')
+    .option('-i, --interactive', 'Interactive guided prompts')
     .option('-o, --output <path>', 'Output path for the document (default: auto-generated)')
     .option('--json', 'Output as JSON')
     .option('--yaml', 'Output as YAML')
@@ -385,5 +449,22 @@ export function registerCreateCommand(program: Command): void {
     .option('--table', 'Output as table')
     .option('-q, --quiet', 'Suppress non-error output')
     .option('--no-backup', 'Skip backup creation')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  # Interactive mode (guided prompts)
+  meatycapture log create --interactive
+
+  # From JSON file
+  meatycapture log create input.json
+
+  # From stdin
+  echo '{"project":"app","items":[...]}' | meatycapture log create -
+
+  # With custom output path
+  meatycapture log create input.json --output /custom/path/REQ-20251228.md
+`
+    )
     .action(createAction);
 }
