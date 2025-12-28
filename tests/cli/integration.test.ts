@@ -1078,4 +1078,459 @@ describe('CLI Integration Tests', () => {
       expect(phase1Errors.length).toBeGreaterThan(0);
     });
   });
+
+  // ============================================================================
+  // Phase 3 Integration Tests
+  // ============================================================================
+
+  describe('Phase 3 Integration: Field Catalog', () => {
+    describe('field CRUD workflow', () => {
+      it('adds field option and lists it', async () => {
+        // Add a new type option
+        const { addAction } = await import('@cli/commands/field/add');
+        mockExit.mockClear();
+        await expect(addAction('type', 'feature-request', { json: true })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+        const addLogs = getCapturedLogs();
+        const addJson = addLogs.find(log => isValidJson(log));
+        expect(addJson).toBeDefined();
+
+        let fieldId: string | undefined;
+        if (addJson) {
+          const added = JSON.parse(addJson);
+          expect(added.field).toBe('type');
+          expect(added.value).toBe('feature-request');
+          expect(added.scope).toBe('global');
+          fieldId = added.id;
+        }
+
+        clearCapturedOutput();
+
+        // List and verify it appears
+        const { listAction } = await import('@cli/commands/field/list');
+        mockExit.mockClear();
+        await expect(listAction({ field: 'type', json: true })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+        const listLogs = getCapturedLogs();
+        const listJson = listLogs.find(log => isValidJson(log));
+        expect(listJson).toBeDefined();
+        if (listJson) {
+          const listed = JSON.parse(listJson);
+          expect(listed.type).toBeDefined();
+          expect(Array.isArray(listed.type)).toBe(true);
+          expect(listed.type.some((opt: { value: string }) => opt.value === 'feature-request')).toBe(true);
+        }
+
+        clearCapturedOutput();
+
+        // Remove it
+        if (fieldId) {
+          const { removeAction } = await import('@cli/commands/field/remove');
+          mockExit.mockClear();
+          await expect(removeAction(fieldId, { force: true })).rejects.toThrow(ExitError);
+          expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        }
+      });
+    });
+
+    describe('field import workflow', () => {
+      it('imports JSON batch and lists all options', async () => {
+        // Create temp JSON file with options
+        const importData = {
+          type: ['research-spike', 'tech-debt'],
+          priority: ['p0', 'p1'],
+        };
+        const importPath = join(tempDir, 'import-fields.json');
+        await fs.writeFile(importPath, JSON.stringify(importData, null, 2), 'utf-8');
+
+        // Import
+        const { importAction } = await import('@cli/commands/field/import');
+        mockExit.mockClear();
+        await expect(importAction(importPath, { json: true })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+        const importLogs = getCapturedLogs();
+        const importJson = importLogs.find(log => isValidJson(log));
+        expect(importJson).toBeDefined();
+        if (importJson) {
+          const summary = JSON.parse(importJson);
+          expect(summary.added).toBe(4);
+          expect(summary.skipped).toBeDefined();
+          expect(summary.total_values).toBe(4);
+        }
+
+        clearCapturedOutput();
+
+        // Verify in list
+        const { listAction } = await import('@cli/commands/field/list');
+        mockExit.mockClear();
+        await expect(listAction({ json: true })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+        const listLogs = getCapturedLogs();
+        const listJson = listLogs.find(log => isValidJson(log));
+        expect(listJson).toBeDefined();
+        if (listJson) {
+          const listed = JSON.parse(listJson);
+          expect(listed.type).toBeDefined();
+          expect(listed.priority).toBeDefined();
+        }
+      });
+    });
+
+    describe('project-scoped field options', () => {
+      it('adds project-scoped option and lists for project', async () => {
+        // First create a project
+        const projectPath = join(tempDir, 'field-test-project');
+        await fs.mkdir(projectPath, { recursive: true });
+
+        const { addAction: projectAddAction } = await import('@cli/commands/project/add');
+        mockExit.mockClear();
+        await expect(projectAddAction('Field Test Project', projectPath, {})).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        clearCapturedOutput();
+
+        // Add field option scoped to project
+        const { addAction } = await import('@cli/commands/field/add');
+        mockExit.mockClear();
+        await expect(
+          addAction('type', 'project-custom', {
+            project: 'field-test-project',
+            json: true,
+          })
+        ).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+        const addLogs = getCapturedLogs();
+        const addJson = addLogs.find(log => isValidJson(log));
+        expect(addJson).toBeDefined();
+        if (addJson) {
+          const added = JSON.parse(addJson);
+          expect(added.scope).toBe('project');
+          expect(added.project_id).toBe('field-test-project');
+        }
+
+        clearCapturedOutput();
+
+        // List for project - should include global + project-specific
+        const { listAction } = await import('@cli/commands/field/list');
+        mockExit.mockClear();
+        await expect(
+          listAction({
+            project: 'field-test-project',
+            json: true,
+          })
+        ).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+        const listLogs = getCapturedLogs();
+        const listJson = listLogs.find(log => isValidJson(log));
+        expect(listJson).toBeDefined();
+        if (listJson) {
+          const listed = JSON.parse(listJson);
+          expect(listed.type).toBeDefined();
+          expect(listed.type.some((opt: { value: string }) => opt.value === 'project-custom')).toBe(true);
+        }
+      });
+    });
+
+  });
+
+  describe('Cross-Phase Integration', () => {
+    describe('project → field → log workflow', () => {
+      it('creates project with custom field options for log creation', async () => {
+        // 1. Create project
+        const projectPath = join(tempDir, 'cross-phase-docs');
+        await fs.mkdir(projectPath, { recursive: true });
+
+        const { addAction: projectAddAction } = await import('@cli/commands/project/add');
+        mockExit.mockClear();
+        await expect(projectAddAction('Cross Phase Test', projectPath, {})).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        clearCapturedOutput();
+
+        // 2. Add custom field option for project
+        const { addAction: fieldAddAction } = await import('@cli/commands/field/add');
+        mockExit.mockClear();
+        await expect(
+          fieldAddAction('type', 'cross-phase-type', {
+            project: 'cross-phase-test',
+          })
+        ).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        clearCapturedOutput();
+
+        // 3. Verify field option is available for project
+        const { listAction: fieldListAction } = await import('@cli/commands/field/list');
+        mockExit.mockClear();
+        await expect(
+          fieldListAction({
+            field: 'type',
+            project: 'cross-phase-test',
+            json: true,
+          })
+        ).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+        const listLogs = getCapturedLogs();
+        const listJson = listLogs.find(log => isValidJson(log));
+        expect(listJson).toBeDefined();
+        if (listJson) {
+          const fields = JSON.parse(listJson);
+          expect(fields.type).toBeDefined();
+          expect(fields.type.some((opt: { value: string }) => opt.value === 'cross-phase-type')).toBe(true);
+        }
+
+        clearCapturedOutput();
+
+        // 4. Create log in project (verifying field option could be used)
+        const createInput = {
+          project: 'cross-phase-test',
+          items: [
+            createMockItemDraft({
+              title: 'Cross Phase Item',
+              type: 'cross-phase-type',
+              tags: ['integration'],
+            }),
+          ],
+        };
+        const createInputFile = await createJsonInputFile(tempDir, createInput);
+        const docPath = join(projectPath, 'cross-phase-doc.md');
+
+        const { createAction } = await import('@cli/commands/log/create');
+        mockExit.mockClear();
+        await expect(createAction(createInputFile, { output: docPath })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+        // Verify document was created with custom type
+        const docExists = await fs.access(docPath).then(() => true).catch(() => false);
+        expect(docExists).toBe(true);
+      });
+    });
+
+    describe('field import → project scoping workflow', () => {
+      it('imports global fields and adds project-specific options', async () => {
+        // 1. Import global field options
+        const importData = {
+          type: ['global-type-1', 'global-type-2'],
+          priority: ['global-p1', 'global-p2'],
+        };
+        const importPath = join(tempDir, 'global-import.json');
+        await fs.writeFile(importPath, JSON.stringify(importData, null, 2), 'utf-8');
+
+        const { importAction } = await import('@cli/commands/field/import');
+        mockExit.mockClear();
+        await expect(importAction(importPath, {})).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        clearCapturedOutput();
+
+        // 2. Create project
+        const projectPath = join(tempDir, 'import-export-project');
+        await fs.mkdir(projectPath, { recursive: true });
+
+        const { addAction: projectAddAction } = await import('@cli/commands/project/add');
+        mockExit.mockClear();
+        await expect(projectAddAction('Import Export Project', projectPath, {})).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        clearCapturedOutput();
+
+        // 3. Add project-specific field option
+        const { addAction: fieldAddAction } = await import('@cli/commands/field/add');
+        mockExit.mockClear();
+        await expect(
+          fieldAddAction('type', 'project-only-type', {
+            project: 'import-export-project',
+          })
+        ).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        clearCapturedOutput();
+
+        // 4. Verify field list shows all options for the project
+        const { listAction } = await import('@cli/commands/field/list');
+        mockExit.mockClear();
+        await expect(
+          listAction({
+            project: 'import-export-project',
+            json: true,
+          })
+        ).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+        const listLogs = getCapturedLogs();
+        const listJson = listLogs.find(log => isValidJson(log));
+        expect(listJson).toBeDefined();
+        if (listJson) {
+          const fields = JSON.parse(listJson);
+          // Should include both global and project-specific type options
+          expect(fields.type).toBeDefined();
+          expect(fields.type.some((opt: { value: string }) => opt.value === 'global-type-1')).toBe(true);
+          expect(fields.type.some((opt: { value: string }) => opt.value === 'project-only-type')).toBe(true);
+        }
+      });
+    });
+  });
+
+  describe('Regression Tests', () => {
+    describe('Phase 1: log commands', () => {
+      it('log list still works after Phase 3 changes', async () => {
+        const input = {
+          project: 'phase3-regression',
+          items: [createMockItemDraft({ title: 'Regression Test' })],
+        };
+        const inputFile = await createJsonInputFile(tempDir, input);
+        const docPath = join(tempDir, 'phase3-regression.md');
+
+        const { createAction } = await import('@cli/commands/log/create');
+        mockExit.mockClear();
+        await expect(createAction(inputFile, { output: docPath })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        clearCapturedOutput();
+
+        const { listAction } = await import('@cli/commands/log/list');
+        mockExit.mockClear();
+        await expect(listAction(undefined, { path: tempDir, json: true })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+      });
+
+      it('log search still works after Phase 3 changes', async () => {
+        const { searchAction } = await import('@cli/commands/log/search');
+        mockExit.mockClear();
+        await expect(searchAction('test', undefined, { path: tempDir, json: true })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+      });
+    });
+
+    describe('Phase 2: project commands', () => {
+      it('project list still works after Phase 3 changes', async () => {
+        const { listAction } = await import('@cli/commands/project/list');
+        mockExit.mockClear();
+        await expect(listAction({ json: true })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+      });
+
+      it('project add/update still works after Phase 3 changes', async () => {
+        const projectPath = join(tempDir, 'phase3-project-test');
+        await fs.mkdir(projectPath, { recursive: true });
+
+        const { addAction } = await import('@cli/commands/project/add');
+        mockExit.mockClear();
+        await expect(addAction('Phase 3 Regression Project', projectPath, {})).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        clearCapturedOutput();
+
+        const { updateAction } = await import('@cli/commands/project/update');
+        mockExit.mockClear();
+        await expect(
+          updateAction('phase-3-regression-project', {
+            name: 'Updated Phase 3 Project',
+          })
+        ).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+      });
+    });
+
+    describe('All phases combined', () => {
+      it('verifies no breaking changes across all CLI commands', async () => {
+        // Project operations
+        const projectPath = join(tempDir, 'all-phases-test');
+        await fs.mkdir(projectPath, { recursive: true });
+
+        const { addAction: projectAddAction } = await import('@cli/commands/project/add');
+        await expect(projectAddAction('All Phases Test', projectPath, {})).rejects.toThrow(ExitError);
+        clearCapturedOutput();
+
+        // Field operations
+        const { addAction: fieldAddAction } = await import('@cli/commands/field/add');
+        await expect(
+          fieldAddAction('type', 'all-phases-type', {
+            project: 'all-phases-test',
+          })
+        ).rejects.toThrow(ExitError);
+        clearCapturedOutput();
+
+        // Log operations
+        const createInput = {
+          project: 'all-phases-test',
+          items: [
+            createMockItemDraft({
+              title: 'All Phases Item',
+              type: 'all-phases-type',
+              tags: ['comprehensive'],
+            }),
+          ],
+        };
+        const createInputFile = await createJsonInputFile(tempDir, createInput);
+        const docPath = join(projectPath, 'all-phases.md');
+
+        const { createAction } = await import('@cli/commands/log/create');
+        mockExit.mockClear();
+        await expect(createAction(createInputFile, { output: docPath })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        clearCapturedOutput();
+
+        // Verify all list commands work
+        const { listAction: projectListAction } = await import('@cli/commands/project/list');
+        mockExit.mockClear();
+        await expect(projectListAction({ json: true })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        clearCapturedOutput();
+
+        const { listAction: fieldListAction } = await import('@cli/commands/field/list');
+        mockExit.mockClear();
+        await expect(fieldListAction({ json: true })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+        clearCapturedOutput();
+
+        const { listAction: logListAction } = await import('@cli/commands/log/list');
+        mockExit.mockClear();
+        await expect(logListAction(undefined, { path: projectPath, json: true })).rejects.toThrow(ExitError);
+        expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+      });
+    });
+  });
+
+  describe('Field Command Error Handling', () => {
+    it('handles validation errors in field add', async () => {
+      const { addAction } = await import('@cli/commands/field/add');
+
+      // Empty field name should fail
+      mockExit.mockClear();
+      await expect(addAction('', 'test-value', {})).rejects.toThrow();
+
+      clearCapturedOutput();
+
+      // Empty value should fail
+      mockExit.mockClear();
+      await expect(addAction('type', '', {})).rejects.toThrow();
+    });
+
+    it('handles non-existent project in field add', async () => {
+      const { addAction } = await import('@cli/commands/field/add');
+
+      mockExit.mockClear();
+      await expect(
+        addAction('type', 'test-value', {
+          project: 'nonexistent-project-id',
+        })
+      ).rejects.toThrow();
+    });
+
+    it('handles invalid JSON in field import', async () => {
+      const invalidPath = join(tempDir, 'invalid-import.json');
+      await fs.writeFile(invalidPath, '{ invalid json }', 'utf-8');
+
+      const { importAction } = await import('@cli/commands/field/import');
+      mockExit.mockClear();
+      await expect(importAction(invalidPath, {})).rejects.toThrow();
+    });
+
+    it('handles non-existent field ID in remove', async () => {
+      const { removeAction } = await import('@cli/commands/field/remove');
+
+      mockExit.mockClear();
+      await expect(removeAction('nonexistent-field-id', { force: true })).rejects.toThrow();
+    });
+  });
 });
