@@ -590,3 +590,36 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
 **Note**: After this fix, remote access requires:
 1. Set `MEATYCAPTURE_API_URL=http://<your-server-ip>:3737` in `.env`
 2. Rebuild: `docker compose build --no-cache meatycapture-web && docker compose up -d`
+
+---
+
+### CLI and Web Cannot Find Documents - Path Expansion in Wrong Layer
+
+**Issue**: Both CLI and web app report "No documents found" or "directories do not exist" despite the directories and files existing with correct permissions. API traces show paths like `/Users/miethe/data/projects/docs/skillmeat` which don't exist on the remote API server.
+
+- **Location**: `src/adapters/config-local/index.ts:48-56, 311, 393, 441`
+- **Root Cause**: An earlier fix attempted to normalize tilde paths by expanding them in `config-local` using `homedir()`. This caused two problems:
+  1. **Server-client path mismatch**: When projects are created/read, `expandTildePath()` expanded `~/docs/meatycapture` to the current machine's homedir (e.g., `/Users/miethe/...`). When the API server on a different machine tried to access these paths, they didn't exist.
+  2. **Ignored MEATYCAPTURE_DATA_DIR**: The `config-local` adapter used `homedir()` directly, but `fs-local` uses `MEATYCAPTURE_DATA_DIR` for tilde expansion. This inconsistency meant paths expanded differently depending on which layer accessed them.
+
+  **Correct architecture**: Paths should be stored with tilde notation (`~/docs/project`) and expanded at file access time by `fs-local`, which correctly uses `MEATYCAPTURE_DATA_DIR || homedir()`.
+
+- **Fix**: Removed `expandTildePath()` calls from `config-local` adapter methods:
+  1. Removed from `readProjects()` - paths now returned as stored
+  2. Removed from `create()` - paths now stored as provided
+  3. Removed from `update()` - paths now updated as provided
+
+  The `expandTildePath()` function is preserved (exported) for other use cases but no longer used in config storage operations.
+
+- **Server Data Migration Required**: After deploying this fix:
+  1. Rebuild and deploy server: `docker compose build && docker compose up -d`
+  2. Update projects to use tilde paths (via PATCH API):
+     ```bash
+     curl -X PATCH "http://<server>:3737/api/projects/skillmeat" \
+       -H "Content-Type: application/json" \
+       -d '{"default_path": "~/docs/skillmeat"}'
+     ```
+  3. Or update `/data/projects.json` directly with tilde-relative paths
+
+- **Commit(s)**: 8014aa1
+- **Status**: RESOLVED

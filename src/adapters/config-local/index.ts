@@ -30,6 +30,32 @@ function getConfigDir(): string {
 }
 
 /**
+ * Expands tilde (~) in path to absolute path using homedir.
+ *
+ * Ensures paths are stored consistently regardless of execution context.
+ * This prevents issues where CLI and API server have different homedir values.
+ *
+ * @param path - Path that may contain tilde prefix
+ * @returns Absolute path with tilde expanded
+ *
+ * @example
+ * ```typescript
+ * expandTildePath('~/projects')  // '/Users/john/projects'
+ * expandTildePath('~')           // '/Users/john'
+ * expandTildePath('/absolute')   // '/absolute' (unchanged)
+ * ```
+ */
+export function expandTildePath(path: string): string {
+  if (path.startsWith('~/')) {
+    return join(homedir(), path.slice(2));
+  }
+  if (path === '~') {
+    return homedir();
+  }
+  return path;
+}
+
+/**
  * Ensures the configuration directory exists.
  *
  * Creates the directory with recursive: true if it doesn't exist.
@@ -278,6 +304,7 @@ export class LocalProjectStore implements ProjectStore {
       const data = JSON.parse(content) as ProjectsFile;
 
       // Deserialize Date objects
+      // Paths are preserved as-is; fs-local adapter handles tilde expansion at access time
       return data.projects.map((p) => ({
         ...p,
         created_at: new Date(p.created_at),
@@ -361,6 +388,7 @@ export class LocalProjectStore implements ProjectStore {
     }
 
     // Create new project with generated fields
+    // Paths are stored as-is; fs-local adapter handles tilde expansion at access time
     const now = new Date();
     const newProject: Project = {
       ...project,
@@ -403,6 +431,7 @@ export class LocalProjectStore implements ProjectStore {
     }
 
     // Merge updates and set updated_at
+    // Paths are stored as-is; fs-local adapter handles tilde expansion at access time
     const updated: Project = {
       ...existing,
       ...updates,
