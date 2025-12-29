@@ -1,0 +1,15 @@
+{
+  "project": "meatycapture",
+  "items": [
+    {
+      "title": "Item title here",
+      "type": "bug",
+      "domain": "core",
+      "context": "",
+      "priority": "medium",
+      "status": "triage",
+      "tags": [],
+      "notes": "Problem: [Describe the issue]\nGoal: [Desired outcome]"
+    }
+  ]
+}
