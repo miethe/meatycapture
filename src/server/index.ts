@@ -90,6 +90,7 @@ interface HealthCheckResponse {
  */
 function getServerConfig(): ServerConfig {
   const port = Number(process.env.PORT) || 3737;
+  // DATA_DIR is for tilde expansion in document paths (may be / for Docker)
   const dataDir = process.env.MEATYCAPTURE_DATA_DIR || join(homedir(), '.meatycapture');
   const environment = process.env.NODE_ENV || 'development';
   const isDevelopment = environment !== 'production';
@@ -100,6 +101,19 @@ function getServerConfig(): ServerConfig {
     isDevelopment,
     environment,
   };
+}
+
+/**
+ * Gets the config directory for project and field stores.
+ *
+ * Uses MEATYCAPTURE_CONFIG_DIR if set, otherwise falls back to DATA_DIR.
+ * This separation allows DATA_DIR to be / (for Docker path expansion)
+ * while CONFIG_DIR points to where projects.json and fields.json are stored.
+ */
+function getConfigDir(): string {
+  return process.env.MEATYCAPTURE_CONFIG_DIR ||
+         process.env.MEATYCAPTURE_DATA_DIR ||
+         join(homedir(), '.meatycapture');
 }
 
 /**
@@ -148,10 +162,13 @@ async function main(): Promise<void> {
 
   // Expand tilde in data directory path
   const expandedDataDir = expandPath(config.dataDir);
+  // Get config directory for project/field stores (separate from DATA_DIR)
+  const configDir = expandPath(getConfigDir());
 
   logger.info('Starting MeatyCapture API server', {
     port: config.port,
     dataDir: expandedDataDir,
+    configDir: configDir,
     environment: config.environment,
   });
 
@@ -159,9 +176,10 @@ async function main(): Promise<void> {
   const startTime = Date.now();
 
   // Initialize adapters and routers
+  // DocStore uses DATA_DIR for path expansion, config stores use CONFIG_DIR
   const docStore = createFsDocStore();
-  const projectStore = createProjectStore(expandedDataDir);
-  const fieldStore = createFieldCatalogStore(expandedDataDir);
+  const projectStore = createProjectStore(configDir);
+  const fieldStore = createFieldCatalogStore(configDir);
 
   const docsRouter = createDocsRouter(docStore, realClock);
   const projectsRouter = createProjectsRouter(projectStore);
