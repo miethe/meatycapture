@@ -694,5 +694,6 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
   - `src/adapters/fs-local/index.ts`: expandTildeToHome() for DATA_DIR
   - `src/adapters/config-local/index.ts`: expandTildeToHome() for CONFIG_DIR
 
-- **Commit(s)**: 1a7b310
+- **Commit(s)**: 0094928, 0aae31f
+- **Additional Fix**: Server was using `MEATYCAPTURE_DATA_DIR` (set to `/`) for config stores instead of `MEATYCAPTURE_CONFIG_DIR`. Added `getConfigDir()` function in server to properly separate data path expansion from config file location.
 - **Status**: RESOLVED
