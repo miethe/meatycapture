@@ -14,6 +14,7 @@ Work with request-log markdown files for development tracking. This skill provid
 | **Capture** | Log bugs, enhancements, ideas, technical debt | `./capturing-logs.md` |
 | **View** | Read existing logs, review past items | `./viewing-logs.md` |
 | **Search** | Find items by keyword, type, tag, status | `./viewing-logs.md` |
+| **Update Status** | Change item status (triage->done) | `./updating-status.md` |
 | **Project** | Configure projects, set defaults | `./managing-projects.md` |
 
 ## Quick Reference
@@ -71,6 +72,7 @@ See `./managing-projects.md` for project auto-detection strategies.
 |------|---------|
 | `./capturing-logs.md` | Capture workflows, batch capture, append |
 | `./viewing-logs.md` | View, search, filter patterns |
+| `./updating-status.md` | Status update workflow, valid values |
 | `./managing-projects.md` | Project setup, defaults, auto-detection |
 | `./skill-config.yaml` | Default project configuration |
 | `./references/field-options.md` | Valid field values for items |
