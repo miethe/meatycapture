@@ -621,5 +621,37 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
      ```
   3. Or update `/data/projects.json` directly with tilde-relative paths
 
-- **Commit(s)**: 8014aa1
+- **Commit(s)**: 3c5e63a
+- **Status**: RESOLVED
+
+---
+
+### CLI Cannot Switch to Local Mode When .env Has API URL
+
+**Issue**: Running `meatycapture config set api_url ''` doesn't switch CLI to local mode because Bun automatically loads the project's `.env` file which has `MEATYCAPTURE_API_URL` set for Docker builds.
+
+- **Location**: `src/cli/index.ts`, `src/cli/env-loader.ts`
+- **Root Cause**: Two contributing factors:
+  1. **Bun auto-loads .env**: When running `bun run` from the project directory, Bun automatically loads the project's `.env` file, setting `MEATYCAPTURE_API_URL` before the CLI code runs.
+  2. **loadEnvFile() loaded from cwd**: The CLI's `loadEnvFile()` function loaded from the current working directory, which for development is the project directory containing Docker-focused settings.
+
+- **Fix**: Two changes implemented:
+  1. **Changed loadEnvFile() location**: Now loads from `~/.meatycapture/.env` (user config directory) instead of cwd. Project-level `.env` is for Docker builds only.
+  2. **Added --local global flag**: New `--local` flag that forces local mode by clearing `MEATYCAPTURE_API_URL` via preAction hook, regardless of any env vars set.
+
+- **Usage**:
+  ```bash
+  # Force local mode regardless of env vars
+  meatycapture --local log list skillmeat
+
+  # Check config in local mode
+  meatycapture --local config show
+
+  # Create user-level .env for persistent settings
+  echo "MEATYCAPTURE_DATA_DIR=/Users/miethe/data" > ~/.meatycapture/.env
+  ```
+
+- **Note**: Bun's automatic .env loading cannot be disabled when running via `bun run`. For development, either use `--local` flag or run CLI from outside the project directory.
+
+- **Commit(s)**: 3316678
 - **Status**: RESOLVED

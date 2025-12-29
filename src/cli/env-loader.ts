@@ -2,7 +2,7 @@
  * Environment File Loader
  *
  * Provides .env file loading for CLI configuration. Loads environment variables
- * from a .env file in the current working directory at CLI startup.
+ * from ~/.meatycapture/.env at CLI startup.
  *
  * Features:
  * - Simple KEY=VALUE parsing (no external dependencies)
@@ -32,6 +32,7 @@
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { homedir } from 'node:os';
 
 /**
  * Result of loading an environment file
@@ -115,11 +116,13 @@ export function parseLine(line: string): [string, string] | null {
 }
 
 /**
- * Loads environment variables from a .env file in the current working directory.
+ * Loads environment variables from ~/.meatycapture/.env.
  *
  * This function should be called early in CLI initialization, before any
  * configuration reads occur. It sets process.env values for any keys found
  * in the .env file that are not already set in the environment.
+ *
+ * Default location: ~/.meatycapture/.env (user's home directory)
  *
  * Environment precedence:
  * - Existing environment variables take precedence over .env values
@@ -130,12 +133,12 @@ export function parseLine(line: string): [string, string] | null {
  * - Parse errors on individual lines are silently skipped
  * - Only file read errors (permissions, etc.) are treated as failures
  *
- * @param cwd - Current working directory (defaults to process.cwd())
+ * @param configDir - Config directory containing .env (defaults to ~/.meatycapture)
  * @returns Result object indicating what was loaded
  *
  * @example
  * ```typescript
- * // Basic usage at CLI startup
+ * // Basic usage at CLI startup (loads from ~/.meatycapture/.env)
  * loadEnvFile();
  *
  * // Check what was loaded
@@ -145,12 +148,12 @@ export function parseLine(line: string): [string, string] | null {
  * }
  *
  * // Custom directory (for testing)
- * loadEnvFile('/path/to/project');
+ * loadEnvFile('/path/to/config');
  * ```
  */
-export function loadEnvFile(cwd?: string): EnvLoadResult {
-  const workingDir = cwd ?? process.cwd();
-  const envPath = join(workingDir, '.env');
+export function loadEnvFile(configDir?: string): EnvLoadResult {
+  const baseDir = configDir ?? join(homedir(), '.meatycapture');
+  const envPath = join(baseDir, '.env');
 
   let content: string;
   try {

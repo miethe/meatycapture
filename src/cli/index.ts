@@ -39,7 +39,7 @@
 import { Command } from 'commander';
 import { loadEnvFile } from './env-loader.js';
 
-// Load .env file from current working directory before any config reads
+// Load .env file from ~/.meatycapture/.env before any config reads
 // Environment variables take precedence over .env values
 loadEnvFile();
 
@@ -66,6 +66,7 @@ program
       '  config    Manage global configuration (Phase 4)'
   )
   .version('0.1.0')
+  .option('--local', 'Force local mode (bypass API, use local filesystem adapters)')
   .addHelpText(
     'after',
     `
@@ -75,6 +76,7 @@ Examples:
   meatycapture log list my-project       List documents for a project
   meatycapture create input.json         Alias for: log create
   meatycapture --help                    Show this help message
+  meatycapture --local config show       Force local mode (bypass API)
 
 For command group help:
   meatycapture log --help
@@ -83,6 +85,19 @@ For command group help:
   meatycapture config --help
 `
   );
+
+// ============================================================================
+// Global Flag Handling
+// ============================================================================
+// The --local flag forces local mode by clearing any API URL that might be set.
+// This ensures the CLI uses local filesystem adapters instead of API calls.
+
+program.hook('preAction', (thisCommand) => {
+  const opts = thisCommand.opts();
+  if (opts.local) {
+    process.env.MEATYCAPTURE_API_URL = '';
+  }
+});
 
 // ============================================================================
 // Register Command Groups
