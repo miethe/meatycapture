@@ -18,13 +18,34 @@ import { generateItemId, getNextItemNumber } from '@core/validation';
 import { logger } from '@core/logging';
 
 /**
+ * Expands tilde (~) prefix to user's home directory.
+ * Used to normalize DATA_DIR which may contain tilde.
+ */
+function expandTildeToHome(path: string): string {
+  if (path.startsWith('~/')) {
+    return join(homedir(), path.slice(2));
+  }
+  if (path === '~') {
+    return homedir();
+  }
+  return path;
+}
+
+/**
  * Gets the base directory for tilde expansion.
  *
  * In server/Docker mode (MEATYCAPTURE_DATA_DIR set), uses data directory.
  * In desktop mode, uses user's home directory.
+ *
+ * Note: The DATA_DIR itself may contain tilde (e.g., ~/data/projects),
+ * which is expanded to the user's home directory.
  */
 function getBaseDir(): string {
-  return process.env.MEATYCAPTURE_DATA_DIR || homedir();
+  const dataDir = process.env.MEATYCAPTURE_DATA_DIR;
+  if (dataDir) {
+    return expandTildeToHome(dataDir);
+  }
+  return homedir();
 }
 
 /**

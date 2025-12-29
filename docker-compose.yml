@@ -112,10 +112,14 @@ services:
       # Logging verbosity: debug | info | warn | error
       LOG_LEVEL: ${LOG_LEVEL:-info}
 
-      # Data directory inside container (mounted volume)
-      # IMPORTANT: Hardcoded to /data for Docker - ignores .env override
-      # The .env MEATYCAPTURE_DATA_DIR is for native/local development only
-      MEATYCAPTURE_DATA_DIR: /data
+      # Data directory for tilde expansion in document paths
+      # Set to / so ~/data/projects/docs/... expands to /data/projects/docs/...
+      # This works with mount /Users/miethe/data:/data
+      MEATYCAPTURE_DATA_DIR: /
+
+      # Config directory where projects.json and fields.json are stored
+      # Located at /data/projects/ inside container
+      MEATYCAPTURE_CONFIG_DIR: /data/projects
 
       # CORS allowed origins (comma-separated)
       # Default allows common dev ports; override in .env for production
@@ -135,7 +139,7 @@ services:
       # Mount local ./data directory to container's /data directory
       # This persists request-log files, project metadata, and field catalogs
       # Format: HOST_PATH:CONTAINER_PATH:OPTIONS
-      - /Users/miethe/data/projects:/data
+      - /Users/miethe/data:/data
 
       # Alternative: Use named volume for better Docker management
       # Uncomment below and comment out ./data mount to use named volume

@@ -12,7 +12,7 @@
 # Default project for this workspace
 # Set to the project slug that should be used when no project is specified
 # Leave empty or remove to use auto-detection
-default_project: ""
+default_project: "meatycapture"
 
 # Enable auto-detection when default_project is not set
 # Detection strategies (in order):
@@ -33,4 +33,4 @@ auto_create_project: true
 #   ~/.meatycapture/{project}     - Central location (default)
 #   ./docs/request-logs           - Within project repository
 #   ~/projects/{project}/logs     - Custom projects directory
-default_path_pattern: "~/.meatycapture/{project}"
+default_path_pattern: "~/data/projects/docs/{project}"

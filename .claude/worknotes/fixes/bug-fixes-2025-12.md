@@ -655,3 +655,44 @@ Note: The `sw.js:61` error about `chrome-extension://` scheme is unrelated - it'
 
 - **Commit(s)**: 3316678
 - **Status**: RESOLVED
+
+---
+
+### CLI and Web App Path Expansion Mismatch
+
+**Issue**: Path expansion for `~/data/projects/docs/{PROJECT}` was producing incorrect paths, causing either CLI or web app to fail to find documents depending on configuration. The mount structure and path format weren't aligned properly.
+
+- **Location**:
+  - `src/adapters/fs-local/index.ts:26-48`
+  - `src/adapters/config-local/index.ts:19-51`
+  - `src/cli/index.ts:97-105`
+  - `docker-compose.yml:115-122`
+  - `/Users/miethe/data/projects/projects.json`
+
+- **Root Cause**: Multi-factor path expansion issue:
+  1. **projects.json paths** stored as `~/docs/{PROJECT}` or absolute paths
+  2. **Docker mount** was `/Users/miethe/data/projects:/data`
+  3. **MEATYCAPTURE_DATA_DIR** set to `/data` in container
+  4. Path expansion `~/docs/skillmeat` → `/data/docs/skillmeat` but files at `/data/docs/skillmeat` didn't match the actual structure
+  5. Bun auto-loading project .env overrode local CLI settings
+
+- **Fix**: Unified path architecture:
+  1. **projects.json paths**: `~/data/projects/docs/{PROJECT}` (canonical tilde-relative paths)
+  2. **Docker mount**: `/Users/miethe/data:/data` (mount parent directory)
+  3. **Container DATA_DIR**: Set to `/` so `~/data/...` expands to `/data/...`
+  4. **Container CONFIG_DIR**: Set to `/data/projects` (where projects.json lives)
+  5. **--local flag**: Now also clears `MEATYCAPTURE_DATA_DIR` so tilde expands to homedir
+  6. **Tilde expansion in DATA_DIR**: Both adapters now expand tilde in the DATA_DIR itself
+
+- **Path Expansion Logic**:
+  - **CLI local**: `~` → `homedir()` = `/Users/miethe` → `~/data/projects/docs/skillmeat` → `/Users/miethe/data/projects/docs/skillmeat`
+  - **Container**: `~` → `DATA_DIR` = `/` → `~/data/projects/docs/skillmeat` → `/data/projects/docs/skillmeat`
+
+- **Files Changed**:
+  - `docker-compose.yml`: DATA_DIR=/, CONFIG_DIR=/data/projects, mount=/Users/miethe/data:/data
+  - `src/cli/index.ts`: --local flag clears DATA_DIR
+  - `src/adapters/fs-local/index.ts`: expandTildeToHome() for DATA_DIR
+  - `src/adapters/config-local/index.ts`: expandTildeToHome() for CONFIG_DIR
+
+- **Commit(s)**: 1a7b310
+- **Status**: RESOLVED

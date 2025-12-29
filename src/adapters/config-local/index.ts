@@ -17,16 +17,37 @@ import { DEFAULT_FIELD_OPTIONS } from '@core/models';
 import { slugify } from '@core/validation';
 
 /**
+ * Expands tilde (~) prefix to user's home directory.
+ * Used to normalize CONFIG_DIR which may contain tilde.
+ */
+function expandTildeToHome(path: string): string {
+  if (path.startsWith('~/')) {
+    return join(homedir(), path.slice(2));
+  }
+  if (path === '~') {
+    return homedir();
+  }
+  return path;
+}
+
+/**
  * Configuration directory path resolution.
  *
  * Priority:
  * 1. MEATYCAPTURE_CONFIG_DIR environment variable
  * 2. Default: ~/.meatycapture/
  *
+ * Note: The CONFIG_DIR itself may contain tilde (e.g., ~/data/projects),
+ * which is expanded to the user's home directory.
+ *
  * @returns Absolute path to the configuration directory
  */
 function getConfigDir(): string {
-  return process.env['MEATYCAPTURE_CONFIG_DIR'] || join(homedir(), '.meatycapture');
+  const configDir = process.env['MEATYCAPTURE_CONFIG_DIR'];
+  if (configDir) {
+    return expandTildeToHome(configDir);
+  }
+  return join(homedir(), '.meatycapture');
 }
 
 /**

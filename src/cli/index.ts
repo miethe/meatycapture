@@ -89,13 +89,18 @@ For command group help:
 // ============================================================================
 // Global Flag Handling
 // ============================================================================
-// The --local flag forces local mode by clearing any API URL that might be set.
-// This ensures the CLI uses local filesystem adapters instead of API calls.
+// The --local flag forces local mode by:
+// 1. Clearing API URL to use local filesystem adapters
+// 2. Clearing DATA_DIR so tilde expands to homedir (not Docker mount point)
+// This ensures paths like ~/data/projects/docs/... work correctly on local machine.
 
 program.hook('preAction', (thisCommand) => {
   const opts = thisCommand.opts();
   if (opts.local) {
     process.env.MEATYCAPTURE_API_URL = '';
+    // Clear DATA_DIR so tilde expands to homedir, not a Docker-specific path
+    // This is needed because Bun auto-loads project .env which may set DATA_DIR
+    delete process.env.MEATYCAPTURE_DATA_DIR;
   }
 });
 
