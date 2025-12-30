@@ -48,6 +48,7 @@ export {
   createEmptyFilterOptions,
   createEmptyGroupedCatalog,
   createCatalogEntry,
+  getActiveFilterCount,
 } from './types';
 
 export { listAllDocuments, extractFilterOptions, enrichWithProjectInfo } from './utils';

@@ -382,3 +382,39 @@ export function createCatalogEntry(
     project_name: projectName,
   };
 }
+
+/**
+ * Count the number of active filters in a FilterState
+ *
+ * Counts each active filter facet:
+ * - project_id: 1 if set
+ * - types, domains, priorities, statuses, tags: count of selected values
+ * - text: 1 if non-empty
+ *
+ * Useful for displaying filter badges and determining if filters are applied.
+ *
+ * @param filter - Filter state to count
+ * @returns Number of active filter criteria
+ */
+export function getActiveFilterCount(filter: FilterState): number {
+  let count = 0;
+
+  // Project filter (single-select)
+  if (filter.project_id !== undefined) {
+    count += 1;
+  }
+
+  // Multi-select filters (count each selected value)
+  count += filter.types.length;
+  count += filter.domains.length;
+  count += filter.priorities.length;
+  count += filter.statuses.length;
+  count += filter.tags.length;
+
+  // Text search filter
+  if (filter.text.trim() !== '') {
+    count += 1;
+  }
+
+  return count;
+}

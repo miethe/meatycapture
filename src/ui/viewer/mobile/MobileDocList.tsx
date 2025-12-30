@@ -32,8 +32,8 @@ export interface MobileDocListProps {
   /** Whether to display entries grouped by project */
   isGrouped?: boolean;
 
-  /** Callback when a card is tapped */
-  onCardTap: (entry: CatalogEntry) => void;
+  /** Callback when a card is tapped. Receives entry and optional element for focus management */
+  onCardTap: (entry: CatalogEntry, element?: HTMLElement) => void;
 
   /** Currently selected entry */
   selectedEntry?: CatalogEntry | null;

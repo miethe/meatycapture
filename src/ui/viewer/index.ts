@@ -92,3 +92,35 @@ export type {
   GroupedCatalog,
   ProjectInfo,
 } from './types';
+
+// Mobile viewer components
+export { MobileViewerContainer } from './mobile/MobileViewerContainer';
+export { MobileDocList } from './mobile/MobileDocList';
+export { MobileDocCard } from './mobile/MobileDocCard';
+export { MobileViewerHeader } from './mobile/MobileViewerHeader';
+export { MobileFilterFab } from './mobile/MobileFilterFab';
+export { MobileFilterSheet } from './mobile/MobileFilterSheet';
+export { MobileDetailSheet } from './mobile/MobileDetailSheet';
+export { MobileSearchBar } from './mobile/MobileSearchBar';
+export { MobileSortDropdown } from './mobile/MobileSortDropdown';
+
+// Mobile component types
+export type { MobileViewerContainerProps, SafeAreaInsets } from './mobile/MobileViewerContainer';
+export type { MobileDocListProps } from './mobile/MobileDocList';
+export type { MobileDocCardProps } from './mobile/MobileDocCard';
+export type { MobileViewerHeaderProps } from './mobile/MobileViewerHeader';
+export type { MobileFilterFabProps } from './mobile/MobileFilterFab';
+export type { MobileFilterSheetProps } from './mobile/MobileFilterSheet';
+export type { MobileDetailSheetProps } from './mobile/MobileDetailSheet';
+
+// Mobile hooks
+export { useBottomSheet } from './hooks/useBottomSheet';
+export { useHalfSheet } from './hooks/useHalfSheet';
+export { useSafeArea } from './hooks/useSafeArea';
+
+// Mobile hook types
+export type { UseBottomSheetResult } from './hooks/useBottomSheet';
+export type { UseHalfSheetOptions, UseHalfSheetResult } from './hooks/useHalfSheet';
+export type { SafeAreaInsets as HookSafeAreaInsets } from './hooks/useSafeArea';
+export type { ViewportState } from './hooks/useMobileViewport';
+export type { ReducedMotionResult } from './hooks/useReducedMotion';

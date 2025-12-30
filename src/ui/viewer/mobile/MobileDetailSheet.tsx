@@ -441,7 +441,29 @@ export function MobileDetailSheet({
               gap: 'var(--mobile-spacing-sm)',
             }}
           >
-            {/* View Full Document / Expand Button */}
+            {/* View Full Document Button - loads document and expands sheet */}
+            <button
+              type="button"
+              onClick={handleViewFull}
+              style={{
+                width: '100%',
+                minHeight: '48px',
+                padding: 'var(--mobile-spacing-md)',
+                backgroundColor: 'var(--mobile-accent-primary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 'var(--mobile-radius-md)',
+                fontSize: '16px',
+                fontWeight: 500,
+                cursor: 'pointer',
+              }}
+              aria-label="View full document content"
+              data-testid="mobile-detail-view-full"
+            >
+              View Full Document
+            </button>
+
+            {/* Expand/Collapse toggle button */}
             {!isExpanded ? (
               <button
                 type="button"
@@ -450,64 +472,40 @@ export function MobileDetailSheet({
                   width: '100%',
                   minHeight: '48px',
                   padding: 'var(--mobile-spacing-md)',
-                  backgroundColor: 'var(--mobile-accent-primary)',
-                  color: 'white',
-                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: 'var(--mobile-text-secondary)',
+                  border: '1px solid var(--mobile-glass-border)',
                   borderRadius: 'var(--mobile-radius-md)',
                   fontSize: '16px',
                   fontWeight: 500,
                   cursor: 'pointer',
                 }}
-                aria-label="Expand to view full document"
+                aria-label="Expand sheet to full height"
                 data-testid="mobile-detail-expand"
               >
-                View Full Document
+                Expand
               </button>
             ) : (
-              <>
-                {/* When expanded, show both collapse and view full */}
-                <button
-                  type="button"
-                  onClick={handleViewFull}
-                  style={{
-                    width: '100%',
-                    minHeight: '48px',
-                    padding: 'var(--mobile-spacing-md)',
-                    backgroundColor: 'var(--mobile-accent-primary)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 'var(--mobile-radius-md)',
-                    fontSize: '16px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                  }}
-                  aria-label="Open full document view"
-                  data-testid="mobile-detail-view-full"
-                >
-                  Open Document
-                </button>
-
-                <button
-                  type="button"
-                  onClick={onCollapse}
-                  style={{
-                    width: '100%',
-                    minHeight: '48px',
-                    padding: 'var(--mobile-spacing-md)',
-                    backgroundColor: 'transparent',
-                    color: 'var(--mobile-text-secondary)',
-                    border: `1px solid var(--mobile-glass-border)`,
-                    borderRadius: 'var(--mobile-radius-md)',
-                    fontSize: '16px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                  }}
-                  aria-label="Collapse to half height"
-                  data-testid="mobile-detail-collapse"
-                >
-                  Collapse
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={onCollapse}
+                style={{
+                  width: '100%',
+                  minHeight: '48px',
+                  padding: 'var(--mobile-spacing-md)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--mobile-text-secondary)',
+                  border: '1px solid var(--mobile-glass-border)',
+                  borderRadius: 'var(--mobile-radius-md)',
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+                aria-label="Collapse sheet to half height"
+                data-testid="mobile-detail-collapse"
+              >
+                Collapse
+              </button>
             )}
           </div>
         </div>

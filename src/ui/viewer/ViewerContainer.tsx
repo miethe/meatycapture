@@ -30,6 +30,8 @@ import type { ViewerContainerProps } from './types';
 import { DocumentCatalog } from './DocumentCatalog';
 import { DocumentFilters } from './DocumentFilters';
 import { useDocumentCache } from './hooks/useDocumentCache';
+import { useMobileViewport } from './hooks/useMobileViewport';
+import { MobileViewerContainer } from './mobile/MobileViewerContainer';
 import './viewer.css';
 
 /**
@@ -54,6 +56,23 @@ export function ViewerContainer({
   projectStore,
   docStore,
 }: ViewerContainerProps): React.JSX.Element {
+  // ============================================================================
+  // Viewport Detection
+  // ============================================================================
+
+  /** Mobile viewport detection for responsive rendering */
+  const { isMobile, width } = useMobileViewport();
+
+  /**
+   * Development mode logging for viewport breakpoint changes
+   * Helps debug responsive behavior during development
+   */
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.info(`[ViewerContainer] Viewport: ${isMobile ? 'mobile' : 'desktop'} (${width}px)`);
+    }
+  }, [isMobile, width]);
+
   // ============================================================================
   // State Management
   // ============================================================================
@@ -254,15 +273,6 @@ export function ViewerContainer({
   }, []);
 
   // ============================================================================
-  // Reserved Handler References (for child components in future tasks)
-  // ============================================================================
-
-  // Prevent unused variable warnings for handlers reserved for child components
-  // These will be passed to DocumentFilters (TASK-2.3)
-  void filterOptions;
-  void handleFilterChange;
-
-  // ============================================================================
   // Derived State (Filtering & Sorting)
   // ============================================================================
 
@@ -287,10 +297,50 @@ export function ViewerContainer({
 
   const { filtered: filteredCatalog, grouped: groupedCatalog } = filteredAndSorted;
 
+  /**
+   * Compute active filter count for mobile badge
+   *
+   * Counts the number of filter facets that have active values.
+   * Used to display badge count on mobile filter FAB.
+   */
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filterState.project_id) count++;
+    if (filterState.types.length > 0) count++;
+    if (filterState.domains.length > 0) count++;
+    if (filterState.priorities.length > 0) count++;
+    if (filterState.statuses.length > 0) count++;
+    if (filterState.tags.length > 0) count++;
+    if (filterState.text.trim()) count++;
+    return count;
+  }, [filterState]);
+
   // ============================================================================
   // Render
   // ============================================================================
 
+  // Mobile rendering - uses MobileViewerContainer for touch-optimized UI
+  if (isMobile) {
+    return (
+      <MobileViewerContainer
+        entries={filteredCatalog}
+        groupedCatalog={groupedCatalog}
+        filterState={filterState}
+        filterOptions={filterOptions}
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+        activeFilterCount={activeFilterCount}
+        onLoadDocument={handleLoadDocument}
+        sort={sort}
+        onSortChange={handleSortChange}
+        onRefresh={handleRefresh}
+        loading={loading}
+        isGrouped={true}
+      />
+    );
+  }
+
+  // Desktop rendering - original viewer UI
   return (
     <div className="viewer-container">
       {/* Header with title and refresh button */}

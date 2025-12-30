@@ -13,7 +13,7 @@
  * - Proper ARIA labels for accessibility
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import type { CatalogEntry } from '@core/catalog';
 import './mobile-viewer.css';
 
@@ -24,8 +24,8 @@ export interface MobileDocCardProps {
   /** Catalog entry to display */
   entry: CatalogEntry;
 
-  /** Callback when card is tapped */
-  onTap: (entry: CatalogEntry) => void;
+  /** Callback when card is tapped. Receives entry and optional element for focus management */
+  onTap: (entry: CatalogEntry, element?: HTMLElement) => void;
 
   /** Whether this card is currently selected */
   isSelected?: boolean;
@@ -82,21 +82,26 @@ export function MobileDocCard({
   isSelected = false,
   className = '',
 }: MobileDocCardProps): React.JSX.Element {
+  // Ref to the card element for focus management
+  const cardRef = useRef<HTMLElement>(null);
+
   /**
    * Handle card tap/click
+   * Passes the card element reference for focus restoration
    */
   const handleTap = useCallback(() => {
-    onTap(entry);
+    onTap(entry, cardRef.current ?? undefined);
   }, [entry, onTap]);
 
   /**
    * Handle keyboard interaction (Enter/Space)
+   * Passes the card element reference for focus restoration
    */
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLElement>) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        onTap(entry);
+        onTap(entry, cardRef.current ?? undefined);
       }
     },
     [entry, onTap]
@@ -125,6 +130,7 @@ export function MobileDocCard({
 
   return (
     <article
+      ref={cardRef}
       className={cardClassName}
       onClick={handleTap}
       onKeyDown={handleKeyDown}
