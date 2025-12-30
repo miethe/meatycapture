@@ -1,0 +1,540 @@
+/**
+ * MeatyCapture Mobile Viewer CSS
+ *
+ * CSS architecture and layout framework for mobile-optimized viewer components.
+ * This file establishes the design token system, animation primitives, and
+ * component class stubs for the mobile viewer experience.
+ */
+
+/* ==========================================================================
+   CSS Custom Properties (Design Tokens)
+   ========================================================================== */
+
+:root {
+  /* Touch Targets - 44px minimum per Apple HIG / Material Design */
+  --mobile-touch-target-min: 44px;
+  --mobile-fab-size: 56px;
+
+  /* Spacing Scale */
+  --mobile-spacing-xs: 4px;
+  --mobile-spacing-sm: 8px;
+  --mobile-spacing-md: 16px;
+  --mobile-spacing-lg: 24px;
+  --mobile-spacing-xl: 32px;
+
+  /* Component Heights */
+  --mobile-header-height: 56px;
+  --mobile-card-min-height: 88px;
+  --mobile-sheet-handle-height: 24px;
+  --mobile-search-bar-height: 48px;
+  --mobile-bottom-nav-height: 56px;
+
+  /* Z-Index Layers (ordered lowest to highest) */
+  --mobile-z-base: 0;
+  --mobile-z-elevated: 10;
+  --mobile-z-scrim: 100;
+  --mobile-z-sheet: 110;
+  --mobile-z-fab: 120;
+  --mobile-z-header: 130;
+  --mobile-z-modal: 140;
+  --mobile-z-toast: 150;
+
+  /* Animation Timings */
+  --mobile-animation-fast: 150ms;
+  --mobile-animation-normal: 300ms;
+  --mobile-animation-slow: 500ms;
+
+  /* Easing Functions */
+  --mobile-ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --mobile-ease-in: cubic-bezier(0.4, 0.0, 1, 1);
+  --mobile-ease-in-out: cubic-bezier(0.4, 0.0, 0.2, 1);
+  --mobile-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Colors - Glass Effect (Light Mode) */
+  --mobile-glass-bg: rgba(255, 255, 255, 0.85);
+  --mobile-glass-bg-heavy: rgba(255, 255, 255, 0.95);
+  --mobile-glass-border: rgba(255, 255, 255, 0.2);
+  --mobile-glass-shadow: rgba(0, 0, 0, 0.1);
+  --mobile-scrim-bg: rgba(0, 0, 0, 0.5);
+
+  /* Colors - Surface & Content */
+  --mobile-surface-primary: #ffffff;
+  --mobile-surface-secondary: #f5f5f5;
+  --mobile-text-primary: rgba(0, 0, 0, 0.87);
+  --mobile-text-secondary: rgba(0, 0, 0, 0.6);
+  --mobile-text-disabled: rgba(0, 0, 0, 0.38);
+
+  /* Colors - Interactive */
+  --mobile-accent-primary: #6366f1;
+  --mobile-accent-secondary: #8b5cf6;
+  --mobile-ripple-color: rgba(99, 102, 241, 0.12);
+
+  /* Border Radius */
+  --mobile-radius-sm: 4px;
+  --mobile-radius-md: 8px;
+  --mobile-radius-lg: 16px;
+  --mobile-radius-xl: 24px;
+  --mobile-radius-full: 9999px;
+
+  /* Shadows */
+  --mobile-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --mobile-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --mobile-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --mobile-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode Overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mobile-glass-bg: rgba(30, 30, 30, 0.85);
+    --mobile-glass-bg-heavy: rgba(30, 30, 30, 0.95);
+    --mobile-glass-border: rgba(255, 255, 255, 0.1);
+    --mobile-glass-shadow: rgba(0, 0, 0, 0.3);
+    --mobile-scrim-bg: rgba(0, 0, 0, 0.7);
+
+    --mobile-surface-primary: #1a1a1a;
+    --mobile-surface-secondary: #2a2a2a;
+    --mobile-text-primary: rgba(255, 255, 255, 0.87);
+    --mobile-text-secondary: rgba(255, 255, 255, 0.6);
+    --mobile-text-disabled: rgba(255, 255, 255, 0.38);
+  }
+}
+
+/* ==========================================================================
+   Animation Keyframes
+   ========================================================================== */
+
+/* Sheet Animations */
+@keyframes sheet-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-slide-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* Fade Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Scale Animations */
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scale-out {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* Badge/Notification Pop */
+@keyframes badge-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* FAB Animations */
+@keyframes fab-enter {
+  from {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes fab-exit {
+  from {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+/* Shimmer Loading */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Pulse */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ==========================================================================
+   Base Component Classes (Stubs - Styling in Phase 2)
+   ========================================================================== */
+
+/* Container */
+.mobile-viewer-container {
+  /* Main viewport container for mobile viewer */
+}
+
+/* Header */
+.mobile-viewer-header {
+  /* Fixed header with safe area inset */
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.mobile-viewer-header__title {
+  /* Header title styling */
+}
+
+.mobile-viewer-header__actions {
+  /* Header action buttons container */
+}
+
+/* Search Bar */
+.mobile-search-bar {
+  /* Search input container */
+}
+
+.mobile-search-bar__input {
+  /* Search text input */
+}
+
+.mobile-search-bar__icon {
+  /* Search/clear icons */
+}
+
+.mobile-search-bar--focused {
+  /* Focused state */
+}
+
+/* Sort Dropdown */
+.mobile-sort-dropdown {
+  /* Sort option selector */
+}
+
+.mobile-sort-dropdown__trigger {
+  /* Dropdown trigger button */
+}
+
+.mobile-sort-dropdown__menu {
+  /* Dropdown options menu */
+}
+
+.mobile-sort-dropdown__option {
+  /* Individual sort option */
+}
+
+/* Document List */
+.mobile-doc-list {
+  /* Scrollable document list container */
+}
+
+.mobile-doc-list__empty {
+  /* Empty state display */
+}
+
+.mobile-doc-list__loading {
+  /* Loading state display */
+}
+
+/* Document Card */
+.mobile-doc-card {
+  /* Individual document card */
+}
+
+.mobile-doc-card__header {
+  /* Card header section */
+}
+
+.mobile-doc-card__title {
+  /* Document title */
+}
+
+.mobile-doc-card__meta {
+  /* Metadata (date, item count) */
+}
+
+.mobile-doc-card__tags {
+  /* Tags container */
+}
+
+.mobile-doc-card__tag {
+  /* Individual tag chip */
+}
+
+.mobile-doc-card--selected {
+  /* Selected state */
+}
+
+.mobile-doc-card--loading {
+  /* Loading skeleton state */
+}
+
+/* Filter Sheet */
+.mobile-filter-sheet {
+  /* Bottom sheet for filters */
+}
+
+.mobile-filter-sheet__handle {
+  /* Drag handle indicator */
+}
+
+.mobile-filter-sheet__header {
+  /* Sheet header with title/close */
+}
+
+.mobile-filter-sheet__content {
+  /* Scrollable filter content */
+}
+
+.mobile-filter-sheet__section {
+  /* Filter section grouping */
+}
+
+.mobile-filter-sheet__actions {
+  /* Apply/reset buttons */
+}
+
+/* Detail Sheet */
+.mobile-detail-sheet {
+  /* Document detail bottom sheet */
+}
+
+.mobile-detail-sheet__handle {
+  /* Drag handle indicator */
+}
+
+.mobile-detail-sheet__header {
+  /* Detail header section */
+}
+
+.mobile-detail-sheet__content {
+  /* Scrollable detail content */
+}
+
+.mobile-detail-sheet__item {
+  /* Individual request item */
+}
+
+/* Filter FAB */
+.mobile-filter-fab {
+  /* Floating action button for filters */
+  bottom: calc(var(--mobile-spacing-md) + env(safe-area-inset-bottom, 0));
+  right: var(--mobile-spacing-md);
+}
+
+.mobile-filter-fab__badge {
+  /* Active filter count badge */
+}
+
+.mobile-filter-fab--hidden {
+  /* Hidden state when sheet is open */
+}
+
+/* Scrim/Overlay */
+.mobile-scrim {
+  /* Background overlay for sheets */
+}
+
+.mobile-scrim--visible {
+  /* Visible state */
+}
+
+/* ==========================================================================
+   Layout Utilities
+   ========================================================================== */
+
+/* Flex utilities */
+.mobile-flex {
+  display: flex;
+}
+
+.mobile-flex-col {
+  flex-direction: column;
+}
+
+.mobile-flex-center {
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-flex-between {
+  justify-content: space-between;
+}
+
+/* Touch target enforcement */
+.mobile-touch-target {
+  min-width: var(--mobile-touch-target-min);
+  min-height: var(--mobile-touch-target-min);
+}
+
+/* Safe area spacing */
+.mobile-safe-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.mobile-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.mobile-safe-left {
+  padding-left: env(safe-area-inset-left, 0);
+}
+
+.mobile-safe-right {
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+.mobile-safe-all {
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+/* ==========================================================================
+   Media Query Breakpoints
+   ========================================================================== */
+
+/* Tablet and below (768px) */
+@media (max-width: 768px) {
+  /* Mobile-specific layout overrides */
+  .mobile-viewer-container {
+    /* Full viewport on mobile */
+  }
+
+  .mobile-doc-list {
+    /* Single column layout */
+  }
+}
+
+/* Small mobile (640px) */
+@media (max-width: 640px) {
+  /* Extra compact spacing for small screens */
+  :root {
+    --mobile-header-height: 48px;
+    --mobile-card-min-height: 72px;
+  }
+
+  .mobile-doc-card {
+    /* Reduced padding for small screens */
+  }
+}
+
+/* Extra small mobile (375px - iPhone SE) */
+@media (max-width: 375px) {
+  :root {
+    --mobile-spacing-md: 12px;
+    --mobile-spacing-lg: 16px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+  :root {
+    --mobile-header-height: 48px;
+    --mobile-sheet-handle-height: 20px;
+  }
+
+  .mobile-filter-sheet {
+    /* Reduced max-height in landscape */
+  }
+
+  .mobile-detail-sheet {
+    /* Side sheet instead of bottom in landscape */
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion Preferences
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   High Contrast Mode Support
+   ========================================================================== */
+
+@media (prefers-contrast: high) {
+  :root {
+    --mobile-glass-bg: rgba(255, 255, 255, 1);
+    --mobile-glass-border: rgba(0, 0, 0, 1);
+    --mobile-text-secondary: rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* ==========================================================================
+   Print Styles (Hide mobile-specific elements)
+   ========================================================================== */
+
+@media print {
+  .mobile-filter-fab,
+  .mobile-filter-sheet,
+  .mobile-scrim {
+    display: none !important;
+  }
+}
