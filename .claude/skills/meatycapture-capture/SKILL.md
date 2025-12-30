@@ -80,8 +80,9 @@ See `./managing-projects.md` for project auto-detection strategies.
 | `./references/troubleshooting.md` | Error handling guide |
 | `./templates/quick-capture.json` | Single item template |
 | `./templates/batch-capture.json` | Multi-item template |
+| `./integration-spec.md` | Integration patterns for project workflows |
 
 ---
 
-**Skill Version**: 2.0.0
-**Last Updated**: 2025-12-29
+**Skill Version**: 2.1.0
+**Last Updated**: 2025-12-30

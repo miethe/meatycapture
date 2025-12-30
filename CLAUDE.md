@@ -222,6 +222,24 @@ interface DocStore {
 
 ---
 
+## Development Tracking
+
+Use `/meatycapture-capture` skill for structured bug/enhancement/idea tracking:
+
+| When | Action |
+|------|--------|
+| Bug found | Capture with type:bug, include reproduction steps |
+| Enhancement idea | Capture with type:enhancement, include goal |
+| TODO needed | Capture instead of code comment (searchable, trackable) |
+| Starting logged work | Update item status to in-progress |
+| Work complete | Update item status to done |
+
+Search existing logs before creating duplicates: `meatycapture log search "keyword" PROJECT`
+
+See `.claude/skills/meatycapture-capture/integration-spec.md` for command integration patterns.
+
+---
+
 ## Git Workflow
 
 **Commit types**: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
