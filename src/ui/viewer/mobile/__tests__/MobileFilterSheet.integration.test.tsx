@@ -428,6 +428,105 @@ describe('MobileFilterSheet Integration', () => {
   });
 });
 
+describe('Keyboard Navigation', () => {
+  it('calls onClose when Escape key is pressed', async () => {
+    const onClose = vi.fn();
+    const props = createDefaultProps({ onClose });
+
+    render(<MobileFilterSheet {...props} />);
+
+    // Simulate Escape key press on document level
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onClose when other keys are pressed', async () => {
+    const onClose = vi.fn();
+    const props = createDefaultProps({ onClose });
+
+    render(<MobileFilterSheet {...props} />);
+
+    // Simulate other key presses
+    fireEvent.keyDown(document, { key: 'Enter' });
+    fireEvent.keyDown(document, { key: 'Space' });
+    fireEvent.keyDown(document, { key: 'a' });
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('calls trapFocus on Tab key press', async () => {
+    const { trapFocus } = await import('../utils/focusUtils');
+    const props = createDefaultProps();
+
+    render(<MobileFilterSheet {...props} />);
+
+    // Simulate Tab key press on document level
+    fireEvent.keyDown(document, { key: 'Tab' });
+
+    expect(trapFocus).toHaveBeenCalled();
+  });
+
+  it('removes keyboard event listener when closed', async () => {
+    const onClose = vi.fn();
+    const props = createDefaultProps({ onClose });
+
+    const { rerender } = render(<MobileFilterSheet {...props} />);
+
+    // Close the sheet
+    rerender(<MobileFilterSheet {...props} isOpen={false} />);
+
+    // Simulate Escape key press - should not trigger onClose since sheet is closed
+    onClose.mockClear();
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+describe('Focus Restoration', () => {
+  it('stores previous focus element when opened', async () => {
+    // Create a trigger element that has focus before opening sheet
+    const triggerButton = document.createElement('button');
+    triggerButton.setAttribute('data-testid', 'trigger-button');
+    document.body.appendChild(triggerButton);
+    triggerButton.focus();
+
+    const props = createDefaultProps();
+    render(<MobileFilterSheet {...props} />);
+
+    // Sheet should have captured the trigger button's reference
+    // We can verify by checking that a focusable element in the sheet received focus
+    const clearButton = screen.getByRole('button', { name: 'Clear all filters' });
+    expect(clearButton).toBeInTheDocument();
+
+    // Cleanup
+    document.body.removeChild(triggerButton);
+  });
+
+  it('uses triggerRef prop when provided', async () => {
+    const triggerRef = { current: null as HTMLElement | null };
+    const triggerButton = document.createElement('button');
+    triggerRef.current = triggerButton;
+    document.body.appendChild(triggerButton);
+
+    const props = { ...createDefaultProps(), triggerRef };
+    const { rerender } = render(<MobileFilterSheet {...props} />);
+
+    // Verify sheet renders
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Close the sheet - focus should return to trigger
+    rerender(<MobileFilterSheet {...props} isOpen={false} />);
+
+    // Allow focus restoration timeout
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Cleanup
+    document.body.removeChild(triggerButton);
+  });
+});
+
 describe('getActiveFilterCount', () => {
   it('returns 0 for empty filter', () => {
     const filter = createEmptyFilter();

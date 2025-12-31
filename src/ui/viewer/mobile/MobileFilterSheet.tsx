@@ -51,6 +51,8 @@ export interface MobileFilterSheetProps {
   onApply: () => void;
   /** Number of currently active filters */
   activeFilterCount: number;
+  /** Element to return focus to when sheet closes */
+  triggerRef?: React.RefObject<HTMLElement | null>;
 }
 
 /**
@@ -118,9 +120,10 @@ const initialDragState: DragState = {
  *
  * Accessibility:
  * - role="dialog" and aria-modal="true"
- * - Focus trapped within sheet when open
+ * - Focus trapped within sheet when open (Tab cycles within)
  * - Body scroll locked when open
- * - Escape key closes sheet (handled by parent)
+ * - Escape key closes sheet
+ * - Focus returns to trigger element on close
  * - 48px minimum touch targets
  * - Respects prefers-reduced-motion setting
  *
@@ -135,6 +138,7 @@ export function MobileFilterSheet({
   onClearAll,
   onApply,
   activeFilterCount,
+  triggerRef,
 }: MobileFilterSheetProps): React.JSX.Element | null {
   const sheetRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -142,11 +146,35 @@ export function MobileFilterSheet({
   const [translateY, setTranslateY] = useState(0);
   const [isSnappingBack, setIsSnappingBack] = useState(false);
 
+  // Store previous active element for focus restoration
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   // Check for reduced motion preference
   const { prefersReducedMotion } = useReducedMotion();
 
   // Get safe area insets for proper padding
   const safeArea = useSafeArea();
+
+  // Store previous focus element when sheet opens
+  useEffect(() => {
+    if (isOpen) {
+      // Store current focus or use trigger ref
+      previousFocusRef.current =
+        triggerRef?.current || (document.activeElement as HTMLElement);
+    }
+  }, [isOpen, triggerRef]);
+
+  // Restore focus when sheet closes
+  useEffect(() => {
+    if (!isOpen && previousFocusRef.current) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        previousFocusRef.current?.focus();
+        previousFocusRef.current = null;
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Lock body scroll and manage focus when sheet opens/closes
   useEffect(() => {
@@ -172,7 +200,31 @@ export function MobileFilterSheet({
     };
   }, [isOpen]);
 
-  // Handle keyboard navigation for focus trapping
+  // Handle keyboard navigation: focus trapping and Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      // Handle Escape key to close sheet
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      // Handle Tab key for focus trapping
+      if (event.key === 'Tab' && sheetRef.current) {
+        trapFocus(sheetRef.current, event);
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  // Handle keyboard navigation for focus trapping (React event backup)
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
       if (sheetRef.current) {

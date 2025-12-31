@@ -85,9 +85,10 @@ function DirectionIndicator({ order }: { order: SortOrder }): React.JSX.Element 
   return (
     <span
       className="mobile-sort-dropdown__direction"
+      role="img"
       aria-label={order === 'asc' ? 'ascending' : 'descending'}
     >
-      {order === 'asc' ? '\u2191' : '\u2193'}
+      <span aria-hidden="true">{order === 'asc' ? '\u2191' : '\u2193'}</span>
     </span>
   );
 }

@@ -350,7 +350,10 @@ export function MobileViewerContainer({
   // Selected document for detail view
   const [selectedEntry, setSelectedEntry] = useState<CatalogEntry | null>(null);
 
-  // Reference to the last focused card for focus restoration on sheet close
+  // Reference to the FAB button for focus restoration after filter sheet closes
+  const fabRef = useRef<HTMLButtonElement | null>(null);
+
+  // Reference to the last focused card for focus restoration on detail sheet close
   const lastFocusedCardRef = useRef<HTMLElement | null>(null);
 
   // Search text for header (managed locally, synced to filter on change)
@@ -517,6 +520,7 @@ export function MobileViewerContainer({
 
       {/* Filter FAB */}
       <MobileFilterFab
+        ref={fabRef}
         activeCount={activeFilterCount}
         onClick={handleFilterClick}
         isHidden={filterSheet.isOpen || detailSheet.isOpen}
@@ -532,6 +536,7 @@ export function MobileViewerContainer({
         onClearAll={onClearFilters}
         onApply={handleApplyFilters}
         activeFilterCount={activeFilterCount}
+        triggerRef={fabRef}
       />
 
       {/* Detail Sheet (Portal) */}
@@ -543,7 +548,30 @@ export function MobileViewerContainer({
         onExpand={handleDetailExpand}
         onCollapse={handleDetailCollapse}
         onViewFull={handleViewFull}
+        triggerRef={lastFocusedCardRef}
       />
+
+      {/* Screen reader live region for filter count updates */}
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        style={{
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: 0,
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        }}
+      >
+        {activeFilterCount > 0
+          ? `${activeFilterCount} filter${activeFilterCount === 1 ? '' : 's'} active, ${entries.length} document${entries.length === 1 ? '' : 's'} shown`
+          : `${entries.length} document${entries.length === 1 ? '' : 's'} shown`}
+      </div>
     </div>
   );
 }

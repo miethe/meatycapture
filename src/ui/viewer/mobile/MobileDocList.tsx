@@ -463,6 +463,7 @@ export function MobileDocList({
           ref={registerCardRef(entry.doc_id)}
           onFocus={() => handleCardFocus(entry)}
           style={{ marginBottom: 'var(--mobile-spacing-sm)' }}
+          role="listitem"
         >
           <MobileDocCard
             entry={entry}
@@ -505,6 +506,7 @@ export function MobileDocList({
                       ref={registerCardRef(entry.doc_id)}
                       onFocus={() => handleCardFocus(entry)}
                       style={{ marginBottom: 'var(--mobile-spacing-sm)' }}
+                      role="listitem"
                     >
                       <MobileDocCard
                         entry={entry}

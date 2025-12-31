@@ -10,7 +10,7 @@
  */
 
 import type { CSSProperties } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useSafeArea } from '../hooks/useSafeArea';
 import './mobile-viewer.css';
@@ -59,13 +59,18 @@ function FilterIcon() {
  * - Accessible with dynamic ARIA label
  * - Keyboard focus states for accessibility
  * - Respects prefers-reduced-motion setting
+ * - Supports ref forwarding for focus management
  */
-export function MobileFilterFab({
-  activeCount,
-  onClick,
-  isHidden = false,
-  className = '',
-}: MobileFilterFabProps) {
+export const MobileFilterFab = forwardRef<HTMLButtonElement, MobileFilterFabProps>(
+  function MobileFilterFab(
+    {
+      activeCount,
+      onClick,
+      isHidden = false,
+      className = '',
+    },
+    ref
+  ) {
   const badgeRef = useRef<HTMLSpanElement>(null);
   const prevCountRef = useRef(activeCount);
   const [isPressed, setIsPressed] = useState(false);
@@ -171,6 +176,7 @@ export function MobileFilterFab({
 
   return (
     <button
+      ref={ref}
       type="button"
       className={fabClasses}
       style={fabStyle}
@@ -197,6 +203,6 @@ export function MobileFilterFab({
       )}
     </button>
   );
-}
+});
 
 export default MobileFilterFab;

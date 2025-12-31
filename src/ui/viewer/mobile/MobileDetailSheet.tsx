@@ -387,19 +387,7 @@ export function MobileDetailSheet({
 
   // Close button position needs to account for right safe area inset
   const closeButtonStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 'var(--mobile-spacing-md)',
     right: `calc(var(--mobile-spacing-md) + ${safeArea.right}px)`,
-    width: '32px',
-    height: '32px',
-    border: 'none',
-    background: 'transparent',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 'var(--mobile-radius-full)',
-    color: 'var(--mobile-text-secondary)',
   };
 
   const sheetContent = (
@@ -422,7 +410,8 @@ export function MobileDetailSheet({
         role="dialog"
         aria-modal="true"
         aria-expanded={isExpanded}
-        aria-label={`Document details for ${entry.title}`}
+        aria-labelledby="detail-sheet-title"
+        aria-describedby="detail-sheet-doc-id"
         style={sheetStyle}
         data-testid="mobile-detail-sheet"
         data-dragging={isDragging}
@@ -469,6 +458,7 @@ export function MobileDetailSheet({
         <header className="mobile-detail-sheet__header">
           {/* Document ID Badge */}
           <code
+            id="detail-sheet-doc-id"
             style={{
               display: 'inline-block',
               padding: '4px 8px',
@@ -485,6 +475,7 @@ export function MobileDetailSheet({
 
           {/* Title */}
           <h2
+            id="detail-sheet-title"
             style={{
               margin: 0,
               fontSize: '18px',
@@ -500,14 +491,13 @@ export function MobileDetailSheet({
           {/* Close button */}
           <button
             type="button"
+            className="mobile-detail-sheet__close-btn"
             onClick={handleClose}
             aria-label="Close detail sheet"
             style={closeButtonStyle}
             data-testid="mobile-detail-close"
           >
-            <span aria-hidden="true" style={{ fontSize: '20px' }}>
-              &times;
-            </span>
+            <span aria-hidden="true">&times;</span>
           </button>
         </header>
 
@@ -643,19 +633,8 @@ export function MobileDetailSheet({
             {/* View Full Document Button - loads document and expands sheet */}
             <button
               type="button"
+              className="mobile-detail-sheet__primary-btn"
               onClick={handleViewFull}
-              style={{
-                width: '100%',
-                minHeight: '48px',
-                padding: 'var(--mobile-spacing-md)',
-                backgroundColor: 'var(--mobile-accent-primary)',
-                color: 'white',
-                border: 'none',
-                borderRadius: 'var(--mobile-radius-md)',
-                fontSize: '16px',
-                fontWeight: 500,
-                cursor: 'pointer',
-              }}
               aria-label="View full document content"
               data-testid="mobile-detail-view-full"
             >
@@ -666,19 +645,8 @@ export function MobileDetailSheet({
             {!isExpanded ? (
               <button
                 type="button"
+                className="mobile-detail-sheet__secondary-btn"
                 onClick={onExpand}
-                style={{
-                  width: '100%',
-                  minHeight: '48px',
-                  padding: 'var(--mobile-spacing-md)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--mobile-text-secondary)',
-                  border: '1px solid var(--mobile-glass-border)',
-                  borderRadius: 'var(--mobile-radius-md)',
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
                 aria-label="Expand sheet to full height"
                 data-testid="mobile-detail-expand"
               >
@@ -687,19 +655,8 @@ export function MobileDetailSheet({
             ) : (
               <button
                 type="button"
+                className="mobile-detail-sheet__secondary-btn"
                 onClick={onCollapse}
-                style={{
-                  width: '100%',
-                  minHeight: '48px',
-                  padding: 'var(--mobile-spacing-md)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--mobile-text-secondary)',
-                  border: '1px solid var(--mobile-glass-border)',
-                  borderRadius: 'var(--mobile-radius-md)',
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
                 aria-label="Collapse sheet to half height"
                 data-testid="mobile-detail-collapse"
               >
