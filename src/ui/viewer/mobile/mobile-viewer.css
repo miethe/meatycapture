@@ -1915,9 +1915,10 @@
   justify-content: center;
   box-shadow: var(--mobile-shadow-lg);
   z-index: var(--mobile-z-fab);
+  /* Use 150ms (--mobile-animation-fast) for smooth press feedback */
   transition:
-    transform var(--mobile-animation-touch) var(--mobile-ease-out),
-    opacity var(--mobile-animation-normal) var(--mobile-ease-out),
+    transform var(--mobile-animation-fast) var(--mobile-ease-out),
+    opacity var(--mobile-animation-fast) var(--mobile-ease-out),
     box-shadow var(--mobile-animation-fast) var(--mobile-ease-out);
   animation: fab-enter var(--mobile-animation-normal) var(--mobile-ease-spring);
   -webkit-tap-highlight-color: transparent;
@@ -1932,11 +1933,21 @@
 
 .mobile-filter-fab:active {
   transform: scale(0.95);
+  opacity: 0.9;
 }
 
 .mobile-filter-fab:focus-visible {
   outline: 2px solid var(--mobile-accent-secondary);
   outline-offset: 2px;
+  /* Provide visual feedback similar to pressed state for keyboard users */
+  transform: scale(0.98);
+}
+
+/* Pressed state - applied via JavaScript touch/mouse events for better control */
+.mobile-filter-fab--pressed {
+  transform: scale(0.95);
+  opacity: 0.9;
+  box-shadow: var(--mobile-shadow-md);
 }
 
 .mobile-filter-fab__badge {
@@ -2291,6 +2302,11 @@
 
   .mobile-filter-fab--hidden {
     animation: none;
+  }
+
+  .mobile-filter-fab--pressed {
+    /* Disable transform for reduced motion */
+    transform: none !important;
   }
 
   .mobile-filter-fab__badge {

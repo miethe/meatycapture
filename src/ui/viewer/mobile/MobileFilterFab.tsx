@@ -6,7 +6,7 @@
  * accessible touch interaction with visual feedback.
  */
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import './mobile-viewer.css';
 
 export interface MobileFilterFabProps {
@@ -48,9 +48,10 @@ function FilterIcon() {
  * - 56x56px circular button positioned bottom-right
  * - Badge showing active filter count (hidden when 0)
  * - Pop animation on badge count change
- * - Touch feedback with scale transform
+ * - Touch feedback with scale transform (0.95) and opacity (0.9)
  * - Safe area inset support via CSS
  * - Accessible with dynamic ARIA label
+ * - Keyboard focus states for accessibility
  */
 export function MobileFilterFab({
   activeCount,
@@ -60,6 +61,7 @@ export function MobileFilterFab({
 }: MobileFilterFabProps) {
   const badgeRef = useRef<HTMLSpanElement>(null);
   const prevCountRef = useRef(activeCount);
+  const [isPressed, setIsPressed] = useState(false);
 
   // Trigger badge pop animation when count changes
   useEffect(() => {
@@ -74,6 +76,55 @@ export function MobileFilterFab({
     prevCountRef.current = activeCount;
   }, [activeCount]);
 
+  /**
+   * Handle touch start - apply pressed state
+   * Only applies visual feedback if not hidden (sheet not open)
+   */
+  const handleTouchStart = useCallback(() => {
+    if (!isHidden) {
+      setIsPressed(true);
+    }
+  }, [isHidden]);
+
+  /**
+   * Handle touch end - remove pressed state
+   */
+  const handleTouchEnd = useCallback(() => {
+    setIsPressed(false);
+  }, []);
+
+  /**
+   * Handle touch cancel - remove pressed state
+   * Ensures pressed state is cleared if touch is interrupted
+   */
+  const handleTouchCancel = useCallback(() => {
+    setIsPressed(false);
+  }, []);
+
+  /**
+   * Handle mouse down for desktop testing
+   * Provides same feedback as touch for consistency
+   */
+  const handleMouseDown = useCallback(() => {
+    if (!isHidden) {
+      setIsPressed(true);
+    }
+  }, [isHidden]);
+
+  /**
+   * Handle mouse up - remove pressed state
+   */
+  const handleMouseUp = useCallback(() => {
+    setIsPressed(false);
+  }, []);
+
+  /**
+   * Handle mouse leave - remove pressed state if mouse leaves while pressed
+   */
+  const handleMouseLeave = useCallback(() => {
+    setIsPressed(false);
+  }, []);
+
   // Build aria-label based on active count
   const ariaLabel = activeCount > 0
     ? `Open filters, ${activeCount} active`
@@ -83,6 +134,7 @@ export function MobileFilterFab({
   const fabClasses = [
     'mobile-filter-fab',
     isHidden && 'mobile-filter-fab--hidden',
+    isPressed && 'mobile-filter-fab--pressed',
     className,
   ]
     .filter(Boolean)
@@ -93,6 +145,12 @@ export function MobileFilterFab({
       type="button"
       className={fabClasses}
       onClick={onClick}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
       aria-label={ariaLabel}
       data-testid="mobile-filter-fab"
     >
