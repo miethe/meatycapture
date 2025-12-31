@@ -16,6 +16,9 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\"",
     "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:mobile": "playwright test tests/e2e/viewer-mobile.spec.ts",
+    "test:e2e:ui": "playwright test --ui",
     "server:dev": "bun run --watch src/server/index.ts",
     "server:start": "bun run src/server/index.ts",
     "server:build": "bun build src/server/index.ts --outdir dist/server --target bun",
@@ -42,6 +45,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
+    "@playwright/test": "^1.57.0",
     "@tauri-apps/cli": "^2.1.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
