@@ -8,16 +8,23 @@
  * - All 7 filter types in full-width layout
  * - Clear All and Apply Filters actions
  * - Drag handle for visual affordance
+ * - Drag-to-dismiss gesture support
  * - Scrim/backdrop with tap-to-dismiss
  * - Focus trapping and body scroll locking
  * - Portal rendering to document.body
  * - WCAG 2.1 AA compliant
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { FilterState, FilterOptions } from '@core/catalog';
 import { trapFocus, lockBodyScroll, unlockBodyScroll } from './utils/focusUtils';
+import {
+  calculateDragDistance,
+  shouldDismiss,
+  clampDragDistance,
+  DEFAULT_MAX_DRAG_DISTANCE,
+} from './utils/gestureUtils';
 import './mobile-viewer.css';
 
 /**
@@ -47,6 +54,51 @@ export interface MobileFilterSheetProps {
  * (empty string not suitable for select value)
  */
 const ALL_PROJECTS_VALUE = '__all__';
+
+/**
+ * Dismiss threshold in pixels - drag must exceed this to close
+ */
+const DISMISS_THRESHOLD = 100;
+
+/**
+ * Safe zone in pixels - initial drag within this zone won't trigger dismiss
+ * This allows scrolling to take priority
+ */
+const SAFE_ZONE_PX = 20;
+
+/**
+ * Ease factor for visual feedback (0.7 = 70% of actual drag distance)
+ */
+const DRAG_EASE_FACTOR = 0.7;
+
+/**
+ * Velocity threshold for fast swipe dismiss (px/ms)
+ */
+const VELOCITY_THRESHOLD = 0.5;
+
+/**
+ * State for drag gesture tracking
+ */
+interface DragState {
+  isDragging: boolean;
+  startY: number;
+  currentY: number;
+  startTime: number;
+  scrolledUp: boolean;
+  inSafeZone: boolean;
+}
+
+/**
+ * Initial drag state
+ */
+const initialDragState: DragState = {
+  isDragging: false,
+  startY: 0,
+  currentY: 0,
+  startTime: 0,
+  scrolledUp: false,
+  inSafeZone: true,
+};
 
 /**
  * MobileFilterSheet
@@ -80,6 +132,10 @@ export function MobileFilterSheet({
   activeFilterCount,
 }: MobileFilterSheetProps): React.JSX.Element | null {
   const sheetRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [dragState, setDragState] = useState<DragState>(initialDragState);
+  const [translateY, setTranslateY] = useState(0);
+  const [isSnappingBack, setIsSnappingBack] = useState(false);
 
   // Lock body scroll and manage focus when sheet opens/closes
   useEffect(() => {
@@ -92,6 +148,10 @@ export function MobileFilterSheet({
         );
         firstFocusable?.focus();
       }
+      // Reset drag state when opening
+      setDragState(initialDragState);
+      setTranslateY(0);
+      setIsSnappingBack(false);
     } else {
       unlockBodyScroll();
     }
@@ -146,10 +206,130 @@ export function MobileFilterSheet({
     onClose();
   }, [onClose]);
 
+  /**
+   * Handle touch start on sheet
+   */
+  const handleTouchStart = useCallback((event: React.TouchEvent) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    // Check if content is scrolled - if user scrolled up first, don't allow dismiss
+    const content = contentRef.current;
+    const scrolledUp = content ? content.scrollTop > 0 : false;
+
+    setDragState({
+      isDragging: true,
+      startY: touch.clientY,
+      currentY: touch.clientY,
+      startTime: Date.now(),
+      scrolledUp,
+      inSafeZone: true,
+    });
+  }, []);
+
+  /**
+   * Handle touch move on sheet
+   */
+  const handleTouchMove = useCallback((event: React.TouchEvent) => {
+    if (!dragState.isDragging) return;
+
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    const distance = calculateDragDistance(dragState.startY, touch.clientY);
+
+    // Check if we're still in the safe zone
+    const stillInSafeZone = Math.abs(distance) < SAFE_ZONE_PX;
+
+    // If user scrolled up first and is trying to drag down, don't allow dismiss
+    // This prevents interference with scrolling inside the sheet
+    if (dragState.scrolledUp && distance > 0) {
+      return;
+    }
+
+    // If dragging upward (negative), don't allow (no-op if user scrolls up first)
+    if (distance < 0) {
+      setDragState((prev) => ({
+        ...prev,
+        scrolledUp: true,
+        currentY: touch.clientY,
+      }));
+      return;
+    }
+
+    // Update drag state
+    setDragState((prev) => ({
+      ...prev,
+      currentY: touch.clientY,
+      inSafeZone: stillInSafeZone,
+    }));
+
+    // Apply visual feedback with ease factor if outside safe zone
+    if (!stillInSafeZone && distance > 0) {
+      const easedDistance = distance * DRAG_EASE_FACTOR;
+      const clampedDistance = clampDragDistance(easedDistance, DEFAULT_MAX_DRAG_DISTANCE);
+      setTranslateY(clampedDistance);
+    }
+  }, [dragState.isDragging, dragState.startY, dragState.scrolledUp]);
+
+  /**
+   * Handle touch end on sheet
+   */
+  const handleTouchEnd = useCallback(() => {
+    if (!dragState.isDragging) return;
+
+    const distance = calculateDragDistance(dragState.startY, dragState.currentY);
+    const elapsed = Date.now() - dragState.startTime;
+    const velocity = elapsed > 0 ? distance / elapsed : 0;
+
+    // Check if should dismiss:
+    // 1. Distance exceeds threshold, OR
+    // 2. Fast swipe velocity (even if distance is less)
+    const shouldDismissSheet =
+      (shouldDismiss(distance, DISMISS_THRESHOLD) || velocity > VELOCITY_THRESHOLD) &&
+      !dragState.scrolledUp &&
+      !dragState.inSafeZone;
+
+    if (shouldDismissSheet) {
+      // Dismiss the sheet
+      onClose();
+    } else if (translateY > 0) {
+      // Snap back animation
+      setIsSnappingBack(true);
+      setTranslateY(0);
+      // Reset snap back state after animation completes
+      setTimeout(() => {
+        setIsSnappingBack(false);
+      }, 250); // Match CSS animation duration
+    }
+
+    // Reset drag state
+    setDragState(initialDragState);
+  }, [dragState, translateY, onClose]);
+
   // Don't render anything if not open
   if (!isOpen) {
     return null;
   }
+
+  // Calculate transform style for drag feedback
+  const getSheetStyle = (): React.CSSProperties => {
+    if (translateY > 0) {
+      return {
+        transform: `translateY(${translateY}px)`,
+        transition: isSnappingBack
+          ? 'transform var(--mobile-animation-close) var(--mobile-ease-out)'
+          : 'none',
+      };
+    }
+    if (isSnappingBack) {
+      return {
+        transform: 'translateY(0)',
+        transition: 'transform var(--mobile-animation-close) var(--mobile-ease-out)',
+      };
+    }
+    return {};
+  };
 
   const sheetContent = (
     <>
@@ -163,11 +343,15 @@ export function MobileFilterSheet({
       {/* Filter Sheet */}
       <div
         ref={sheetRef}
-        className="mobile-filter-sheet"
+        className={`mobile-filter-sheet ${dragState.isDragging ? 'mobile-filter-sheet--dragging' : ''}`}
+        style={getSheetStyle()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="filter-sheet-title"
         onKeyDown={handleKeyDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Drag Handle */}
         <div className="mobile-filter-sheet__handle" aria-hidden="true">
@@ -190,7 +374,7 @@ export function MobileFilterSheet({
         </div>
 
         {/* Scrollable Content */}
-        <div className="mobile-filter-sheet__content">
+        <div ref={contentRef} className="mobile-filter-sheet__content">
           {/* Project Filter (Single Select) */}
           <div className="mobile-filter-sheet__section">
             <label

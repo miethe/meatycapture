@@ -1206,10 +1206,27 @@
   animation: sheet-slide-up var(--mobile-animation-normal) var(--mobile-ease-out);
   padding-bottom: env(safe-area-inset-bottom, 0);
   will-change: transform;
+  /* Touch event handling for drag-to-dismiss */
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-filter-sheet--closing {
   animation: sheet-slide-down var(--mobile-animation-close) var(--mobile-ease-in) forwards;
+}
+
+/* Dragging state - disable animation while user is actively dragging */
+.mobile-filter-sheet--dragging {
+  animation: none;
+  /* Smooth drag feedback */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* When dragging, highlight the handle bar */
+.mobile-filter-sheet--dragging .mobile-filter-sheet__handle-bar {
+  background-color: var(--mobile-accent-primary);
+  transform: scaleX(1.2);
 }
 
 .mobile-filter-sheet__handle {
@@ -1220,6 +1237,13 @@
   height: var(--mobile-sheet-handle-height);
   flex-shrink: 0;
   cursor: grab;
+  /* Make handle area larger for better touch targets */
+  min-height: var(--mobile-touch-target-min);
+  touch-action: none;
+}
+
+.mobile-filter-sheet__handle:active {
+  cursor: grabbing;
 }
 
 .mobile-filter-sheet__handle-bar {
@@ -1228,7 +1252,9 @@
   height: 4px;
   background-color: var(--mobile-text-disabled);
   border-radius: var(--mobile-radius-full);
-  transition: background-color var(--mobile-animation-fast) var(--mobile-ease-out);
+  transition:
+    background-color var(--mobile-animation-fast) var(--mobile-ease-out),
+    transform var(--mobile-animation-fast) var(--mobile-ease-out);
 }
 
 .mobile-filter-sheet__handle:hover .mobile-filter-sheet__handle-bar {
@@ -1295,6 +1321,8 @@
   overflow-y: auto;
   padding: var(--mobile-spacing-md);
   -webkit-overflow-scrolling: touch;
+  /* Allow scroll within content to take priority over sheet drag */
+  overscroll-behavior: contain;
 }
 
 .mobile-filter-sheet__section {
@@ -2234,6 +2262,14 @@
 
   .mobile-filter-sheet--closing {
     animation: none;
+  }
+
+  .mobile-filter-sheet--dragging {
+    /* Still allow transform during drag even with reduced motion */
+  }
+
+  .mobile-filter-sheet--dragging .mobile-filter-sheet__handle-bar {
+    transition: none;
   }
 
   .mobile-detail-sheet {
