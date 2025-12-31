@@ -8,17 +8,26 @@
  * - Renders at 50vh initial height, expands to 100vh
  * - Drag handle for visual affordance
  * - Drag-to-dismiss gesture (>50px downward = close)
+ * - Visual feedback during drag (sheet follows finger)
+ * - If expanded and dragging down, collapse first, then dismiss
  * - Document metadata display (doc_id, title, item count, dates, tags)
  * - "View Full Document" button to expand
  * - Collapse button when expanded
  * - Portal rendering to document.body
  * - Focus trapping and accessibility (ARIA)
+ * - Focus restoration to triggering element on close
  * - Smooth height transitions
  */
 
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { CatalogEntry } from '@core/catalog/types';
+import {
+  calculateDragDistance,
+  shouldDismiss,
+  calculateTransform,
+  clampDragDistance,
+} from './utils/gestureUtils';
 import './mobile-viewer.css';
 
 /**
@@ -45,6 +54,9 @@ export interface MobileDetailSheetProps {
 
   /** Callback when user wants to view the full document */
   onViewFull: (entry: CatalogEntry) => void;
+
+  /** Element to return focus to when sheet closes */
+  triggerRef?: React.RefObject<HTMLElement | null>;
 }
 
 /**
@@ -87,8 +99,11 @@ function formatRelativeDate(date: Date | string | undefined): string {
   return formatDate(d);
 }
 
-/** Threshold in pixels for drag-to-dismiss gesture */
+/** Threshold in pixels for drag-to-dismiss gesture (lower than bottom sheet) */
 const DRAG_DISMISS_THRESHOLD = 50;
+
+/** Maximum drag distance for visual feedback */
+const MAX_DRAG_DISTANCE = 300;
 
 /**
  * MobileDetailSheet Component
@@ -107,48 +122,102 @@ export function MobileDetailSheet({
   onExpand,
   onCollapse,
   onViewFull,
+  triggerRef,
 }: MobileDetailSheetProps): React.JSX.Element | null {
   const sheetRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef<number | null>(null);
-  const currentDragY = useRef<number>(0);
+  const [dragDistance, setDragDistance] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  // Store previous active element for focus restoration
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  /**
+   * Check if content is scrolled to top
+   * Used to determine if drag should dismiss or scroll
+   */
+  const isContentAtTop = useCallback((): boolean => {
+    if (!contentRef.current) return true;
+    return contentRef.current.scrollTop <= 0;
+  }, []);
 
   /**
    * Handle touch start for drag gesture
+   * Only initiates drag on handle or when content is scrolled to top
    */
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    if (touch) {
-      dragStartY.current = touch.clientY;
-      currentDragY.current = 0;
-    }
-  }, []);
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent, isHandle: boolean = false) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+
+      // Always allow drag from handle
+      // Only allow drag from content if scrolled to top
+      if (isHandle || isContentAtTop()) {
+        dragStartY.current = touch.clientY;
+        setIsDragging(true);
+      }
+    },
+    [isContentAtTop]
+  );
 
   /**
    * Handle touch move for drag gesture
+   * Provides visual feedback by translating the sheet
    */
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (dragStartY.current === null) return;
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (dragStartY.current === null || !isDragging) return;
 
-    const touch = e.touches[0];
-    if (!touch) return;
+      const touch = e.touches[0];
+      if (!touch) return;
 
-    const deltaY = touch.clientY - dragStartY.current;
-    // Only track downward movement (positive delta)
-    if (deltaY > 0) {
-      currentDragY.current = deltaY;
-    }
-  }, []);
+      const deltaY = calculateDragDistance(dragStartY.current, touch.clientY);
+
+      // Only track downward movement (positive delta)
+      if (deltaY > 0) {
+        // Prevent default to stop scroll interference when dragging
+        e.preventDefault();
+        const clamped = clampDragDistance(deltaY, MAX_DRAG_DISTANCE);
+        setDragDistance(clamped);
+      } else {
+        // Allow upward scroll in content
+        setDragDistance(0);
+      }
+    },
+    [isDragging]
+  );
 
   /**
-   * Handle touch end - check if should dismiss
+   * Handle touch end - check if should dismiss or collapse
    */
   const handleTouchEnd = useCallback(() => {
-    if (currentDragY.current > DRAG_DISMISS_THRESHOLD) {
-      onClose();
+    if (!isDragging) return;
+
+    if (shouldDismiss(dragDistance, DRAG_DISMISS_THRESHOLD)) {
+      if (isExpanded) {
+        // If expanded, collapse first instead of closing
+        onCollapse();
+      } else {
+        // If half-sheet, close
+        onClose();
+      }
     }
+
+    // Reset drag state
     dragStartY.current = null;
-    currentDragY.current = 0;
-  }, [onClose]);
+    setDragDistance(0);
+    setIsDragging(false);
+  }, [dragDistance, isExpanded, onCollapse, onClose, isDragging]);
+
+  /**
+   * Handle touch cancel - reset drag state
+   */
+  const handleTouchCancel = useCallback(() => {
+    dragStartY.current = null;
+    setDragDistance(0);
+    setIsDragging(false);
+  }, []);
 
   /**
    * Handle View Full Document button click
@@ -165,6 +234,38 @@ export function MobileDetailSheet({
   const handleScrimClick = useCallback(() => {
     onClose();
   }, [onClose]);
+
+  /**
+   * Handle close - wraps onClose to ensure focus restoration
+   */
+  const handleClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
+  /**
+   * Store previous focus element when sheet opens
+   */
+  useEffect(() => {
+    if (isOpen) {
+      // Store current focus or use trigger ref
+      previousFocusRef.current =
+        triggerRef?.current || (document.activeElement as HTMLElement);
+    }
+  }, [isOpen, triggerRef]);
+
+  /**
+   * Restore focus when sheet closes
+   */
+  useEffect(() => {
+    if (!isOpen && previousFocusRef.current) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        previousFocusRef.current?.focus();
+        previousFocusRef.current = null;
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   /**
    * Focus trap - keep focus within sheet when open
@@ -185,6 +286,13 @@ export function MobileDetailSheet({
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Handle Escape key to close
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+
       if (e.key !== 'Tab' || !firstElement || !lastElement) return;
 
       if (e.shiftKey) {
@@ -206,12 +314,31 @@ export function MobileDetailSheet({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
+  }, [isOpen, onClose]);
+
+  /**
+   * Prevent body scroll when sheet is open
+   */
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
   }, [isOpen]);
 
   // Don't render if not open or no entry
   if (!isOpen || !entry) {
     return null;
   }
+
+  // Calculate transform for visual feedback during drag
+  const dragTransform = isDragging && dragDistance > 0 ? calculateTransform(dragDistance, MAX_DRAG_DISTANCE) : 'none';
+
+  // Calculate opacity for visual feedback (fade as dragged down)
+  const dragOpacity = isDragging && dragDistance > 0 ? Math.max(0.5, 1 - dragDistance / MAX_DRAG_DISTANCE * 0.5) : 1;
 
   const sheetContent = (
     <>
@@ -221,38 +348,62 @@ export function MobileDetailSheet({
         onClick={handleScrimClick}
         aria-hidden="true"
         data-testid="mobile-detail-scrim"
+        style={{
+          opacity: dragOpacity,
+        }}
       />
 
       {/* Detail Sheet */}
       <div
         ref={sheetRef}
-        className="mobile-detail-sheet"
+        className={`mobile-detail-sheet ${isExpanded ? 'mobile-detail-sheet--expanded' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-expanded={isExpanded}
         aria-label={`Document details for ${entry.title}`}
         style={{
           height: isExpanded ? '100vh' : '50vh',
-          transition: 'height var(--mobile-animation-normal) var(--mobile-ease-out)',
+          transform: dragTransform,
+          transition: isDragging
+            ? 'none'
+            : 'height var(--mobile-animation-normal) var(--mobile-ease-out), transform var(--mobile-animation-normal) var(--mobile-ease-out)',
         }}
         data-testid="mobile-detail-sheet"
+        data-dragging={isDragging}
       >
         {/* Drag Handle */}
         <div
           className="mobile-detail-sheet__handle"
-          onTouchStart={handleTouchStart}
+          onTouchStart={(e) => handleTouchStart(e, true)}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchCancel}
           aria-label="Drag to dismiss"
           data-testid="mobile-detail-handle"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              if (isExpanded) {
+                onCollapse();
+              } else {
+                onClose();
+              }
+            }
+          }}
         >
           <div
+            className="mobile-detail-sheet__handle-bar"
             style={{
               width: '36px',
               height: '4px',
-              backgroundColor: 'var(--mobile-text-disabled)',
+              backgroundColor: isDragging
+                ? 'var(--mobile-text-secondary)'
+                : 'var(--mobile-text-disabled)',
               borderRadius: 'var(--mobile-radius-full)',
               margin: '0 auto',
+              transition: isDragging ? 'none' : 'background-color var(--mobile-animation-fast) var(--mobile-ease-out)',
             }}
             aria-hidden="true"
           />
@@ -293,7 +444,7 @@ export function MobileDetailSheet({
           {/* Close button */}
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close detail sheet"
             style={{
               position: 'absolute',
@@ -320,12 +471,18 @@ export function MobileDetailSheet({
 
         {/* Content */}
         <div
+          ref={contentRef}
           className="mobile-detail-sheet__content"
           style={{
             flex: 1,
             overflowY: 'auto',
             padding: 'var(--mobile-spacing-md)',
+            overscrollBehavior: 'contain',
           }}
+          onTouchStart={(e) => handleTouchStart(e, false)}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchCancel}
           data-testid="mobile-detail-content"
         >
           {/* Metadata Grid */}
