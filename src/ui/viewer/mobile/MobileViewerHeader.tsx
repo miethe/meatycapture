@@ -10,7 +10,7 @@
  *
  * Features:
  * - Glass morphism background with backdrop blur
- * - Respects safe area top inset (iPhone notch)
+ * - Respects safe area top inset (iPhone notch) via useSafeArea hook
  * - Touch-friendly targets (44px minimum)
  * - Proper focus management
  * - ARIA attributes for accessibility
@@ -19,6 +19,7 @@
 import React, { useRef, useCallback } from 'react';
 import type { SortField, SortOrder, CatalogSort } from '@core/catalog/types';
 import { MobileSortDropdown } from './MobileSortDropdown';
+import { useSafeArea } from '../hooks/useSafeArea';
 import './mobile-viewer.css';
 
 export interface MobileViewerHeaderProps {
@@ -143,6 +144,7 @@ export function MobileViewerHeader({
   className = '',
 }: MobileViewerHeaderProps): React.JSX.Element {
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const safeArea = useSafeArea();
 
   const handleSearchInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,9 +169,16 @@ export function MobileViewerHeader({
     [searchValue, onSearchClear]
   );
 
+  // Apply safe area top inset via inline style
+  // This ensures the header content is below the notch/status bar
+  const headerStyle: React.CSSProperties = {
+    paddingTop: safeArea.top > 0 ? `${safeArea.top}px` : undefined,
+  };
+
   return (
     <header
       className={`mobile-viewer-header ${className}`.trim()}
+      style={headerStyle}
       data-testid="mobile-viewer-header"
     >
       {/* Title row */}

@@ -12,6 +12,8 @@
  * - Scrim/backdrop with tap-to-dismiss
  * - Focus trapping and body scroll locking
  * - Portal rendering to document.body
+ * - Safe area insets via useSafeArea hook
+ * - Reduced motion support (respects prefers-reduced-motion)
  * - WCAG 2.1 AA compliant
  */
 
@@ -25,6 +27,8 @@ import {
   clampDragDistance,
   DEFAULT_MAX_DRAG_DISTANCE,
 } from './utils/gestureUtils';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import { useSafeArea } from '../hooks/useSafeArea';
 import './mobile-viewer.css';
 
 /**
@@ -118,6 +122,7 @@ const initialDragState: DragState = {
  * - Body scroll locked when open
  * - Escape key closes sheet (handled by parent)
  * - 48px minimum touch targets
+ * - Respects prefers-reduced-motion setting
  *
  * @param props - MobileFilterSheetProps
  */
@@ -136,6 +141,12 @@ export function MobileFilterSheet({
   const [dragState, setDragState] = useState<DragState>(initialDragState);
   const [translateY, setTranslateY] = useState(0);
   const [isSnappingBack, setIsSnappingBack] = useState(false);
+
+  // Check for reduced motion preference
+  const { prefersReducedMotion } = useReducedMotion();
+
+  // Get safe area insets for proper padding
+  const safeArea = useSafeArea();
 
   // Lock body scroll and manage focus when sheet opens/closes
   useEffect(() => {
@@ -265,6 +276,7 @@ export function MobileFilterSheet({
     }));
 
     // Apply visual feedback with ease factor if outside safe zone
+    // For reduced motion, still track the drag but with instant visual feedback
     if (!stillInSafeZone && distance > 0) {
       const easedDistance = distance * DRAG_EASE_FACTOR;
       const clampedDistance = clampDragDistance(easedDistance, DEFAULT_MAX_DRAG_DISTANCE);
@@ -294,18 +306,22 @@ export function MobileFilterSheet({
       // Dismiss the sheet
       onClose();
     } else if (translateY > 0) {
-      // Snap back animation
-      setIsSnappingBack(true);
+      // Snap back - instant for reduced motion, animated otherwise
+      if (!prefersReducedMotion) {
+        setIsSnappingBack(true);
+      }
       setTranslateY(0);
-      // Reset snap back state after animation completes
-      setTimeout(() => {
-        setIsSnappingBack(false);
-      }, 250); // Match CSS animation duration
+      // Reset snap back state after animation completes (skip timeout for reduced motion)
+      if (!prefersReducedMotion) {
+        setTimeout(() => {
+          setIsSnappingBack(false);
+        }, 250); // Match CSS animation duration
+      }
     }
 
     // Reset drag state
     setDragState(initialDragState);
-  }, [dragState, translateY, onClose]);
+  }, [dragState, translateY, onClose, prefersReducedMotion]);
 
   // Don't render anything if not open
   if (!isOpen) {
@@ -313,22 +329,36 @@ export function MobileFilterSheet({
   }
 
   // Calculate transform style for drag feedback
+  // For reduced motion: no transition animation, just instant position updates
+  // Include safe area insets for side padding (landscape mode with notches)
   const getSheetStyle = (): React.CSSProperties => {
+    const baseStyle: React.CSSProperties = {
+      // Apply side insets for landscape mode with notches
+      paddingLeft: safeArea.left > 0 ? `${safeArea.left}px` : undefined,
+      paddingRight: safeArea.right > 0 ? `${safeArea.right}px` : undefined,
+      // Bottom inset for home indicator
+      paddingBottom: safeArea.bottom > 0 ? `${safeArea.bottom}px` : undefined,
+    };
+
     if (translateY > 0) {
       return {
+        ...baseStyle,
         transform: `translateY(${translateY}px)`,
-        transition: isSnappingBack
-          ? 'transform var(--mobile-animation-close) var(--mobile-ease-out)'
-          : 'none',
+        transition: prefersReducedMotion
+          ? 'none'
+          : isSnappingBack
+            ? 'transform var(--mobile-animation-close) var(--mobile-ease-out)'
+            : 'none',
       };
     }
-    if (isSnappingBack) {
+    if (isSnappingBack && !prefersReducedMotion) {
       return {
+        ...baseStyle,
         transform: 'translateY(0)',
         transition: 'transform var(--mobile-animation-close) var(--mobile-ease-out)',
       };
     }
-    return {};
+    return baseStyle;
   };
 
   const sheetContent = (

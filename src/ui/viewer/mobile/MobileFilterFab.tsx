@@ -4,9 +4,15 @@
  * Floating action button (FAB) for opening the filter sheet on mobile.
  * Displays a badge with the count of active filters and provides
  * accessible touch interaction with visual feedback.
+ *
+ * Respects prefers-reduced-motion accessibility setting.
+ * Respects safe area insets for notched devices.
  */
 
+import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import { useSafeArea } from '../hooks/useSafeArea';
 import './mobile-viewer.css';
 
 export interface MobileFilterFabProps {
@@ -47,11 +53,12 @@ function FilterIcon() {
  * Features:
  * - 56x56px circular button positioned bottom-right
  * - Badge showing active filter count (hidden when 0)
- * - Pop animation on badge count change
- * - Touch feedback with scale transform (0.95) and opacity (0.9)
- * - Safe area inset support via CSS
+ * - Pop animation on badge count change (disabled for reduced motion)
+ * - Touch feedback with scale transform (0.95) and opacity (0.9) (disabled for reduced motion)
+ * - Safe area inset support via useSafeArea hook
  * - Accessible with dynamic ARIA label
  * - Keyboard focus states for accessibility
+ * - Respects prefers-reduced-motion setting
  */
 export function MobileFilterFab({
   activeCount,
@@ -63,9 +70,20 @@ export function MobileFilterFab({
   const prevCountRef = useRef(activeCount);
   const [isPressed, setIsPressed] = useState(false);
 
-  // Trigger badge pop animation when count changes
+  // Check for reduced motion preference
+  const { prefersReducedMotion } = useReducedMotion();
+
+  // Get safe area insets for proper bottom positioning
+  const safeArea = useSafeArea();
+
+  // Trigger badge pop animation when count changes (skip for reduced motion)
   useEffect(() => {
-    if (activeCount !== prevCountRef.current && activeCount > 0 && badgeRef.current) {
+    if (
+      !prefersReducedMotion &&
+      activeCount !== prevCountRef.current &&
+      activeCount > 0 &&
+      badgeRef.current
+    ) {
       // Remove animation class first to reset
       badgeRef.current.style.animation = 'none';
       // Force reflow
@@ -74,17 +92,17 @@ export function MobileFilterFab({
       badgeRef.current.style.animation = '';
     }
     prevCountRef.current = activeCount;
-  }, [activeCount]);
+  }, [activeCount, prefersReducedMotion]);
 
   /**
    * Handle touch start - apply pressed state
-   * Only applies visual feedback if not hidden (sheet not open)
+   * Only applies visual feedback if not hidden (sheet not open) and reduced motion not preferred
    */
   const handleTouchStart = useCallback(() => {
-    if (!isHidden) {
+    if (!isHidden && !prefersReducedMotion) {
       setIsPressed(true);
     }
-  }, [isHidden]);
+  }, [isHidden, prefersReducedMotion]);
 
   /**
    * Handle touch end - remove pressed state
@@ -106,10 +124,10 @@ export function MobileFilterFab({
    * Provides same feedback as touch for consistency
    */
   const handleMouseDown = useCallback(() => {
-    if (!isHidden) {
+    if (!isHidden && !prefersReducedMotion) {
       setIsPressed(true);
     }
-  }, [isHidden]);
+  }, [isHidden, prefersReducedMotion]);
 
   /**
    * Handle mouse up - remove pressed state
@@ -130,20 +148,32 @@ export function MobileFilterFab({
     ? `Open filters, ${activeCount} active`
     : 'Open filters';
 
-  // Build class names
+  // Build class names - don't apply pressed class for reduced motion (CSS handles it)
   const fabClasses = [
     'mobile-filter-fab',
     isHidden && 'mobile-filter-fab--hidden',
-    isPressed && 'mobile-filter-fab--pressed',
+    !prefersReducedMotion && isPressed && 'mobile-filter-fab--pressed',
     className,
   ]
     .filter(Boolean)
     .join(' ');
 
+  // Badge style - no animation for reduced motion
+  const badgeStyle: CSSProperties = prefersReducedMotion
+    ? { animation: 'none' }
+    : {};
+
+  // Calculate FAB position with safe area bottom inset
+  // Base spacing (16px from CSS var --mobile-spacing-md) + safe area bottom inset
+  const fabStyle: CSSProperties = {
+    bottom: `calc(var(--mobile-spacing-md) + ${safeArea.bottom}px)`,
+  };
+
   return (
     <button
       type="button"
       className={fabClasses}
+      style={fabStyle}
       onClick={onClick}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -159,6 +189,7 @@ export function MobileFilterFab({
         <span
           ref={badgeRef}
           className="mobile-filter-fab__badge"
+          style={badgeStyle}
           aria-hidden="true"
         >
           {activeCount}

@@ -29,6 +29,11 @@
   --mobile-search-bar-height: 48px;
   --mobile-bottom-nav-height: 56px;
 
+  /* Sheet Heights - Portrait defaults */
+  --mobile-filter-sheet-max-height: 90vh;
+  --mobile-detail-sheet-height: 50vh;
+  --mobile-detail-sheet-expanded-height: 100vh;
+
   /* Z-Index Layers (ordered lowest to highest) */
   --mobile-z-base: 0;
   --mobile-z-elevated: 10;
@@ -1196,7 +1201,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  max-height: 90vh;
+  max-height: var(--mobile-filter-sheet-max-height);
   background-color: var(--mobile-surface-primary);
   border-radius: var(--mobile-radius-xl) var(--mobile-radius-xl) 0 0;
   box-shadow: var(--mobile-shadow-xl);
@@ -1205,10 +1210,12 @@
   flex-direction: column;
   animation: sheet-slide-up var(--mobile-animation-normal) var(--mobile-ease-out);
   padding-bottom: env(safe-area-inset-bottom, 0);
-  will-change: transform;
+  will-change: transform, max-height;
   /* Touch event handling for drag-to-dismiss */
   touch-action: pan-y;
   -webkit-tap-highlight-color: transparent;
+  /* Smooth transition for orientation changes */
+  transition: max-height var(--mobile-animation-normal) var(--mobile-ease-in-out);
 }
 
 .mobile-filter-sheet--closing {
@@ -1218,6 +1225,7 @@
 /* Dragging state - disable animation while user is actively dragging */
 .mobile-filter-sheet--dragging {
   animation: none;
+  transition: none;
   /* Smooth drag feedback */
   user-select: none;
   -webkit-user-select: none;
@@ -1532,7 +1540,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 50vh;
+  height: var(--mobile-detail-sheet-height);
   background-color: var(--mobile-glass-bg-heavy);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -1543,13 +1551,15 @@
   flex-direction: column;
   padding-bottom: env(safe-area-inset-bottom, 0);
   animation: sheet-slide-up var(--mobile-animation-normal) var(--mobile-ease-out);
-  transition: height var(--mobile-animation-normal) var(--mobile-ease-in-out);
-  will-change: height, transform;
+  transition:
+    height var(--mobile-animation-normal) var(--mobile-ease-in-out),
+    max-height var(--mobile-animation-normal) var(--mobile-ease-in-out);
+  will-change: height, transform, max-height;
 }
 
 .mobile-detail-sheet--expanded {
   /* Full-height expanded state */
-  height: 100vh;
+  height: var(--mobile-detail-sheet-expanded-height);
   height: 100dvh;
   border-radius: 0;
 }
@@ -1557,6 +1567,21 @@
 .mobile-detail-sheet--closing {
   /* Closing animation state */
   animation: sheet-slide-down var(--mobile-animation-close) var(--mobile-ease-in) forwards;
+}
+
+/* Dragging state - disable animation while user is actively dragging */
+.mobile-detail-sheet--dragging {
+  animation: none;
+  transition: none;
+  /* Smooth drag feedback */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* When dragging, highlight the handle bar */
+.mobile-detail-sheet--dragging .mobile-detail-sheet__handle-bar {
+  background-color: var(--mobile-accent-primary);
+  transform: scaleX(1.2);
 }
 
 .mobile-detail-sheet__handle {
@@ -1582,7 +1607,9 @@
   height: 4px;
   background-color: var(--mobile-text-disabled);
   border-radius: var(--mobile-radius-full);
-  transition: background-color var(--mobile-animation-fast) var(--mobile-ease-out);
+  transition:
+    background-color var(--mobile-animation-fast) var(--mobile-ease-out),
+    transform var(--mobile-animation-fast) var(--mobile-ease-out);
 }
 
 .mobile-detail-sheet__handle:hover .mobile-detail-sheet__handle-bar {
@@ -2146,31 +2173,52 @@
   }
 }
 
-/* Landscape orientation adjustments */
-@media (max-width: 768px) and (orientation: landscape) {
+/* ==========================================================================
+   Landscape Orientation Handling
+   ========================================================================== */
+
+/*
+ * Landscape orientation adjustments for all mobile devices.
+ * These rules apply when the device is rotated to landscape mode.
+ *
+ * Key behaviors:
+ * - Filter sheet: max 60vh (reduced from 90vh portrait)
+ * - Detail sheet: max 50vh (reduced from 50vh portrait, but expanded capped at 50vh)
+ * - Smooth transitions on orientation change via CSS custom properties
+ */
+@media (orientation: landscape) {
   :root {
+    /* Update sheet height tokens for landscape */
+    --mobile-filter-sheet-max-height: 60vh;
+    --mobile-detail-sheet-height: 50vh;
+    --mobile-detail-sheet-expanded-height: 50vh;
     --mobile-header-height: 48px;
     --mobile-sheet-handle-height: 20px;
   }
 
+  /* Filter Sheet - Landscape */
   .mobile-filter-sheet {
-    /* Reduced max-height in landscape */
-    max-height: 70vh;
+    max-height: 60vh;
   }
 
+  /* Detail Sheet - Landscape */
   .mobile-detail-sheet {
-    /* Side sheet positioning for landscape - wider but shorter */
-    height: 70vh;
-    max-height: 70vh;
+    height: 50vh;
+    max-height: 50vh;
   }
 
+  /* Expanded state in landscape - capped at 50vh, not full screen */
   .mobile-detail-sheet--expanded {
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100vh;
+    height: 50vh;
+    max-height: 50vh;
+    /* Keep rounded corners since we're not going full screen */
+    border-radius: var(--mobile-radius-xl) var(--mobile-radius-xl) 0 0;
   }
+}
 
-  /* Two column grid in landscape for tablets */
+/* Mobile landscape (max-width 768px) - more aggressive optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+  /* Two column grid in landscape for better space utilization */
   .mobile-doc-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -2189,9 +2237,41 @@
   .mobile-sort-dropdown__option {
     min-height: 44px;
   }
+
+  /* More compact header in landscape */
+  .mobile-viewer-header {
+    padding-bottom: var(--mobile-spacing-xs);
+  }
+
+  .mobile-viewer-header__search-row {
+    padding-top: var(--mobile-spacing-xs);
+  }
+
+  /* Compact filter sheet content in landscape */
+  .mobile-filter-sheet__content {
+    padding: var(--mobile-spacing-sm);
+  }
+
+  .mobile-filter-sheet__section {
+    margin-bottom: var(--mobile-spacing-md);
+  }
+
+  /* Compact detail sheet in landscape */
+  .mobile-detail-sheet__header {
+    padding-bottom: var(--mobile-spacing-sm);
+  }
+
+  .mobile-detail-sheet__content {
+    padding: var(--mobile-spacing-sm);
+    gap: var(--mobile-spacing-sm);
+  }
+
+  .mobile-detail-sheet__item {
+    padding: var(--mobile-spacing-sm);
+  }
 }
 
-/* Large landscape (tablet landscape) */
+/* Large landscape (tablet landscape min-width 768px) */
 @media (min-width: 768px) and (orientation: landscape) {
   .mobile-detail-sheet {
     /* Side sheet behavior for larger landscape screens */
@@ -2200,12 +2280,21 @@
     max-width: 600px;
     height: 100vh;
     height: 100dvh;
+    max-height: 100vh;
     border-radius: var(--mobile-radius-xl) 0 0 var(--mobile-radius-xl);
   }
 
   .mobile-detail-sheet--expanded {
     width: 70vw;
     max-width: 800px;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+  }
+
+  /* Filter sheet can be taller on tablets */
+  .mobile-filter-sheet {
+    max-height: 70vh;
   }
 }
 

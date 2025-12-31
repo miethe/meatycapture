@@ -16,7 +16,8 @@
  * - Portal rendering to document.body
  * - Focus trapping and accessibility (ARIA)
  * - Focus restoration to triggering element on close
- * - Smooth height transitions
+ * - Safe area insets via useSafeArea hook
+ * - Smooth height transitions (respects prefers-reduced-motion)
  */
 
 import React, { useRef, useCallback, useEffect, useState } from 'react';
@@ -28,6 +29,8 @@ import {
   calculateTransform,
   clampDragDistance,
 } from './utils/gestureUtils';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import { useSafeArea } from '../hooks/useSafeArea';
 import './mobile-viewer.css';
 
 /**
@@ -132,6 +135,12 @@ export function MobileDetailSheet({
 
   // Store previous active element for focus restoration
   const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Check for reduced motion preference
+  const { prefersReducedMotion } = useReducedMotion();
+
+  // Get safe area insets for proper padding
+  const safeArea = useSafeArea();
 
   /**
    * Check if content is scrolled to top
@@ -338,7 +347,60 @@ export function MobileDetailSheet({
   const dragTransform = isDragging && dragDistance > 0 ? calculateTransform(dragDistance, MAX_DRAG_DISTANCE) : 'none';
 
   // Calculate opacity for visual feedback (fade as dragged down)
-  const dragOpacity = isDragging && dragDistance > 0 ? Math.max(0.5, 1 - dragDistance / MAX_DRAG_DISTANCE * 0.5) : 1;
+  // For reduced motion, keep opacity constant to avoid visual distraction
+  const dragOpacity = prefersReducedMotion
+    ? 1
+    : isDragging && dragDistance > 0
+      ? Math.max(0.5, 1 - dragDistance / MAX_DRAG_DISTANCE * 0.5)
+      : 1;
+
+  // Build transition style - no transitions for reduced motion
+  const getTransitionStyle = (): string => {
+    if (prefersReducedMotion) {
+      return 'none';
+    }
+    if (isDragging) {
+      return 'none';
+    }
+    return 'height var(--mobile-animation-normal) var(--mobile-ease-out), transform var(--mobile-animation-normal) var(--mobile-ease-out)';
+  };
+
+  // Handle bar transition style - no transitions for reduced motion
+  const getHandleBarTransition = (): string => {
+    if (prefersReducedMotion || isDragging) {
+      return 'none';
+    }
+    return 'background-color var(--mobile-animation-fast) var(--mobile-ease-out)';
+  };
+
+  // Build sheet style with safe area insets
+  const sheetStyle: React.CSSProperties = {
+    height: isExpanded ? '100vh' : '50vh',
+    transform: dragTransform,
+    transition: getTransitionStyle(),
+    // Apply side insets for landscape mode with notches
+    paddingLeft: safeArea.left > 0 ? `${safeArea.left}px` : undefined,
+    paddingRight: safeArea.right > 0 ? `${safeArea.right}px` : undefined,
+    // Bottom inset for home indicator
+    paddingBottom: safeArea.bottom > 0 ? `${safeArea.bottom}px` : undefined,
+  };
+
+  // Close button position needs to account for right safe area inset
+  const closeButtonStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: 'var(--mobile-spacing-md)',
+    right: `calc(var(--mobile-spacing-md) + ${safeArea.right}px)`,
+    width: '32px',
+    height: '32px',
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 'var(--mobile-radius-full)',
+    color: 'var(--mobile-text-secondary)',
+  };
 
   const sheetContent = (
     <>
@@ -361,13 +423,7 @@ export function MobileDetailSheet({
         aria-modal="true"
         aria-expanded={isExpanded}
         aria-label={`Document details for ${entry.title}`}
-        style={{
-          height: isExpanded ? '100vh' : '50vh',
-          transform: dragTransform,
-          transition: isDragging
-            ? 'none'
-            : 'height var(--mobile-animation-normal) var(--mobile-ease-out), transform var(--mobile-animation-normal) var(--mobile-ease-out)',
-        }}
+        style={sheetStyle}
         data-testid="mobile-detail-sheet"
         data-dragging={isDragging}
       >
@@ -403,7 +459,7 @@ export function MobileDetailSheet({
                 : 'var(--mobile-text-disabled)',
               borderRadius: 'var(--mobile-radius-full)',
               margin: '0 auto',
-              transition: isDragging ? 'none' : 'background-color var(--mobile-animation-fast) var(--mobile-ease-out)',
+              transition: getHandleBarTransition(),
             }}
             aria-hidden="true"
           />
@@ -446,21 +502,7 @@ export function MobileDetailSheet({
             type="button"
             onClick={handleClose}
             aria-label="Close detail sheet"
-            style={{
-              position: 'absolute',
-              top: 'var(--mobile-spacing-md)',
-              right: 'var(--mobile-spacing-md)',
-              width: '32px',
-              height: '32px',
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 'var(--mobile-radius-full)',
-              color: 'var(--mobile-text-secondary)',
-            }}
+            style={closeButtonStyle}
             data-testid="mobile-detail-close"
           >
             <span aria-hidden="true" style={{ fontSize: '20px' }}>
