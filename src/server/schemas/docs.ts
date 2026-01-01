@@ -212,6 +212,7 @@ export function validateDocWriteBody(body: unknown): RequestLogDoc {
     item_count: validateNumber(obj.item_count, 'item_count'),
     created_at: validateDate(obj.created_at, 'created_at'),
     updated_at: validateDate(obj.updated_at, 'updated_at'),
+    archived: typeof obj.archived === 'boolean' ? obj.archived : false,
   };
 }
 

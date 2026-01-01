@@ -394,6 +394,7 @@ export function WizardFlow({
           item_count: 1,
           created_at: clock.now(),
           updated_at: clock.now(),
+          archived: false,
         };
 
         await docStore.write(docPath, newDoc);

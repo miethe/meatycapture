@@ -144,6 +144,7 @@ const createMockDoc = (docId: string, itemCount: number = 1): RequestLogDoc => (
   item_count: itemCount,
   created_at: new Date('2025-12-08T09:00:00Z'),
   updated_at: new Date('2025-12-08T09:00:00Z'),
+  archived: false,
 });
 
 const createMockItemDraft = (): ItemDraft => ({

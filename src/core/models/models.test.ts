@@ -559,6 +559,51 @@ describe('isRequestLogDoc', () => {
 
     expect(isRequestLogDoc(doc)).toBe(false);
   });
+
+  it('should return true for RequestLogDoc with archived: true', () => {
+    const doc = createTestDoc({ archived: true });
+    expect(isRequestLogDoc(doc)).toBe(true);
+  });
+
+  it('should return true for RequestLogDoc with archived: false', () => {
+    const doc = createTestDoc({ archived: false });
+    expect(isRequestLogDoc(doc)).toBe(true);
+  });
+
+  it('should return true for RequestLogDoc without archived (backward compatibility)', () => {
+    // Simulate legacy doc without archived field
+    const doc = {
+      doc_id: 'REQ-20251203-test',
+      title: 'Test',
+      project_id: 'test',
+      items: [],
+      items_index: [],
+      tags: [],
+      item_count: 0,
+      created_at: new Date(),
+      updated_at: new Date(),
+      // Note: archived is intentionally omitted for backward compatibility test
+    };
+
+    expect(isRequestLogDoc(doc)).toBe(true);
+  });
+
+  it('should return false for RequestLogDoc with non-boolean archived', () => {
+    const doc = {
+      doc_id: 'REQ-20251203-test',
+      title: 'Test',
+      project_id: 'test',
+      items: [],
+      items_index: [],
+      tags: [],
+      item_count: 0,
+      created_at: new Date(),
+      updated_at: new Date(),
+      archived: 'yes', // Invalid type
+    };
+
+    expect(isRequestLogDoc(doc)).toBe(false);
+  });
 });
 
 describe('DEFAULT_FIELD_OPTIONS', () => {

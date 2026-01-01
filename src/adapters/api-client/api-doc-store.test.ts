@@ -97,6 +97,7 @@ describe('ApiDocStore', () => {
         item_count: 0,
         created_at: new Date('2025-12-08T08:00:00Z'),
         updated_at: new Date('2025-12-08T09:00:00Z'),
+      archived: false,
       };
 
       vi.mocked(mockClient.get).mockResolvedValue(mockDoc);
@@ -121,6 +122,7 @@ describe('ApiDocStore', () => {
         item_count: 0,
         created_at: new Date('2025-12-07T08:00:00Z'),
         updated_at: new Date('2025-12-07T09:00:00Z'),
+      archived: false,
       };
 
       vi.mocked(mockClient.get).mockResolvedValue(mockDoc);
@@ -143,6 +145,7 @@ describe('ApiDocStore', () => {
         item_count: 0,
         created_at: new Date('2025-12-08T08:00:00Z'),
         updated_at: new Date('2025-12-08T09:00:00Z'),
+      archived: false,
       };
 
       vi.mocked(mockClient.get).mockResolvedValue(mockDoc);
@@ -167,6 +170,7 @@ describe('ApiDocStore', () => {
         item_count: 0,
         created_at: new Date('2025-12-08T08:00:00Z'),
         updated_at: new Date('2025-12-08T09:00:00Z'),
+      archived: false,
       };
 
       vi.mocked(mockClient.post).mockResolvedValue({
@@ -214,6 +218,7 @@ describe('ApiDocStore', () => {
         item_count: 1,
         created_at: new Date('2025-12-08T08:00:00Z'),
         updated_at: new Date('2025-12-08T09:00:00Z'),
+      archived: false,
       };
 
       vi.mocked(mockClient.post).mockResolvedValue({
@@ -272,6 +277,7 @@ describe('ApiDocStore', () => {
         item_count: 1,
         created_at: new Date('2025-12-08T08:00:00Z'),
         updated_at: new Date('2025-12-08T09:00:00Z'),
+      archived: false,
       };
 
       vi.mocked(mockClient.patch).mockResolvedValue(updatedDoc);
@@ -327,6 +333,7 @@ describe('ApiDocStore', () => {
         item_count: 1,
         created_at: new Date('2025-12-08T08:00:00Z'),
         updated_at: new Date('2025-12-08T09:00:00Z'),
+      archived: false,
       };
 
       vi.mocked(mockClient.patch).mockResolvedValue(updatedDoc);
@@ -409,6 +416,7 @@ describe('ApiDocStore', () => {
         item_count: 0,
         created_at: new Date('2025-12-08T08:00:00Z'),
         updated_at: new Date('2025-12-08T09:00:00Z'),
+      archived: false,
       });
 
       await store.read('/path/to/REQ-20251208-myproject.md');
@@ -429,6 +437,7 @@ describe('ApiDocStore', () => {
         item_count: 0,
         created_at: new Date('2025-12-07T08:00:00Z'),
         updated_at: new Date('2025-12-07T09:00:00Z'),
+      archived: false,
       });
 
       await store.read('/deeply/nested/path/to/docs/REQ-20251207-test.md');
@@ -449,6 +458,7 @@ describe('ApiDocStore', () => {
         item_count: 0,
         created_at: new Date('2025-12-08T08:00:00Z'),
         updated_at: new Date('2025-12-08T09:00:00Z'),
+      archived: false,
       });
 
       await store.read('/path/to/');

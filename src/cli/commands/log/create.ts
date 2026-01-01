@@ -378,6 +378,7 @@ async function createActionImpl(
     item_count: items.length,
     created_at: now,
     updated_at: now,
+    archived: false,
   };
 
   // Ensure output directory exists

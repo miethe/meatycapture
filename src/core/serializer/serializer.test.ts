@@ -87,6 +87,34 @@ describe('serialize', () => {
     expect(separatorCount).toBeGreaterThan(0);
   });
 
+  it('should serialize item with modified_at field', () => {
+    const modifiedDate = new Date('2025-12-03T14:30:00Z');
+    const doc = createTestDoc({
+      items: [
+        createTestItem({
+          id: 'REQ-20251203-test-01',
+          modified_at: modifiedDate,
+        }),
+      ],
+      items_index: [{ id: 'REQ-20251203-test-01', type: 'enhancement', title: 'Test Item Title' }],
+      item_count: 1,
+    });
+    const markdown = serialize(doc);
+
+    expect(markdown).toContain('**Modified:** 2025-12-03T14:30:00.000Z');
+  });
+
+  it('should not include Modified line when modified_at is not set', () => {
+    // Use default createTestItem which does not set modified_at
+    const doc = createTestDoc({
+      items: [createTestItem()],
+      item_count: 1,
+    });
+    const markdown = serialize(doc);
+
+    expect(markdown).not.toContain('**Modified:**');
+  });
+
   it('should serialize document with single item', () => {
     const doc = createTestDoc({
       items: [createTestItem()],
@@ -399,6 +427,69 @@ updated_at: 2025-12-03T10:00:00.000Z
     const doc = parse(markdown);
     expect(doc.items).toEqual([]);
   });
+
+  it('should parse item with modified_at field', () => {
+    const markdown = `---
+type: request-log
+doc_id: REQ-20251203-test
+title: Test
+project_id: test
+item_count: 1
+tags: []
+items_index:
+created_at: 2025-12-03T10:00:00.000Z
+updated_at: 2025-12-03T10:00:00.000Z
+---
+
+## REQ-20251203-test-01 - Test Item
+
+**Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
+**Tags:** test
+**Modified:** 2025-12-03T14:30:00.000Z
+**Context:** Test context
+
+### Problem/Goal
+Test notes.
+`;
+
+    const doc = parse(markdown);
+    const item = doc.items[0];
+
+    expect(item).toBeDefined();
+    expect(item?.modified_at).toEqual(new Date('2025-12-03T14:30:00.000Z'));
+  });
+
+  it('should default modified_at to created_at when not present (backward compatibility)', () => {
+    const markdown = `---
+type: request-log
+doc_id: REQ-20251203-test
+title: Test
+project_id: test
+item_count: 1
+tags: []
+items_index:
+created_at: 2025-12-03T10:00:00.000Z
+updated_at: 2025-12-03T10:00:00.000Z
+---
+
+## REQ-20251203-test-01 - Test Item
+
+**Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
+**Tags:** test
+**Context:** Test context
+
+### Problem/Goal
+Test notes.
+`;
+
+    const doc = parse(markdown);
+    const item = doc.items[0];
+
+    expect(item).toBeDefined();
+    // modified_at should default to created_at (derived from item ID: 2025-12-03)
+    expect(item?.modified_at).toEqual(new Date('2025-12-03T00:00:00.000Z'));
+    expect(item?.modified_at?.getTime()).toBe(item?.created_at.getTime());
+  });
 });
 
 describe('serialize/parse roundtrip', () => {
@@ -457,6 +548,45 @@ describe('serialize/parse roundtrip', () => {
 
     expect(parsed.created_at.getTime()).toBe(original.created_at.getTime());
     expect(parsed.updated_at.getTime()).toBe(original.updated_at.getTime());
+  });
+
+  it('should preserve modified_at in roundtrip when present', () => {
+    const modifiedDate = new Date('2025-12-03T14:30:00Z');
+    const original = createTestDoc({
+      items: [
+        createTestItem({
+          id: 'REQ-20251203-test-01',
+          modified_at: modifiedDate,
+        }),
+      ],
+      items_index: [{ id: 'REQ-20251203-test-01', type: 'enhancement', title: 'Test Item Title' }],
+      item_count: 1,
+    });
+    const markdown = serialize(original);
+    const parsed = parse(markdown);
+
+    const originalItem = original.items[0];
+    const parsedItem = parsed.items[0];
+
+    expect(originalItem).toBeDefined();
+    expect(parsedItem).toBeDefined();
+    expect(parsedItem?.modified_at?.getTime()).toBe(originalItem?.modified_at?.getTime());
+  });
+
+  it('should handle item without modified_at in roundtrip (defaults to created_at)', () => {
+    // Use default createTestItem which does not set modified_at
+    const original = createTestDoc({
+      items: [createTestItem()],
+      item_count: 1,
+    });
+    const markdown = serialize(original);
+    const parsed = parse(markdown);
+
+    const parsedItem = parsed.items[0];
+
+    expect(parsedItem).toBeDefined();
+    // Without modified_at in markdown, parser defaults to created_at
+    expect(parsedItem?.modified_at?.getTime()).toBe(parsedItem?.created_at.getTime());
   });
 });
 

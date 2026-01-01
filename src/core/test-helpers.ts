@@ -98,6 +98,7 @@ export function createTestDoc(overrides?: Partial<RequestLogDoc>): RequestLogDoc
     item_count: items.length,
     created_at: now,
     updated_at: now,
+    archived: false,
     ...overrides,
   };
 }

@@ -71,6 +71,8 @@ export function parse(content: string): RequestLogDoc {
   const items_index = frontmatter.items_index || [];
   const created_at = parseDate(frontmatter.created_at);
   const updated_at = parseDate(frontmatter.updated_at);
+  // Default to false for backward compatibility with docs missing archived field
+  const archived = parseBoolean(frontmatter.archived, false);
 
   // Validate required fields
   if (!doc_id || typeof doc_id !== 'string') {
@@ -111,6 +113,7 @@ export function parse(content: string): RequestLogDoc {
     item_count,
     created_at,
     updated_at,
+    archived,
   };
 }
 
@@ -184,6 +187,7 @@ function serializeFrontmatter(doc: RequestLogDoc): string {
 
   lines.push(`created_at: ${doc.created_at.toISOString()}`);
   lines.push(`updated_at: ${doc.updated_at.toISOString()}`);
+  lines.push(`archived: ${doc.archived}`);
   lines.push('---');
 
   return lines.join('\n');
@@ -198,11 +202,14 @@ function serializeFrontmatter(doc: RequestLogDoc): string {
  *
  * **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
  * **Tags:** ux, enhancement
+ * **Modified:** 2025-12-03T14:30:00Z
  * **Context:** Settings page redesign
  *
  * ### Problem/Goal
  * Users need dark mode for better readability at night.
  * ```
+ *
+ * Note: **Modified:** line is only included when modified_at is present (optional field).
  *
  * @param item - The RequestLogItem to serialize
  * @returns Markdown section string
@@ -213,11 +220,17 @@ function serializeItem(item: RequestLogItem): string {
     '',
     `**Type:** ${item.type} | **Domain:** ${item.domain} | **Priority:** ${item.priority} | **Status:** ${item.status}`,
     `**Tags:** ${item.tags.join(', ')}`,
-    `**Context:** ${item.context}`,
-    '',
-    '### Problem/Goal',
-    item.notes,
   ];
+
+  // Include modified_at if present (optional field for backward compatibility)
+  if (item.modified_at) {
+    lines.push(`**Modified:** ${item.modified_at.toISOString()}`);
+  }
+
+  lines.push(`**Context:** ${item.context}`);
+  lines.push('');
+  lines.push('### Problem/Goal');
+  lines.push(item.notes);
 
   return lines.join('\n');
 }
@@ -431,6 +444,10 @@ function parseItems(body: string): RequestLogItem[] {
       .map((t) => t.trim())
       .filter((t) => t.length > 0);
 
+    // Parse modified_at line (optional - may not exist in older docs)
+    const modifiedMatch = content.match(/\*\*Modified:\*\*\s*([^\n]+)/);
+    const modifiedStr = modifiedMatch?.[1]?.trim();
+
     // Parse context line
     const contextMatch = content.match(/\*\*Context:\*\*\s*([^\n]+)/);
     const context = contextMatch?.[1]?.trim() || '';
@@ -447,6 +464,9 @@ function parseItems(body: string): RequestLogItem[] {
     const dateStr = dateMatch?.[1];
     const created_at = dateStr ? parseDateFromId(dateStr) : new Date();
 
+    // Parse modified_at, defaulting to created_at for backward compatibility
+    const modified_at = modifiedStr ? parseDate(modifiedStr) ?? created_at : created_at;
+
     items.push({
       id,
       title,
@@ -458,6 +478,7 @@ function parseItems(body: string): RequestLogItem[] {
       tags,
       notes,
       created_at,
+      modified_at,
     });
   }
 
@@ -493,4 +514,29 @@ function parseDateFromId(dateStr: string): Date {
   const month = dateStr.substring(4, 6);
   const day = dateStr.substring(6, 8);
   return new Date(`${year}-${month}-${day}T00:00:00Z`);
+}
+
+/**
+ * Parses a boolean value from frontmatter.
+ *
+ * Handles:
+ * - true/false (boolean)
+ * - "true"/"false" (string)
+ * - undefined/null (returns defaultValue)
+ *
+ * @param value - Value to parse
+ * @param defaultValue - Default if value is undefined/null
+ * @returns Parsed boolean
+ */
+function parseBoolean(value: unknown, defaultValue: boolean): boolean {
+  if (value === undefined || value === null) {
+    return defaultValue;
+  }
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    return value.toLowerCase() === 'true';
+  }
+  return defaultValue;
 }

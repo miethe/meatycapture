@@ -134,6 +134,8 @@ export interface RequestLogItem {
   notes: string;
   /** Timestamp when item was created */
   created_at: Date;
+  /** Timestamp when item was last modified (optional for backward compatibility) */
+  modified_at?: Date;
 }
 
 /**
@@ -173,6 +175,8 @@ export interface RequestLogDoc {
   created_at: Date;
   /** Timestamp of last modification */
   updated_at: Date;
+  /** Whether the document is archived (hidden from active view) */
+  archived: boolean;
 }
 
 /**
@@ -243,6 +247,7 @@ export function isItemDraft(obj: unknown): obj is ItemDraft {
 
 /**
  * Type guard to check if an object is a valid RequestLogItem
+ * Note: `modified_at` is optional for backward compatibility (existing docs may not have it)
  */
 export function isRequestLogItem(obj: unknown): obj is RequestLogItem {
   if (!obj || typeof obj !== 'object') return false;
@@ -258,12 +263,14 @@ export function isRequestLogItem(obj: unknown): obj is RequestLogItem {
     Array.isArray(i.tags) &&
     i.tags.every((t) => typeof t === 'string') &&
     typeof i.notes === 'string' &&
-    i.created_at instanceof Date
+    i.created_at instanceof Date &&
+    (i.modified_at === undefined || i.modified_at instanceof Date)
   );
 }
 
 /**
  * Type guard to check if an object is a valid RequestLogDoc
+ * Note: `archived` is optional for backward compatibility (defaults to false)
  */
 export function isRequestLogDoc(obj: unknown): obj is RequestLogDoc {
   if (!obj || typeof obj !== 'object') return false;
@@ -279,6 +286,7 @@ export function isRequestLogDoc(obj: unknown): obj is RequestLogDoc {
     d.tags.every((t) => typeof t === 'string') &&
     typeof d.item_count === 'number' &&
     d.created_at instanceof Date &&
-    d.updated_at instanceof Date
+    d.updated_at instanceof Date &&
+    (d.archived === undefined || typeof d.archived === 'boolean')
   );
 }
