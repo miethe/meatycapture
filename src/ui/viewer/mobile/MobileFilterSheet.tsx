@@ -431,12 +431,15 @@ export function MobileFilterSheet({
         aria-modal="true"
         aria-labelledby="filter-sheet-title"
         onKeyDown={handleKeyDown}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
-        {/* Drag Handle */}
-        <div className="mobile-filter-sheet__handle" aria-hidden="true">
+        {/* Drag Handle - touch handlers here only, not on entire sheet */}
+        <div
+          className="mobile-filter-sheet__handle"
+          aria-hidden="true"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="mobile-filter-sheet__handle-bar" />
         </div>
 

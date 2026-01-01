@@ -501,7 +501,7 @@ export function MobileDetailSheet({
           </button>
         </header>
 
-        {/* Content */}
+        {/* Scrollable Content with touch handlers */}
         <div
           ref={contentRef}
           className="mobile-detail-sheet__content"
@@ -523,7 +523,6 @@ export function MobileDetailSheet({
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
               gap: 'var(--mobile-spacing-md)',
-              marginBottom: 'var(--mobile-spacing-lg)',
             }}
           >
             {/* Item Count */}
@@ -620,50 +619,54 @@ export function MobileDetailSheet({
           {/* Tags Section - Placeholder for when CatalogEntry has tags */}
           {/* Note: CatalogEntry doesn't currently include tags from document */}
           {/* This would need to be extended to fetch full document or add tags to CatalogEntry */}
+        </div>
 
-          {/* Action Buttons */}
-          <div
-            style={{
-              marginTop: 'var(--mobile-spacing-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--mobile-spacing-sm)',
-            }}
+        {/* Action Buttons - OUTSIDE touch-handled area for reliable click handling */}
+        <div
+          className="mobile-detail-sheet__actions"
+          style={{
+            padding: 'var(--mobile-spacing-md)',
+            flexShrink: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--mobile-spacing-sm)',
+            borderTop: '1px solid var(--mobile-border-color)',
+          }}
+          data-testid="mobile-detail-actions"
+        >
+          {/* View Full Document Button - loads document and expands sheet */}
+          <button
+            type="button"
+            className="mobile-detail-sheet__primary-btn"
+            onClick={handleViewFull}
+            aria-label="View full document content"
+            data-testid="mobile-detail-view-full"
           >
-            {/* View Full Document Button - loads document and expands sheet */}
+            View Full Document
+          </button>
+
+          {/* Expand/Collapse toggle button */}
+          {!isExpanded ? (
             <button
               type="button"
-              className="mobile-detail-sheet__primary-btn"
-              onClick={handleViewFull}
-              aria-label="View full document content"
-              data-testid="mobile-detail-view-full"
+              className="mobile-detail-sheet__secondary-btn"
+              onClick={onExpand}
+              aria-label="Expand sheet to full height"
+              data-testid="mobile-detail-expand"
             >
-              View Full Document
+              Expand
             </button>
-
-            {/* Expand/Collapse toggle button */}
-            {!isExpanded ? (
-              <button
-                type="button"
-                className="mobile-detail-sheet__secondary-btn"
-                onClick={onExpand}
-                aria-label="Expand sheet to full height"
-                data-testid="mobile-detail-expand"
-              >
-                Expand
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="mobile-detail-sheet__secondary-btn"
-                onClick={onCollapse}
-                aria-label="Collapse sheet to half height"
-                data-testid="mobile-detail-collapse"
-              >
-                Collapse
-              </button>
-            )}
-          </div>
+          ) : (
+            <button
+              type="button"
+              className="mobile-detail-sheet__secondary-btn"
+              onClick={onCollapse}
+              aria-label="Collapse sheet to half height"
+              data-testid="mobile-detail-collapse"
+            >
+              Collapse
+            </button>
+          )}
         </div>
       </div>
     </>
