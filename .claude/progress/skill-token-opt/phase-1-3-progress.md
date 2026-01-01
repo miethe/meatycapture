@@ -90,6 +90,7 @@ Reduce meatycapture-capture skill token consumption from ~3,847 tokens to ~800 t
 - Both completed successfully - /mc command created, SKILL.md slimmed to 30 lines
 - Phase 3 executed: Created workflows/ directory, moved files, added validation script
 - All phases complete - committed as 62e01bb
+- Integration updates: Updated integration-spec.md, CLAUDE.md, quick-feature.md - committed as 77c274f
 
 ## Quality Gates
 
@@ -109,7 +110,7 @@ Reduce meatycapture-capture skill token consumption from ~3,847 tokens to ~800 t
 - [x] Validation script executes without loading content
 
 ## Files Changed
-- `.claude/commands/mc.md` (new)
+- `.claude/commands/mc.md` (new, fixed lint issues)
 - `.claude/skills/meatycapture-capture/SKILL.md` (modified, 89→30 lines)
 - `.claude/skills/meatycapture-capture/workflows/` (new directory)
   - `capturing.md` (moved from root)
@@ -117,6 +118,9 @@ Reduce meatycapture-capture skill token consumption from ~3,847 tokens to ~800 t
   - `updating.md` (moved from root)
   - `managing.md` (moved from root)
 - `.claude/skills/meatycapture-capture/scripts/validate-items.ts` (new)
+- `.claude/skills/meatycapture-capture/integration-spec.md` (updated with /mc patterns)
+- `.claude/commands/dev/quick-feature.md` (updated to prefer /mc)
+- `CLAUDE.md` (updated Development Tracking section)
 
 ## Blockers
 - None
