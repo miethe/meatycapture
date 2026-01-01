@@ -17,6 +17,7 @@ export { useNavigationShortcuts } from './useNavigationShortcuts';
 export { useFocusTrap } from './useFocusTrap';
 export { Toast, ToastContainer } from './Toast';
 export { ToastProvider, useToast } from './useToast';
+export { EditModal } from './EditModal';
 
 // Re-export types for convenience
 export type { default as DropdownWithAddProps } from './DropdownWithAdd';
@@ -26,3 +27,4 @@ export type { default as StepProgressProps } from './StepProgress';
 export type { default as PathFieldProps } from './PathField';
 export type { ToastType, ToastData } from './Toast';
 export type { ValidationState } from './FormField';
+export type { EditModalProps } from './EditModal';

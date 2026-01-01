@@ -1,0 +1,336 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MultiSelectCombobox > Snapshot Tests > matches snapshot when disabled 1`] = `
+<div>
+  <div
+    class="field-container"
+  >
+    <div
+      class="form-field-label-row"
+    >
+      <label
+        class="field-label"
+        for="multiselect-combobox-domain"
+      >
+        Domain
+      </label>
+    </div>
+    <div
+      class="tags-input-container"
+    >
+      <div
+        aria-label="Selected domain"
+        class="tags-badges"
+        role="list"
+      >
+        <div
+          class="tag-badge "
+          role="listitem"
+        >
+          <span
+            aria-label="Selected: Frontend"
+          >
+            Frontend
+          </span>
+          <button
+            aria-label="Remove Frontend"
+            disabled=""
+            title="Remove Frontend"
+            type="button"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      <div
+        class="tags-input-wrapper"
+      >
+        <input
+          aria-autocomplete="list"
+          aria-controls="multiselect-combobox-domain-listbox"
+          aria-expanded="false"
+          aria-haspopup="listbox"
+          aria-invalid="false"
+          autocomplete="off"
+          class="input-base tags-search-input "
+          disabled=""
+          id="multiselect-combobox-domain"
+          placeholder="Type to search..."
+          role="combobox"
+          type="text"
+          value=""
+        />
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+          id="multiselect-combobox-domain-live"
+          role="status"
+          style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MultiSelectCombobox > Snapshot Tests > matches snapshot with default props 1`] = `
+<div>
+  <div
+    class="field-container"
+  >
+    <div
+      class="form-field-label-row"
+    >
+      <label
+        class="field-label"
+        for="multiselect-combobox-domain"
+      >
+        Domain
+      </label>
+    </div>
+    <div
+      class="tags-input-container"
+    >
+      <div
+        class="tags-input-wrapper"
+      >
+        <input
+          aria-autocomplete="list"
+          aria-controls="multiselect-combobox-domain-listbox"
+          aria-expanded="false"
+          aria-haspopup="listbox"
+          aria-invalid="false"
+          autocomplete="off"
+          class="input-base tags-search-input "
+          id="multiselect-combobox-domain"
+          placeholder="Type to search..."
+          role="combobox"
+          type="text"
+          value=""
+        />
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+          id="multiselect-combobox-domain-live"
+          role="status"
+          style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MultiSelectCombobox > Snapshot Tests > matches snapshot with error 1`] = `
+<div>
+  <div
+    class="field-container"
+  >
+    <div
+      class="form-field-label-row"
+    >
+      <label
+        class="field-label"
+        for="multiselect-combobox-domain"
+      >
+        Domain
+      </label>
+    </div>
+    <div
+      class="tags-input-container"
+    >
+      <div
+        class="tags-input-wrapper"
+      >
+        <input
+          aria-autocomplete="list"
+          aria-controls="multiselect-combobox-domain-listbox"
+          aria-expanded="false"
+          aria-haspopup="listbox"
+          aria-invalid="true"
+          autocomplete="off"
+          class="input-base tags-search-input error"
+          id="multiselect-combobox-domain"
+          placeholder="Type to search..."
+          role="combobox"
+          type="text"
+          value=""
+        />
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+          id="multiselect-combobox-domain-live"
+          role="status"
+          style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+        />
+      </div>
+    </div>
+    <div
+      class="error-message"
+      role="alert"
+    >
+      This field is required
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MultiSelectCombobox > Snapshot Tests > matches snapshot with helper text and tooltip 1`] = `
+<div>
+  <div
+    class="field-container"
+  >
+    <div
+      class="form-field-label-row"
+    >
+      <label
+        class="field-label"
+        for="multiselect-combobox-domain"
+      >
+        Domain
+      </label>
+      <div
+        class="tooltip-wrapper"
+      >
+        <button
+          aria-label="Help for Domain"
+          class="tooltip-trigger"
+          tabindex="0"
+          type="button"
+        >
+          ?
+        </button>
+      </div>
+    </div>
+    <div
+      class="form-field-helper"
+      id="multiselect-combobox-domain-helper"
+    >
+      Select one or more domains
+    </div>
+    <div
+      class="tags-input-container"
+    >
+      <div
+        class="tags-input-wrapper"
+      >
+        <input
+          aria-autocomplete="list"
+          aria-controls="multiselect-combobox-domain-listbox"
+          aria-describedby="multiselect-combobox-domain-helper"
+          aria-expanded="false"
+          aria-haspopup="listbox"
+          aria-invalid="false"
+          autocomplete="off"
+          class="input-base tags-search-input "
+          id="multiselect-combobox-domain"
+          placeholder="Type to search..."
+          role="combobox"
+          type="text"
+          value=""
+        />
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+          id="multiselect-combobox-domain-live"
+          role="status"
+          style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MultiSelectCombobox > Snapshot Tests > matches snapshot with selected values 1`] = `
+<div>
+  <div
+    class="field-container"
+  >
+    <div
+      class="form-field-label-row"
+    >
+      <label
+        class="field-label"
+        for="multiselect-combobox-domain"
+      >
+        Domain
+      </label>
+    </div>
+    <div
+      class="tags-input-container"
+    >
+      <div
+        aria-label="Selected domain"
+        class="tags-badges"
+        role="list"
+      >
+        <div
+          class="tag-badge "
+          role="listitem"
+        >
+          <span
+            aria-label="Selected: Frontend"
+          >
+            Frontend
+          </span>
+          <button
+            aria-label="Remove Frontend"
+            title="Remove Frontend"
+            type="button"
+          >
+            ×
+          </button>
+        </div>
+        <div
+          class="tag-badge "
+          role="listitem"
+        >
+          <span
+            aria-label="Selected: Backend"
+          >
+            Backend
+          </span>
+          <button
+            aria-label="Remove Backend"
+            title="Remove Backend"
+            type="button"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      <div
+        class="tags-input-wrapper"
+      >
+        <input
+          aria-autocomplete="list"
+          aria-controls="multiselect-combobox-domain-listbox"
+          aria-expanded="false"
+          aria-haspopup="listbox"
+          aria-invalid="false"
+          autocomplete="off"
+          class="input-base tags-search-input "
+          id="multiselect-combobox-domain"
+          placeholder="Type to search..."
+          role="combobox"
+          type="text"
+          value=""
+        />
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+          id="multiselect-combobox-domain-live"
+          role="status"
+          style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

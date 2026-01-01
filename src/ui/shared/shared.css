@@ -811,6 +811,344 @@ textarea:focus-visible {
   width: 100%;
 }
 
+/* Active state for keyboard navigation in combobox */
+.tags-popover-option-active {
+  background: rgba(99, 150, 255, 0.25);
+  outline: none;
+}
+
+/* Highlight for newly added badges */
+.tag-badge-new {
+  background: rgba(99, 255, 150, 0.3);
+  border-color: rgba(99, 255, 150, 0.5);
+  animation: tagBadgeNewPulse 1.5s ease-out;
+}
+
+@keyframes tagBadgeNewPulse {
+  0% {
+    background: rgba(99, 255, 150, 0.4);
+    border-color: rgba(99, 255, 150, 0.6);
+    box-shadow: 0 0 8px rgba(99, 255, 150, 0.4);
+  }
+  100% {
+    background: rgba(99, 150, 255, 0.2);
+    border-color: rgba(99, 150, 255, 0.4);
+    box-shadow: none;
+  }
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: modalOverlayIn var(--transition-fast);
+}
+
+.modal-overlay-exit {
+  animation: modalOverlayOut 0.2s ease-out forwards;
+}
+
+@keyframes modalOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalOverlayOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Confirmation Dialog */
+.confirmation-dialog {
+  width: 100%;
+  max-width: 28rem;
+  margin: var(--spacing-lg);
+  padding: var(--spacing-xl);
+  background: var(--color-bg-dropdown);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  animation: dialogScaleIn var(--transition-normal) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.confirmation-dialog-exit {
+  animation: dialogScaleOut 0.2s ease-out forwards;
+}
+
+@keyframes dialogScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes dialogScaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(-8px);
+  }
+}
+
+.confirmation-dialog-title {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.confirmation-dialog-message {
+  margin: 0 0 var(--spacing-xl) 0;
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.confirmation-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+}
+
+.confirmation-dialog-actions .button {
+  min-width: 6rem;
+}
+
+/* Danger Button Variant */
+.button.danger {
+  background: rgba(255, 99, 99, 0.2);
+  border-color: rgba(255, 99, 99, 0.4);
+  color: rgba(255, 99, 99, 0.95);
+}
+
+.button.danger:hover:not(:disabled) {
+  background: rgba(255, 99, 99, 0.3);
+  border-color: rgba(255, 99, 99, 0.6);
+  box-shadow: 0 4px 12px rgba(255, 99, 99, 0.2);
+}
+
+.button.danger:active:not(:disabled) {
+  background: rgba(255, 99, 99, 0.35);
+}
+
+.button.danger:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 99, 99, 0.3);
+}
+
+.button.danger.loading::after {
+  border-top-color: rgba(255, 99, 99, 0.95);
+}
+
+/* Hidden content for loading state (maintains button width) */
+.button-content-hidden {
+  visibility: hidden;
+}
+
+/* =================================================================
+   EditModal Component Styles
+   ================================================================= */
+
+/* Modal container with fixed header/footer and scrollable content */
+.edit-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  background: var(--color-bg-dropdown);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  animation: editModalScaleUp var(--transition-normal) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes editModalScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Modal header - fixed at top */
+.edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.edit-modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Close button (X) */
+.edit-modal-close {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.edit-modal-close:hover:not(:disabled) {
+  background: var(--color-bg-glass-hover);
+  color: var(--color-text);
+}
+
+.edit-modal-close:focus-visible {
+  outline: 2px solid rgba(99, 150, 255, 0.8);
+  outline-offset: 2px;
+}
+
+.edit-modal-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Scrollable content area */
+.edit-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  min-height: 0; /* Allows flex child to shrink below content size */
+}
+
+/* Modal footer - fixed at bottom */
+.edit-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+  gap: var(--spacing-md);
+}
+
+/* Footer button positioning: Cancel on left, Save on right */
+.edit-modal-footer .button:first-child {
+  margin-right: auto;
+}
+
+.edit-modal-footer .button:last-child {
+  margin-left: auto;
+}
+
+/* Screen reader only class for loading state text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* EditModal responsive adjustments */
+@media (max-width: 768px) {
+  .edit-modal {
+    max-height: 90vh;
+    margin: var(--spacing-md);
+  }
+
+  .edit-modal-header,
+  .edit-modal-content,
+  .edit-modal-footer {
+    padding: var(--spacing-md);
+  }
+
+  .edit-modal-title {
+    font-size: 1.125rem;
+  }
+
+  .edit-modal-footer {
+    flex-direction: column;
+  }
+
+  .edit-modal-footer .button {
+    width: 100%;
+    margin: 0;
+  }
+
+  .edit-modal-footer .button:first-child {
+    order: 2;
+    margin-right: 0;
+  }
+
+  .edit-modal-footer .button:last-child {
+    order: 1;
+    margin-left: 0;
+  }
+}
+
+/* Remove focus outline on modal container itself */
+.edit-modal:focus {
+  outline: none;
+}
+
 /* Accessibility: Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,
