@@ -224,17 +224,26 @@ interface DocStore {
 
 ## Development Tracking
 
-Use `/meatycapture-capture` skill for structured bug/enhancement/idea tracking:
+Use `/mc` command for quick request-log operations (token-efficient):
+
+| Operation | Command | Example |
+|-----------|---------|---------|
+| List logs | `/mc list PROJECT` | `/mc list meatycapture` |
+| View log | `/mc view PATH` | `/mc view ~/.meatycapture/meatycapture/REQ-20251231.md` |
+| Search | `/mc search "query" PROJECT` | `/mc search "auth bug" meatycapture` |
+| Quick capture | `/mc capture {...}` | `/mc capture {"title": "Fix auth", "type": "bug"}` |
+
+For batch capture or complex workflows, use `/meatycapture-capture` skill instead.
 
 | When | Action |
 |------|--------|
-| Bug found | Capture with type:bug, include reproduction steps |
-| Enhancement idea | Capture with type:enhancement, include goal |
+| Bug found | `/mc capture {"title": "...", "type": "bug", "domain": "..."}` |
+| Enhancement idea | `/mc capture {"title": "...", "type": "enhancement"}` |
 | TODO needed | Capture instead of code comment (searchable, trackable) |
-| Starting logged work | Update item status to in-progress |
-| Work complete | Update item status to done |
+| Starting logged work | Edit markdown: change `**Status:** triage` to `in-progress` |
+| Work complete | Edit markdown: change `**Status:**` to `done` |
 
-Search existing logs before creating duplicates: `meatycapture log search "keyword" PROJECT`
+Search existing logs before creating duplicates: `/mc search "keyword" meatycapture`
 
 See `.claude/skills/meatycapture-capture/integration-spec.md` for command integration patterns.
 

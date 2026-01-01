@@ -3,9 +3,12 @@ description: Quick MeatyCapture CLI - list/view/search/capture logs
 allowed-tools: [Bash]
 ---
 
-MeatyCapture quick commands. Default project: meatycapture
+# MeatyCapture Quick Commands
+
+Default project: meatycapture
 
 ## Commands
+
 - List: `meatycapture log list $ARGUMENTS --json`
 - View: `meatycapture log view $ARGUMENTS --json`
 - Search: `meatycapture log search "$ARGUMENTS" --json`

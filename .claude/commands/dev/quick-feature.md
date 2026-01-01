@@ -30,19 +30,19 @@ Parse `$ARGUMENTS` to determine input type:
 
 | Pattern | Type | Action |
 |---------|------|--------|
-| `REQ-YYYYMMDD-*-XX` | Request Log ID | Use `meatycapture-capture` skill |
+| `REQ-YYYYMMDD-*-XX` | Request Log ID | Use `/mc view` or `/mc search` |
 | Starts with `./`, `/`, or `~` | File path | Read file contents directly |
 | Other | Direct text | Use as feature description |
 
 ### For Request Log Input
 
-Invoke skill: **meatycapture-capture**
+Use `/mc` command (token-efficient) for quick operations:
 
-1. Search for item by ID to get full details (title, type, domain, context, notes)
-2. Update status to `in-progress` before starting work
+1. `/mc search "REQ-ID" PROJECT` - Get full details (title, type, domain, context, notes)
+2. Edit markdown file directly: change `**Status:** triage` to `**Status:** in-progress`
 3. Use extracted details as feature requirements
 
-The skill explains all request-log interactions - reading, searching, status updates, and captures.
+For batch operations or complex workflows, use **meatycapture-capture** skill instead.
 
 ---
 
@@ -162,11 +162,14 @@ Edit `.claude/progress/quick-features/{feature-slug}.md`:
 
 ### 4.2 Update Request Log (if applicable)
 
-If input was a REQ ID, use **meatycapture-capture** skill to update status to `done`.
+If input was a REQ ID, edit the markdown file directly: change `**Status:** in-progress` to `**Status:** done`.
 
 ### 4.3 Capture Issues (if any)
 
-If issues arose during implementation that warrant tracking, use **meatycapture-capture** skill to capture as new bug/enhancement item with context about the feature that surfaced the issue.
+If issues arose during implementation that warrant tracking, use `/mc capture` to log them:
+```
+/mc capture {"title": "...", "type": "bug", "domain": "...", "notes": "Context from feature work..."}
+```
 
 ---
 
@@ -191,7 +194,7 @@ If blocked:
 1. Document blocker in quick plan under `## Blockers`
 2. Do NOT mark as completed
 3. Report to user with clear next steps needed
-4. Use **meatycapture-capture** skill to capture blocker if it warrants tracking
+4. Use `/mc capture {"title": "...", "type": "bug", "status": "blocked"}` to log blocker if it warrants tracking
 
 ---
 
@@ -199,7 +202,8 @@ If blocked:
 
 | Resource | Type | Purpose |
 |----------|------|---------|
-| `meatycapture-capture` | Skill | Read/update request log items, capture new issues |
+| `/mc` | Command | Quick list/view/search/capture (token-efficient) |
+| `meatycapture-capture` | Skill | Batch operations, complex workflows |
 | `codebase-explorer` | Agent | Pattern discovery before implementation |
 | `ui-engineer-enhanced` | Agent | React/UI component implementation |
 | `backend-typescript-architect` | Agent | Core/backend TypeScript implementation |
