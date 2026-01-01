@@ -1,0 +1,1574 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ItemEditForm > snapshot > matches snapshot in saving state 1`] = `
+<div>
+  <form
+    aria-label="Edit item form"
+    class="item-edit-form"
+    id=":rl:-edit-form"
+    novalidate=""
+  >
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label required"
+          for=":rl:-title"
+        >
+          Title
+        </label>
+      </div>
+      <input
+        aria-invalid="false"
+        aria-required="true"
+        class="input-base "
+        disabled=""
+        id=":rl:-title"
+        placeholder="Enter item title..."
+        required=""
+        type="text"
+        value="Test Item Title"
+      />
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label required"
+          for="dropdown-Type"
+        >
+          Type
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="dropdown-Type-helper"
+      >
+        The category of this item (e.g., bug, enhancement)
+      </div>
+      <div
+        class="dropdown-container"
+      >
+        <select
+          aria-invalid="false"
+          aria-label="Type"
+          class="input-base select-base "
+          disabled=""
+          id="dropdown-Type"
+          required=""
+        >
+          <option
+            disabled=""
+            value=""
+          >
+            Select type...
+          </option>
+          <option
+            value="enhancement"
+          >
+            enhancement
+          </option>
+          <option
+            value="bug"
+          >
+            bug
+          </option>
+          <option
+            value="idea"
+          >
+            idea
+          </option>
+          <option
+            value="task"
+          >
+            task
+          </option>
+          <option
+            value="question"
+          >
+            question
+          </option>
+          <option
+            value="__add_new__"
+          >
+            + Add new...
+          </option>
+        </select>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="multiselect-combobox-domain"
+        >
+          Domain
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="multiselect-combobox-domain-helper"
+      >
+        The area or module this item affects
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          aria-label="Selected domain"
+          class="tags-badges"
+          role="list"
+        >
+          <div
+            class="tag-badge "
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: web"
+            >
+              web
+            </span>
+            <button
+              aria-label="Remove web"
+              disabled=""
+              title="Remove web"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-controls="multiselect-combobox-domain-listbox"
+            aria-describedby="multiselect-combobox-domain-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-invalid="false"
+            autocomplete="off"
+            class="input-base tags-search-input "
+            disabled=""
+            id="multiselect-combobox-domain"
+            placeholder="Select or type domain..."
+            role="combobox"
+            type="text"
+            value=""
+          />
+          <div
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+            id="multiselect-combobox-domain-live"
+            role="status"
+            style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="multiselect-combobox-context"
+        >
+          Context
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="multiselect-combobox-context-helper"
+      >
+        Additional context or environment details
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          aria-label="Selected context"
+          class="tags-badges"
+          role="list"
+        >
+          <div
+            class="tag-badge "
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: frontend"
+            >
+              frontend
+            </span>
+            <button
+              aria-label="Remove frontend"
+              disabled=""
+              title="Remove frontend"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-controls="multiselect-combobox-context-listbox"
+            aria-describedby="multiselect-combobox-context-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-invalid="false"
+            autocomplete="off"
+            class="input-base tags-search-input "
+            disabled=""
+            id="multiselect-combobox-context"
+            placeholder="Select or type context..."
+            role="combobox"
+            type="text"
+            value=""
+          />
+          <div
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+            id="multiselect-combobox-context-live"
+            role="status"
+            style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label "
+          for="dropdown-Priority"
+        >
+          Priority
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="dropdown-Priority-helper"
+      >
+        Urgency level of this item
+      </div>
+      <div
+        class="dropdown-container"
+      >
+        <select
+          aria-invalid="false"
+          aria-label="Priority"
+          class="input-base select-base "
+          disabled=""
+          id="dropdown-Priority"
+        >
+          <option
+            disabled=""
+            value=""
+          >
+            Select priority...
+          </option>
+          <option
+            value="low"
+          >
+            low
+          </option>
+          <option
+            value="medium"
+          >
+            medium
+          </option>
+          <option
+            value="high"
+          >
+            high
+          </option>
+          <option
+            value="critical"
+          >
+            critical
+          </option>
+          <option
+            value="__add_new__"
+          >
+            + Add new...
+          </option>
+        </select>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label "
+          for="dropdown-Status"
+        >
+          Status
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="dropdown-Status-helper"
+      >
+        Current state of this item
+      </div>
+      <div
+        class="dropdown-container"
+      >
+        <select
+          aria-invalid="false"
+          aria-label="Status"
+          class="input-base select-base "
+          disabled=""
+          id="dropdown-Status"
+        >
+          <option
+            disabled=""
+            value=""
+          >
+            Select status...
+          </option>
+          <option
+            value="triage"
+          >
+            triage
+          </option>
+          <option
+            value="backlog"
+          >
+            backlog
+          </option>
+          <option
+            value="planned"
+          >
+            planned
+          </option>
+          <option
+            value="in-progress"
+          >
+            in-progress
+          </option>
+          <option
+            value="done"
+          >
+            done
+          </option>
+          <option
+            value="wontfix"
+          >
+            wontfix
+          </option>
+          <option
+            value="__add_new__"
+          >
+            + Add new...
+          </option>
+        </select>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="tags-input-Tags"
+        >
+          Tags
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="tags-input-Tags-helper"
+      >
+        Keywords for categorization and search
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          aria-label="Selected tags"
+          class="tags-badges"
+          role="list"
+        >
+          <div
+            class="tag-badge"
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: ux"
+            >
+              ux
+            </span>
+            <button
+              aria-label="Remove ux"
+              title="Remove ux"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+          <div
+            class="tag-badge"
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: api"
+            >
+              api
+            </span>
+            <button
+              aria-label="Remove api"
+              title="Remove api"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-describedby="tags-input-Tags-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-label="Tags"
+            autocomplete="off"
+            class="input-base tags-search-input"
+            id="tags-input-Tags"
+            placeholder="Add tags..."
+            type="text"
+            value=""
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for=":rl:-notes"
+        >
+          Notes
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id=":rl:-notes-helper"
+      >
+        Detailed description, problem/goal, or any additional information
+      </div>
+      <textarea
+        aria-describedby=":rl:-notes-helper"
+        class="input-base item-edit-notes"
+        disabled=""
+        id=":rl:-notes"
+        placeholder="Enter notes (supports Markdown)..."
+        rows="6"
+      >
+        Test notes content
+      </textarea>
+    </div>
+    <div
+      class="item-edit-form-actions"
+    >
+      <button
+        class="button secondary"
+        disabled=""
+        type="button"
+      >
+        Cancel
+      </button>
+      <button
+        aria-busy="true"
+        class="button primary loading"
+        disabled=""
+        type="submit"
+      >
+        <span
+          aria-hidden="true"
+          class="spinner"
+        />
+        <span
+          class="sr-only"
+        >
+          Saving...
+        </span>
+        <span
+          aria-hidden="true"
+        >
+          Saving...
+        </span>
+      </button>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`ItemEditForm > snapshot > matches snapshot with default item 1`] = `
+<div>
+  <form
+    aria-label="Edit item form"
+    class="item-edit-form"
+    id=":rk:-edit-form"
+    novalidate=""
+  >
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label required"
+          for=":rk:-title"
+        >
+          Title
+        </label>
+      </div>
+      <input
+        aria-invalid="false"
+        aria-required="true"
+        class="input-base "
+        id=":rk:-title"
+        placeholder="Enter item title..."
+        required=""
+        type="text"
+        value="Test Item Title"
+      />
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label required"
+          for="dropdown-Type"
+        >
+          Type
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="dropdown-Type-helper"
+      >
+        The category of this item (e.g., bug, enhancement)
+      </div>
+      <div
+        class="dropdown-container"
+      >
+        <select
+          aria-invalid="false"
+          aria-label="Type"
+          class="input-base select-base "
+          id="dropdown-Type"
+          required=""
+        >
+          <option
+            disabled=""
+            value=""
+          >
+            Select type...
+          </option>
+          <option
+            value="enhancement"
+          >
+            enhancement
+          </option>
+          <option
+            value="bug"
+          >
+            bug
+          </option>
+          <option
+            value="idea"
+          >
+            idea
+          </option>
+          <option
+            value="task"
+          >
+            task
+          </option>
+          <option
+            value="question"
+          >
+            question
+          </option>
+          <option
+            value="__add_new__"
+          >
+            + Add new...
+          </option>
+        </select>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="multiselect-combobox-domain"
+        >
+          Domain
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="multiselect-combobox-domain-helper"
+      >
+        The area or module this item affects
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          aria-label="Selected domain"
+          class="tags-badges"
+          role="list"
+        >
+          <div
+            class="tag-badge "
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: web"
+            >
+              web
+            </span>
+            <button
+              aria-label="Remove web"
+              title="Remove web"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-controls="multiselect-combobox-domain-listbox"
+            aria-describedby="multiselect-combobox-domain-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-invalid="false"
+            autocomplete="off"
+            class="input-base tags-search-input "
+            id="multiselect-combobox-domain"
+            placeholder="Select or type domain..."
+            role="combobox"
+            type="text"
+            value=""
+          />
+          <div
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+            id="multiselect-combobox-domain-live"
+            role="status"
+            style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="multiselect-combobox-context"
+        >
+          Context
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="multiselect-combobox-context-helper"
+      >
+        Additional context or environment details
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          aria-label="Selected context"
+          class="tags-badges"
+          role="list"
+        >
+          <div
+            class="tag-badge "
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: frontend"
+            >
+              frontend
+            </span>
+            <button
+              aria-label="Remove frontend"
+              title="Remove frontend"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-controls="multiselect-combobox-context-listbox"
+            aria-describedby="multiselect-combobox-context-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-invalid="false"
+            autocomplete="off"
+            class="input-base tags-search-input "
+            id="multiselect-combobox-context"
+            placeholder="Select or type context..."
+            role="combobox"
+            type="text"
+            value=""
+          />
+          <div
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+            id="multiselect-combobox-context-live"
+            role="status"
+            style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label "
+          for="dropdown-Priority"
+        >
+          Priority
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="dropdown-Priority-helper"
+      >
+        Urgency level of this item
+      </div>
+      <div
+        class="dropdown-container"
+      >
+        <select
+          aria-invalid="false"
+          aria-label="Priority"
+          class="input-base select-base "
+          id="dropdown-Priority"
+        >
+          <option
+            disabled=""
+            value=""
+          >
+            Select priority...
+          </option>
+          <option
+            value="low"
+          >
+            low
+          </option>
+          <option
+            value="medium"
+          >
+            medium
+          </option>
+          <option
+            value="high"
+          >
+            high
+          </option>
+          <option
+            value="critical"
+          >
+            critical
+          </option>
+          <option
+            value="__add_new__"
+          >
+            + Add new...
+          </option>
+        </select>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label "
+          for="dropdown-Status"
+        >
+          Status
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="dropdown-Status-helper"
+      >
+        Current state of this item
+      </div>
+      <div
+        class="dropdown-container"
+      >
+        <select
+          aria-invalid="false"
+          aria-label="Status"
+          class="input-base select-base "
+          id="dropdown-Status"
+        >
+          <option
+            disabled=""
+            value=""
+          >
+            Select status...
+          </option>
+          <option
+            value="triage"
+          >
+            triage
+          </option>
+          <option
+            value="backlog"
+          >
+            backlog
+          </option>
+          <option
+            value="planned"
+          >
+            planned
+          </option>
+          <option
+            value="in-progress"
+          >
+            in-progress
+          </option>
+          <option
+            value="done"
+          >
+            done
+          </option>
+          <option
+            value="wontfix"
+          >
+            wontfix
+          </option>
+          <option
+            value="__add_new__"
+          >
+            + Add new...
+          </option>
+        </select>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="tags-input-Tags"
+        >
+          Tags
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="tags-input-Tags-helper"
+      >
+        Keywords for categorization and search
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          aria-label="Selected tags"
+          class="tags-badges"
+          role="list"
+        >
+          <div
+            class="tag-badge"
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: ux"
+            >
+              ux
+            </span>
+            <button
+              aria-label="Remove ux"
+              title="Remove ux"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+          <div
+            class="tag-badge"
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: api"
+            >
+              api
+            </span>
+            <button
+              aria-label="Remove api"
+              title="Remove api"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-describedby="tags-input-Tags-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-label="Tags"
+            autocomplete="off"
+            class="input-base tags-search-input"
+            id="tags-input-Tags"
+            placeholder="Add tags..."
+            type="text"
+            value=""
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for=":rk:-notes"
+        >
+          Notes
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id=":rk:-notes-helper"
+      >
+        Detailed description, problem/goal, or any additional information
+      </div>
+      <textarea
+        aria-describedby=":rk:-notes-helper"
+        class="input-base item-edit-notes"
+        id=":rk:-notes"
+        placeholder="Enter notes (supports Markdown)..."
+        rows="6"
+      >
+        Test notes content
+      </textarea>
+    </div>
+    <div
+      class="item-edit-form-actions"
+    >
+      <button
+        class="button secondary"
+        type="button"
+      >
+        Cancel
+      </button>
+      <button
+        aria-busy="false"
+        class="button primary "
+        type="submit"
+      >
+        Save Changes
+      </button>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`ItemEditForm > snapshot > matches snapshot with validation errors 1`] = `
+<div>
+  <form
+    aria-label="Edit item form"
+    class="item-edit-form"
+    id=":rm:-edit-form"
+    novalidate=""
+  >
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label required"
+          for=":rm:-title"
+        >
+          Title
+        </label>
+      </div>
+      <input
+        aria-describedby=":rm:-title-error"
+        aria-invalid="true"
+        aria-required="true"
+        class="input-base error"
+        id=":rm:-title"
+        placeholder="Enter item title..."
+        required=""
+        type="text"
+        value=""
+      />
+      <div
+        class="error-message"
+        id=":rm:-title-error"
+        role="alert"
+      >
+        Title is required
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label required"
+          for="dropdown-Type"
+        >
+          Type
+        </label>
+      </div>
+      <div
+        class="dropdown-container"
+      >
+        <select
+          aria-describedby="dropdown-Type-error"
+          aria-invalid="true"
+          aria-label="Type"
+          class="input-base select-base error"
+          id="dropdown-Type"
+          required=""
+        >
+          <option
+            disabled=""
+            value=""
+          >
+            Select type...
+          </option>
+          <option
+            value="enhancement"
+          >
+            enhancement
+          </option>
+          <option
+            value="bug"
+          >
+            bug
+          </option>
+          <option
+            value="idea"
+          >
+            idea
+          </option>
+          <option
+            value="task"
+          >
+            task
+          </option>
+          <option
+            value="question"
+          >
+            question
+          </option>
+          <option
+            value="__add_new__"
+          >
+            + Add new...
+          </option>
+        </select>
+      </div>
+      <div
+        class="error-message"
+        id="dropdown-Type-error"
+        role="alert"
+      >
+        Type is required
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="multiselect-combobox-domain"
+        >
+          Domain
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="multiselect-combobox-domain-helper"
+      >
+        The area or module this item affects
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          aria-label="Selected domain"
+          class="tags-badges"
+          role="list"
+        >
+          <div
+            class="tag-badge "
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: web"
+            >
+              web
+            </span>
+            <button
+              aria-label="Remove web"
+              title="Remove web"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-controls="multiselect-combobox-domain-listbox"
+            aria-describedby="multiselect-combobox-domain-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-invalid="false"
+            autocomplete="off"
+            class="input-base tags-search-input "
+            id="multiselect-combobox-domain"
+            placeholder="Select or type domain..."
+            role="combobox"
+            type="text"
+            value=""
+          />
+          <div
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+            id="multiselect-combobox-domain-live"
+            role="status"
+            style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="multiselect-combobox-context"
+        >
+          Context
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="multiselect-combobox-context-helper"
+      >
+        Additional context or environment details
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          aria-label="Selected context"
+          class="tags-badges"
+          role="list"
+        >
+          <div
+            class="tag-badge "
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: frontend"
+            >
+              frontend
+            </span>
+            <button
+              aria-label="Remove frontend"
+              title="Remove frontend"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-controls="multiselect-combobox-context-listbox"
+            aria-describedby="multiselect-combobox-context-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-invalid="false"
+            autocomplete="off"
+            class="input-base tags-search-input "
+            id="multiselect-combobox-context"
+            placeholder="Select or type context..."
+            role="combobox"
+            type="text"
+            value=""
+          />
+          <div
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+            id="multiselect-combobox-context-live"
+            role="status"
+            style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label "
+          for="dropdown-Priority"
+        >
+          Priority
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="dropdown-Priority-helper"
+      >
+        Urgency level of this item
+      </div>
+      <div
+        class="dropdown-container"
+      >
+        <select
+          aria-invalid="false"
+          aria-label="Priority"
+          class="input-base select-base "
+          id="dropdown-Priority"
+        >
+          <option
+            disabled=""
+            value=""
+          >
+            Select priority...
+          </option>
+          <option
+            value="low"
+          >
+            low
+          </option>
+          <option
+            value="medium"
+          >
+            medium
+          </option>
+          <option
+            value="high"
+          >
+            high
+          </option>
+          <option
+            value="critical"
+          >
+            critical
+          </option>
+          <option
+            value="__add_new__"
+          >
+            + Add new...
+          </option>
+        </select>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label "
+          for="dropdown-Status"
+        >
+          Status
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="dropdown-Status-helper"
+      >
+        Current state of this item
+      </div>
+      <div
+        class="dropdown-container"
+      >
+        <select
+          aria-invalid="false"
+          aria-label="Status"
+          class="input-base select-base "
+          id="dropdown-Status"
+        >
+          <option
+            disabled=""
+            value=""
+          >
+            Select status...
+          </option>
+          <option
+            value="triage"
+          >
+            triage
+          </option>
+          <option
+            value="backlog"
+          >
+            backlog
+          </option>
+          <option
+            value="planned"
+          >
+            planned
+          </option>
+          <option
+            value="in-progress"
+          >
+            in-progress
+          </option>
+          <option
+            value="done"
+          >
+            done
+          </option>
+          <option
+            value="wontfix"
+          >
+            wontfix
+          </option>
+          <option
+            value="__add_new__"
+          >
+            + Add new...
+          </option>
+        </select>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="tags-input-Tags"
+        >
+          Tags
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="tags-input-Tags-helper"
+      >
+        Keywords for categorization and search
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          aria-label="Selected tags"
+          class="tags-badges"
+          role="list"
+        >
+          <div
+            class="tag-badge"
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: ux"
+            >
+              ux
+            </span>
+            <button
+              aria-label="Remove ux"
+              title="Remove ux"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+          <div
+            class="tag-badge"
+            role="listitem"
+          >
+            <span
+              aria-label="Selected: api"
+            >
+              api
+            </span>
+            <button
+              aria-label="Remove api"
+              title="Remove api"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-describedby="tags-input-Tags-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-label="Tags"
+            autocomplete="off"
+            class="input-base tags-search-input"
+            id="tags-input-Tags"
+            placeholder="Add tags..."
+            type="text"
+            value=""
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for=":rm:-notes"
+        >
+          Notes
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id=":rm:-notes-helper"
+      >
+        Detailed description, problem/goal, or any additional information
+      </div>
+      <textarea
+        aria-describedby=":rm:-notes-helper"
+        class="input-base item-edit-notes"
+        id=":rm:-notes"
+        placeholder="Enter notes (supports Markdown)..."
+        rows="6"
+      >
+        Test notes content
+      </textarea>
+    </div>
+    <div
+      class="item-edit-form-actions"
+    >
+      <button
+        class="button secondary"
+        type="button"
+      >
+        Cancel
+      </button>
+      <button
+        aria-busy="false"
+        class="button primary "
+        type="submit"
+      >
+        Save Changes
+      </button>
+    </div>
+  </form>
+</div>
+`;

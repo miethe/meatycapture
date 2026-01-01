@@ -1,0 +1,76 @@
+/**
+ * ItemEditForm Component Styles
+ *
+ * Form styling for editing request log items.
+ * Uses glass morphism aesthetic consistent with shared components.
+ */
+
+/* Form container */
+.item-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Notes textarea */
+.item-edit-notes {
+  resize: vertical;
+  min-height: 8rem;
+  max-height: 20rem;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Form actions */
+.item-edit-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.item-edit-form-actions .button {
+  min-width: 7rem;
+}
+
+/* Loading state for save button */
+.item-edit-form-actions .button.loading {
+  position: relative;
+}
+
+.item-edit-form-actions .button.loading .spinner {
+  margin-right: var(--spacing-sm);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .item-edit-form-actions {
+    flex-direction: column;
+  }
+
+  .item-edit-form-actions .button {
+    width: 100%;
+  }
+
+  .item-edit-form-actions .button:first-child {
+    order: 2;
+  }
+
+  .item-edit-form-actions .button:last-child {
+    order: 1;
+  }
+}
+
+/* Compact form field spacing in edit context */
+.item-edit-form .field-container {
+  margin-bottom: 0;
+}
+
+/* Ensure dropdowns have proper z-index in form context */
+.item-edit-form .tags-popover-content,
+.item-edit-form .multiselect-options {
+  z-index: 1001;
+}

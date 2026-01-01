@@ -30,3 +30,14 @@ export type { UseHalfSheetOptions, UseHalfSheetResult } from './useHalfSheet';
 // Accessibility
 export { useReducedMotion } from './useReducedMotion';
 export type { ReducedMotionResult } from './useReducedMotion';
+
+// Item operations
+export { useItemDelete } from './useItemDelete';
+export type { UseItemDeleteResult } from './useItemDelete';
+
+export { useItemEdit } from './useItemEdit';
+export type {
+  UseItemEditResult,
+  ItemEditModalProps,
+  ItemEditFormHookProps,
+} from './useItemEdit';

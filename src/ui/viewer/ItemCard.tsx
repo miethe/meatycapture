@@ -10,11 +10,58 @@
  * - Tags as chips
  * - Markdown rendering for notes
  * - Accessible copy feedback
+ * - Edit and Delete action buttons
  */
 
 import React, { useState } from 'react';
 import type { RequestLogItem } from '@core/models';
 import { MarkdownRenderer } from './MarkdownRenderer';
+
+/**
+ * Edit icon SVG component (pencil)
+ */
+function EditIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
+
+/**
+ * Delete icon SVG component (trash)
+ */
+function DeleteIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </svg>
+  );
+}
 
 export interface ItemCardProps {
   /** Request log item to display */
@@ -22,6 +69,12 @@ export interface ItemCardProps {
 
   /** Callback when item ID is copied */
   onCopyId: (id: string) => void;
+
+  /** Callback when edit button is clicked (optional) */
+  onEdit?: (item: RequestLogItem) => void;
+
+  /** Callback when delete button is clicked (optional) */
+  onDelete?: (item: RequestLogItem) => void;
 }
 
 /**
@@ -33,8 +86,26 @@ export interface ItemCardProps {
  * @param props - ItemCardProps
  * @returns ItemCard component
  */
-export function ItemCard({ item, onCopyId }: ItemCardProps): React.JSX.Element {
+export function ItemCard({ item, onCopyId, onEdit, onDelete }: ItemCardProps): React.JSX.Element {
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+
+  /**
+   * Handle edit button click
+   */
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(item);
+    }
+  };
+
+  /**
+   * Handle delete button click
+   */
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(item);
+    }
+  };
 
   /**
    * Handle copy item ID to clipboard
@@ -133,6 +204,34 @@ export function ItemCard({ item, onCopyId }: ItemCardProps): React.JSX.Element {
               {copyFeedback}
             </span>
           )}
+
+          {/* Action buttons - only show if callbacks are provided */}
+          {(onEdit || onDelete) && (
+            <div className="viewer-item-actions">
+              {onEdit && (
+                <button
+                  type="button"
+                  className="viewer-item-action-button viewer-item-edit-button"
+                  onClick={handleEdit}
+                  aria-label={`Edit item ${item.id}`}
+                  title="Edit item"
+                >
+                  <EditIcon />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  type="button"
+                  className="viewer-item-action-button viewer-item-delete-button"
+                  onClick={handleDelete}
+                  aria-label={`Delete item ${item.id}`}
+                  title="Delete item"
+                >
+                  <DeleteIcon />
+                </button>
+              )}
+            </div>
+          )}
         </div>
         <h3 className="viewer-item-title">{item.title}</h3>
       </div>
@@ -175,6 +274,14 @@ export function ItemCard({ item, onCopyId }: ItemCardProps): React.JSX.Element {
             <span className="meta-label">Created</span>
             <span className="meta-value viewer-item-date">{formatDate(item.created_at)}</span>
           </div>
+
+          {/* Show Modified date only when item has been modified after creation */}
+          {item.modified_at && item.modified_at.getTime() !== item.created_at.getTime() && (
+            <div className="viewer-meta-field">
+              <span className="meta-label">Modified</span>
+              <span className="meta-value viewer-item-date">{formatDate(item.modified_at)}</span>
+            </div>
+          )}
         </div>
       </div>
 
