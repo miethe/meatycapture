@@ -3,6 +3,7 @@
  *
  * Visual progress indicator for multi-step wizard flows.
  * Shows step dots/circles with labels, connecting lines, and completion status.
+ * Supports dynamic labels with truncation and tooltip for long text (e.g., doc IDs).
  */
 
 import React from 'react';
@@ -15,6 +16,18 @@ interface StepProgressProps {
   currentStep: number;
   /** Array of completed step indices (0-based) */
   completedSteps?: number[];
+}
+
+/** Maximum character length before truncation */
+const MAX_LABEL_LENGTH = 20;
+
+/**
+ * Truncates a label to the specified max length with ellipsis.
+ * Uses Unicode ellipsis character for proper typography.
+ */
+function truncateLabel(label: string, maxLength: number = MAX_LABEL_LENGTH): string {
+  if (label.length <= maxLength) return label;
+  return label.slice(0, maxLength - 1) + '\u2026'; // Unicode ellipsis
 }
 
 export function StepProgress({
@@ -85,9 +98,12 @@ export function StepProgress({
                 <div
                   className={`step-progress-label ${
                     isActive ? 'active' : ''
-                  } ${isFuture ? 'future' : ''}`}
+                  } ${isFuture ? 'future' : ''} ${
+                    label.length > MAX_LABEL_LENGTH ? 'truncated' : ''
+                  }`}
+                  title={label.length > MAX_LABEL_LENGTH ? label : undefined}
                 >
-                  {label}
+                  {truncateLabel(label)}
                 </div>
               </div>
             </React.Fragment>

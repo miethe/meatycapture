@@ -159,13 +159,19 @@
   font-weight: 500;
   color: var(--color-text);
   text-align: center;
-  transition: color var(--transition-fast);
   white-space: nowrap;
-  max-width: 6rem;
+  /* Increased to accommodate truncated doc IDs (~20 chars) */
+  max-width: 10rem;
+  min-width: 4rem; /* Prevent layout shift when label changes */
   overflow: hidden;
   text-overflow: ellipsis;
+  /* Smooth transitions for label updates */
+  transition:
+    color 200ms ease-out,
+    opacity 200ms ease-out;
 }
 
+/* Label state transitions for dynamic updates */
 .step-progress-label.active {
   color: rgba(99, 150, 255, 0.95);
   font-weight: 600;
@@ -173,6 +179,22 @@
 
 .step-progress-label.future {
   color: var(--color-text-muted);
+}
+
+/* Completed label - subtle highlight on value change */
+.step-progress-label.completed {
+  color: var(--color-text);
+}
+
+/* Truncated label with tooltip */
+.step-progress-label.truncated {
+  cursor: help;
+}
+
+/* Label update animation helper class */
+/* Applied via JS when label text changes, removed after transition */
+.step-progress-label.updating {
+  opacity: 0.6;
 }
 
 /* Mobile Responsive */
@@ -203,7 +225,8 @@
 
   .step-progress-label {
     font-size: 0.75rem;
-    max-width: 5rem;
+    max-width: 6rem;
+    min-width: 3rem; /* Prevent layout shift */
   }
 
   .step-progress-checkmark {
@@ -216,7 +239,8 @@
 @media (max-width: 480px) {
   .step-progress-label {
     font-size: 0.6875rem;
-    max-width: 4rem;
+    max-width: 5rem;
+    min-width: 2.5rem; /* Prevent layout shift */
   }
 
   .step-progress-dot {
@@ -248,5 +272,14 @@
   .step-progress-checkmark,
   .step-progress-line.completed::after {
     animation: none;
+  }
+
+  /* Disable label transitions for reduced motion */
+  .step-progress-label {
+    transition: none;
+  }
+
+  .step-progress-label.updating {
+    opacity: 1;
   }
 }

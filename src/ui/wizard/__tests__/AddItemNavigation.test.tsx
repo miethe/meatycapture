@@ -178,8 +178,11 @@ describe('Add Item Navigation Flow', () => {
 
       // Step progress should show completed states for steps 1 and 2
       // Look for the completed step dots via aria-label
+      // Note: Step 2 now shows the doc ID instead of "Document" when a capture context is provided
       const projectStepDot = screen.getByLabelText('Step 1: Project (completed)');
-      const documentStepDot = screen.getByLabelText('Step 2: Document (completed)');
+      const documentStepDot = screen.getByLabelText(
+        `Step 2: ${mockDocument.doc_id} (completed)`
+      );
 
       expect(projectStepDot).toHaveClass('completed');
       expect(documentStepDot).toHaveClass('completed');

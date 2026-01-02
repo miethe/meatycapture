@@ -15,7 +15,7 @@
  * project and document can be pre-selected, starting the wizard at Step 3.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Project, ItemDraft, RequestLogDoc, FieldOption, FieldName } from '@core/models';
 import type { ProjectStore, FieldCatalogStore, DocStore, Clock } from '@core/ports';
 import { generateDocId, slugify } from '@core/validation';
@@ -31,11 +31,6 @@ import './wizard.css';
  * project -> doc -> item -> review -> (success state shown in ReviewStep)
  */
 type WizardStep = 'project' | 'doc' | 'item' | 'review';
-
-/**
- * Step labels for progress indicator
- */
-const STEP_LABELS = ['Project', 'Document', 'Item', 'Review'];
 
 /**
  * Map step name to index
@@ -151,6 +146,24 @@ export function WizardFlow({
   // Batching mode: Lock project/doc after first successful submit
   // Also true when there's a capture context (pre-selected project/doc)
   const [batchingMode, setBatchingMode] = useState<boolean>(!!captureContext);
+
+  // ============================================================================
+  // Computed Values
+  // ============================================================================
+
+  /**
+   * Dynamic step labels for progress indicator.
+   * Shows "Document" until doc step is completed, then shows the actual doc_id.
+   */
+  const stepLabels = useMemo(() => {
+    // Only show doc filename after Step 2 (doc step, index 1) is completed
+    const docStepCompleted = completedSteps.includes(1);
+    const docLabel =
+      docStepCompleted && docPath
+        ? docPath.split('/').pop()?.replace('.md', '') || 'Document'
+        : 'Document';
+    return ['Project', docLabel, 'Item', 'Review'];
+  }, [docPath, completedSteps]);
 
   // ============================================================================
   // Effects - Initialize from Capture Context
@@ -547,7 +560,7 @@ export function WizardFlow({
       return (
         <>
           <StepProgress
-            steps={STEP_LABELS}
+            steps={stepLabels}
             currentStep={currentStepIndex}
             completedSteps={completedSteps}
           />
@@ -566,7 +579,7 @@ export function WizardFlow({
       return (
         <>
           <StepProgress
-            steps={STEP_LABELS}
+            steps={stepLabels}
             currentStep={currentStepIndex}
             completedSteps={completedSteps}
           />
@@ -588,7 +601,7 @@ export function WizardFlow({
       return (
         <>
           <StepProgress
-            steps={STEP_LABELS}
+            steps={stepLabels}
             currentStep={currentStepIndex}
             completedSteps={completedSteps}
           />
@@ -621,7 +634,7 @@ export function WizardFlow({
       return (
         <>
           <StepProgress
-            steps={STEP_LABELS}
+            steps={stepLabels}
             currentStep={currentStepIndex}
             completedSteps={completedSteps}
           />
