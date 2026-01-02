@@ -41,7 +41,7 @@ export interface DocumentRowProps {
   document: RequestLogDoc | null;
 
   /** Callback when "Add Item" is clicked */
-  onAddItem?: () => void;
+  onAddItem?: (() => void) | undefined;
 }
 
 /**

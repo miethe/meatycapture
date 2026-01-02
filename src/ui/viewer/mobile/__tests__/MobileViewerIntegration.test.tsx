@@ -104,6 +104,7 @@ function createMockEntry(overrides?: Partial<CatalogEntry>): CatalogEntry {
     project_name: 'Test Project',
     item_count: 5,
     updated_at: new Date('2025-12-30'),
+    archived: false,
     ...overrides,
   };
 }

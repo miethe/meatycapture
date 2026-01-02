@@ -117,6 +117,7 @@ const createMockProjectStore = (projects: Project[] = [mockProject]): ProjectSto
 });
 
 const createMockFieldCatalogStore = (): FieldCatalogStore => ({
+  getGlobal: vi.fn().mockResolvedValue([]),
   getForProject: vi.fn().mockResolvedValue([
     { id: '1', field: 'type', value: 'enhancement', scope: 'global' },
     { id: '2', field: 'type', value: 'bug', scope: 'global' },
@@ -127,9 +128,9 @@ const createMockFieldCatalogStore = (): FieldCatalogStore => ({
     { id: '7', field: 'status', value: 'in-progress', scope: 'global' },
     { id: '8', field: 'domain', value: 'web', scope: 'global' },
   ]),
+  getByField: vi.fn().mockResolvedValue([]),
   addOption: vi.fn().mockImplementation((option) => Promise.resolve({ id: 'new-id', ...option })),
   removeOption: vi.fn().mockResolvedValue(undefined),
-  listGlobal: vi.fn().mockResolvedValue([]),
 });
 
 const createMockDocStore = (existingDocs: RequestLogDoc[] = []): DocStore => ({
@@ -139,6 +140,7 @@ const createMockDocStore = (existingDocs: RequestLogDoc[] = []): DocStore => ({
       doc_id: doc.doc_id,
       item_count: doc.item_count,
       updated_at: doc.updated_at,
+      archived: doc.archived ?? false,
     }))
   ),
   read: vi.fn().mockImplementation((path: string) => {
@@ -147,6 +149,8 @@ const createMockDocStore = (existingDocs: RequestLogDoc[] = []): DocStore => ({
   }),
   write: vi.fn().mockResolvedValue(undefined),
   append: vi.fn().mockResolvedValue({ item_id: 'REQ-20251231-test-project-02' }),
+  backup: vi.fn().mockResolvedValue('/backup/path'),
+  isWritable: vi.fn().mockResolvedValue(true),
 });
 
 const createMockClock = (): Clock => ({

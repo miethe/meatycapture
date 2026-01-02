@@ -60,6 +60,8 @@ interface StoredDocument {
   item_count: number;
   created_at: string; // ISO 8601 string
   updated_at: string; // ISO 8601 string
+  /** Whether the document is archived */
+  archived?: boolean;
   /** Serialized markdown content (includes items) */
   content: string;
 }
@@ -189,6 +191,7 @@ export class BrowserDocStore implements DocStore {
             title: stored.title,
             item_count: stored.item_count,
             updated_at: new Date(stored.updated_at),
+            archived: stored.archived ?? false,
           }));
 
           // Sort by updated_at descending (most recent first)

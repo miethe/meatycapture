@@ -72,6 +72,7 @@ const createMockProjectStore = (): ProjectStore => ({
 });
 
 const createMockFieldCatalogStore = (): FieldCatalogStore => ({
+  getGlobal: vi.fn().mockResolvedValue([]),
   getForProject: vi.fn().mockResolvedValue([
     { id: '1', field: 'type', value: 'enhancement', scope: 'global' },
     { id: '2', field: 'type', value: 'bug', scope: 'global' },
@@ -81,9 +82,9 @@ const createMockFieldCatalogStore = (): FieldCatalogStore => ({
     { id: '6', field: 'status', value: 'triage', scope: 'global' },
     { id: '7', field: 'status', value: 'in-progress', scope: 'global' },
   ]),
+  getByField: vi.fn().mockResolvedValue([]),
   addOption: vi.fn().mockImplementation((option) => Promise.resolve({ id: 'new-id', ...option })),
   removeOption: vi.fn().mockResolvedValue(undefined),
-  listGlobal: vi.fn().mockResolvedValue([]),
 });
 
 const createMockDocStore = (): DocStore => ({
@@ -91,6 +92,8 @@ const createMockDocStore = (): DocStore => ({
   read: vi.fn().mockResolvedValue(mockDocument),
   write: vi.fn().mockResolvedValue(undefined),
   append: vi.fn().mockResolvedValue({ item_id: 'REQ-20251231-test-project-02' }),
+  backup: vi.fn().mockResolvedValue('/backup/path'),
+  isWritable: vi.fn().mockResolvedValue(true),
 });
 
 const createMockClock = (): Clock => ({

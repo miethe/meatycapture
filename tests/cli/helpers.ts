@@ -343,6 +343,7 @@ export function createMockDocMeta(overrides?: Partial<DocMeta>): DocMeta {
     title: 'Test Request Log',
     item_count: 1,
     updated_at: now,
+    archived: false,
     ...overrides,
   };
 }

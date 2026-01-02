@@ -76,7 +76,7 @@ describe('Interactive Prompts', () => {
 
   describe('prompt', () => {
     it('should prompt and return user input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('user input');
       });
 
@@ -88,7 +88,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should trim user input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('  user input  ');
       });
 
@@ -98,7 +98,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should handle empty input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('');
       });
 
@@ -130,7 +130,7 @@ describe('Interactive Prompts', () => {
 
   describe('promptWithDefault', () => {
     it('should use default value when empty input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('');
       });
 
@@ -141,7 +141,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should use user input when provided', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('custom-project');
       });
 
@@ -151,7 +151,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should trim whitespace before checking if empty', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('   ');
       });
 
@@ -174,7 +174,7 @@ describe('Interactive Prompts', () => {
 
   describe('confirm', () => {
     it('should return true for "y" input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('y');
       });
 
@@ -184,7 +184,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should return true for "yes" input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('yes');
       });
 
@@ -194,7 +194,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should return false for "n" input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('n');
       });
 
@@ -204,7 +204,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should return false for "no" input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('no');
       });
 
@@ -214,7 +214,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should be case insensitive', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('YES');
       });
 
@@ -224,7 +224,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should use default value (false) when empty input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('');
       });
 
@@ -234,7 +234,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should use default value (true) when empty input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('');
       });
 
@@ -283,7 +283,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should return selected item by number', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('2');
       });
 
@@ -293,7 +293,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should display numbered list', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('1');
       });
 
@@ -306,7 +306,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should throw error for invalid selection (non-number)', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('invalid');
       });
 
@@ -316,7 +316,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should throw error for out of range selection', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('5');
       });
 
@@ -326,7 +326,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should throw error for zero selection', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('0');
       });
 
@@ -336,7 +336,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should throw error for negative selection', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('-1');
       });
 
@@ -352,7 +352,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should handle first item selection', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('1');
       });
 
@@ -362,7 +362,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should handle last item selection', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('3');
       });
 
@@ -383,7 +383,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should return valid input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('valid-input');
       });
 
@@ -395,7 +395,7 @@ describe('Interactive Prompts', () => {
 
     it('should retry on invalid input', async () => {
       let callCount = 0;
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callCount++;
         if (callCount === 1) {
           callback('Invalid Input');
@@ -413,7 +413,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should use default value when provided and input is empty', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('');
       });
 
@@ -425,7 +425,7 @@ describe('Interactive Prompts', () => {
 
     it('should validate default value', async () => {
       let callCount = 0;
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callCount++;
         if (callCount === 1) {
           callback(''); // Use default (which is invalid)
@@ -443,7 +443,7 @@ describe('Interactive Prompts', () => {
 
     it('should continue retrying until valid input', async () => {
       let callCount = 0;
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callCount++;
         if (callCount < 3) {
           callback('invalid');
@@ -464,7 +464,7 @@ describe('Interactive Prompts', () => {
 
   describe('promptMultiValue', () => {
     it('should split comma-separated values', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('api, web, urgent');
       });
 
@@ -474,7 +474,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should trim whitespace from values', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('  api  ,  web  ,  urgent  ');
       });
 
@@ -484,7 +484,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should filter out empty values', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('api, , web, , urgent');
       });
 
@@ -494,7 +494,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should handle newline separator', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('api\nweb\nurgent');
       });
 
@@ -504,7 +504,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should handle mixed comma and newline separators', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('api, web\nurgent');
       });
 
@@ -514,7 +514,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should return empty array for empty input', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('');
       });
 
@@ -524,7 +524,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should handle single value', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('api');
       });
 
@@ -534,7 +534,7 @@ describe('Interactive Prompts', () => {
     });
 
     it('should use custom separator when provided', async () => {
-      mockQuestion.mockImplementation((q, callback) => {
+      mockQuestion.mockImplementation((_q, callback) => {
         callback('api|web|urgent');
       });
 

@@ -138,7 +138,7 @@ export interface DocumentKebabMenuProps {
   /** Callback when archive action is selected */
   onArchive: () => void;
   /** Callback when unarchive action is selected (for archived docs) */
-  onUnarchive?: () => void;
+  onUnarchive?: (() => void) | undefined;
   /** Callback when edit action is selected */
   onEdit: () => void;
   /** Callback when add item action is selected */

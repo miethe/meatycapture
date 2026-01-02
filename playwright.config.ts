@@ -40,8 +40,8 @@ export default defineConfig({
   // Retry on CI only
   retries: process.env.CI ? 2 : 0,
 
-  // Limit parallel workers on CI
-  workers: process.env.CI ? 1 : undefined,
+  // Limit parallel workers on CI (use 50% of available CPUs when not in CI)
+  workers: process.env.CI ? 1 : '50%',
 
   // Reporter configuration
   reporter: [

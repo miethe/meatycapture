@@ -51,6 +51,7 @@ describe('ApiDocStore', () => {
           title: 'Project Requests',
           item_count: 5,
           updated_at: new Date('2025-12-08T09:00:00Z'),
+          archived: false,
         },
         {
           path: '/path/to/docs/REQ-20251207-other.md',
@@ -58,6 +59,7 @@ describe('ApiDocStore', () => {
           title: 'Other Requests',
           item_count: 3,
           updated_at: new Date('2025-12-07T15:30:00Z'),
+          archived: false,
         },
       ];
 

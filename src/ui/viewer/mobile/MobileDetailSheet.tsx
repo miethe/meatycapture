@@ -59,7 +59,7 @@ export interface MobileDetailSheetProps {
   onViewFull: (entry: CatalogEntry) => void;
 
   /** Element to return focus to when sheet closes */
-  triggerRef?: React.RefObject<HTMLElement | null>;
+  triggerRef?: React.RefObject<HTMLElement | null> | undefined;
 }
 
 /**

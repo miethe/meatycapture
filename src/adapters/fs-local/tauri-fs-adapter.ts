@@ -115,6 +115,7 @@ export class TauriDocStore implements DocStore {
               title: doc.title,
               item_count: doc.item_count,
               updated_at: doc.updated_at,
+              archived: doc.archived ?? false,
             });
           }
         } catch (error) {
