@@ -1,0 +1,189 @@
+/**
+ * KebabMenu Component Styles
+ * Glass morphism aesthetic with accessible design
+ */
+
+/* Container - provides positioning context */
+.kebab-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Trigger button - kebab icon or custom trigger */
+.kebab-menu-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.kebab-menu-trigger:hover {
+  background: var(--color-bg-glass-hover);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.kebab-menu-trigger:focus-visible {
+  background: var(--color-bg-glass-hover);
+  border-color: var(--color-border-focus);
+  outline: 3px solid rgba(99, 150, 255, 0.9);
+  outline-offset: 2px;
+}
+
+.kebab-menu-trigger:active {
+  background: var(--color-bg-glass-active);
+}
+
+.kebab-menu-trigger[aria-expanded="true"] {
+  background: var(--color-bg-glass-active);
+  border-color: var(--color-border-focus);
+  color: var(--color-text);
+}
+
+/* Menu panel - dropdown container */
+.kebab-menu-panel {
+  position: absolute;
+  top: calc(100% + var(--spacing-xs));
+  right: 0;
+  min-width: 10rem;
+  max-width: 16rem;
+  padding: var(--spacing-xs);
+  background: var(--color-bg-dropdown);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(99, 150, 255, 0.3);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  z-index: 1000;
+  animation: kebabMenuOpen var(--transition-fast);
+}
+
+@keyframes kebabMenuOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Menu item - individual action button */
+.kebab-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  min-height: 2.75rem; /* 44px touch target */
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.kebab-menu-item:hover {
+  background: var(--color-bg-glass-hover);
+}
+
+.kebab-menu-item:focus {
+  outline: none;
+}
+
+.kebab-menu-item:focus-visible,
+.kebab-menu-item-focused {
+  background: rgba(99, 150, 255, 0.2);
+  outline: none;
+}
+
+.kebab-menu-item:active {
+  background: var(--color-bg-glass-active);
+}
+
+/* Dangerous item styling (red text/background) */
+.kebab-menu-item-dangerous {
+  color: var(--color-error);
+}
+
+.kebab-menu-item-dangerous:hover {
+  background: rgba(255, 99, 99, 0.15);
+}
+
+.kebab-menu-item-dangerous:focus-visible,
+.kebab-menu-item-dangerous.kebab-menu-item-focused {
+  background: rgba(255, 99, 99, 0.2);
+}
+
+.kebab-menu-item-dangerous:active {
+  background: rgba(255, 99, 99, 0.25);
+}
+
+/* Item icon container */
+.kebab-menu-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.kebab-menu-item-icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Item label */
+.kebab-menu-item-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Separator between menu items (optional - use as needed) */
+.kebab-menu-separator {
+  height: 1px;
+  margin: var(--spacing-xs) 0;
+  background: var(--color-border);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .kebab-menu-panel {
+    min-width: 8rem;
+  }
+
+  .kebab-menu-item {
+    min-height: 3rem; /* Larger touch target on mobile */
+    padding: var(--spacing-md);
+  }
+}
+
+/* Accessibility: Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .kebab-menu-panel {
+    animation: none;
+  }
+
+  .kebab-menu-trigger,
+  .kebab-menu-item {
+    transition: none;
+  }
+}

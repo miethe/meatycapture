@@ -1,0 +1,281 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`KebabMenu > snapshot > matches closed state snapshot 1`] = `
+<div>
+  <div
+    class="kebab-menu-container"
+  >
+    <button
+      aria-expanded="false"
+      aria-haspopup="menu"
+      aria-label="Menu"
+      class="kebab-menu-trigger"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        fill="currentColor"
+        height="16"
+        viewBox="0 0 16 16"
+        width="16"
+      >
+        <circle
+          cx="8"
+          cy="3"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="8"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="13"
+          r="1.5"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`KebabMenu > snapshot > matches open state snapshot 1`] = `
+<div>
+  <div
+    class="kebab-menu-container"
+  >
+    <button
+      aria-expanded="true"
+      aria-haspopup="menu"
+      aria-label="Menu"
+      class="kebab-menu-trigger"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        fill="currentColor"
+        height="16"
+        viewBox="0 0 16 16"
+        width="16"
+      >
+        <circle
+          cx="8"
+          cy="3"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="8"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="13"
+          r="1.5"
+        />
+      </svg>
+    </button>
+    <div
+      aria-label="Menu"
+      class="kebab-menu-panel"
+      role="menu"
+    >
+      <button
+        class="kebab-menu-item  kebab-menu-item-focused"
+        role="menuitem"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="kebab-menu-item-label"
+        >
+          Edit
+        </span>
+      </button>
+      <button
+        class="kebab-menu-item  "
+        role="menuitem"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          class="kebab-menu-item-label"
+        >
+          Duplicate
+        </span>
+      </button>
+      <button
+        class="kebab-menu-item kebab-menu-item-dangerous "
+        role="menuitem"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          class="kebab-menu-item-label"
+        >
+          Delete
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`KebabMenu > snapshot > matches snapshot with custom trigger 1`] = `
+<div>
+  <div
+    class="kebab-menu-container"
+  >
+    <button
+      aria-expanded="true"
+      aria-haspopup="menu"
+      aria-label="Custom actions"
+      class="kebab-menu-trigger"
+      type="button"
+    >
+      <span>
+        Actions
+      </span>
+    </button>
+    <div
+      aria-label="Custom actions"
+      class="kebab-menu-panel"
+      role="menu"
+    >
+      <button
+        class="kebab-menu-item  kebab-menu-item-focused"
+        role="menuitem"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="kebab-menu-item-label"
+        >
+          Edit
+        </span>
+      </button>
+      <button
+        class="kebab-menu-item  "
+        role="menuitem"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          class="kebab-menu-item-label"
+        >
+          Duplicate
+        </span>
+      </button>
+      <button
+        class="kebab-menu-item kebab-menu-item-dangerous "
+        role="menuitem"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          class="kebab-menu-item-label"
+        >
+          Delete
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`KebabMenu > snapshot > matches snapshot with icons 1`] = `
+<div>
+  <div
+    class="kebab-menu-container"
+  >
+    <button
+      aria-expanded="true"
+      aria-haspopup="menu"
+      aria-label="Menu"
+      class="kebab-menu-trigger"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        fill="currentColor"
+        height="16"
+        viewBox="0 0 16 16"
+        width="16"
+      >
+        <circle
+          cx="8"
+          cy="3"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="8"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="13"
+          r="1.5"
+        />
+      </svg>
+    </button>
+    <div
+      aria-label="Menu"
+      class="kebab-menu-panel"
+      role="menu"
+    >
+      <button
+        class="kebab-menu-item  kebab-menu-item-focused"
+        role="menuitem"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="kebab-menu-item-icon"
+        >
+          <svg
+            data-testid="icon"
+          >
+            <circle
+              cx="8"
+              cy="8"
+              r="4"
+            />
+          </svg>
+        </span>
+        <span
+          class="kebab-menu-item-label"
+        >
+          Edit
+        </span>
+      </button>
+      <button
+        class="kebab-menu-item kebab-menu-item-dangerous "
+        role="menuitem"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="kebab-menu-item-icon"
+        >
+          <svg
+            data-testid="icon"
+          >
+            <path
+              d="M0 0"
+            />
+          </svg>
+        </span>
+        <span
+          class="kebab-menu-item-label"
+        >
+          Delete
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;

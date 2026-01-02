@@ -1,0 +1,375 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DocumentEditForm > snapshot > matches snapshot in saving state 1`] = `
+<div>
+  <form
+    aria-label="Edit document form"
+    class="document-edit-form"
+    id=":rs:-doc-edit-form"
+    novalidate=""
+  >
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label required"
+          for=":rs:-title"
+        >
+          Title
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id=":rs:-title-helper"
+      >
+        The document title displayed in the catalog
+      </div>
+      <input
+        aria-describedby=":rs:-title-helper"
+        aria-invalid="false"
+        aria-required="true"
+        class="input-base "
+        disabled=""
+        id=":rs:-title"
+        placeholder="Enter document title..."
+        required=""
+        type="text"
+        value="Test Document Title"
+      />
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for=":rs:-description"
+        >
+          Description
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id=":rs:-description-helper"
+      >
+        Optional notes or description for this document
+      </div>
+      <textarea
+        aria-describedby=":rs:-description-helper"
+        class="input-base document-edit-description"
+        disabled=""
+        id=":rs:-description"
+        placeholder="Enter document description or notes..."
+        rows="4"
+      />
+    </div>
+    <div
+      class="document-edit-form-actions"
+    >
+      <button
+        class="button secondary"
+        disabled=""
+        type="button"
+      >
+        Cancel
+      </button>
+      <button
+        aria-busy="true"
+        class="button primary loading"
+        disabled=""
+        type="submit"
+      >
+        <span
+          aria-hidden="true"
+          class="spinner"
+        />
+        <span
+          class="sr-only"
+        >
+          Saving...
+        </span>
+        <span
+          aria-hidden="true"
+        >
+          Saving...
+        </span>
+      </button>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`DocumentEditForm > snapshot > matches snapshot with default document 1`] = `
+<div>
+  <form
+    aria-label="Edit document form"
+    class="document-edit-form"
+    id=":rr:-doc-edit-form"
+    novalidate=""
+  >
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label required"
+          for=":rr:-title"
+        >
+          Title
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id=":rr:-title-helper"
+      >
+        The document title displayed in the catalog
+      </div>
+      <input
+        aria-describedby=":rr:-title-helper"
+        aria-invalid="false"
+        aria-required="true"
+        class="input-base "
+        id=":rr:-title"
+        placeholder="Enter document title..."
+        required=""
+        type="text"
+        value="Test Document Title"
+      />
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for=":rr:-description"
+        >
+          Description
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id=":rr:-description-helper"
+      >
+        Optional notes or description for this document
+      </div>
+      <textarea
+        aria-describedby=":rr:-description-helper"
+        class="input-base document-edit-description"
+        id=":rr:-description"
+        placeholder="Enter document description or notes..."
+        rows="4"
+      />
+    </div>
+    <div
+      class="document-edit-form-actions"
+    >
+      <button
+        class="button secondary"
+        type="button"
+      >
+        Cancel
+      </button>
+      <button
+        aria-busy="false"
+        class="button primary "
+        type="submit"
+      >
+        Save Changes
+      </button>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`DocumentEditForm > snapshot > matches snapshot with description filled 1`] = `
+<div>
+  <form
+    aria-label="Edit document form"
+    class="document-edit-form"
+    id=":ru:-doc-edit-form"
+    novalidate=""
+  >
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label required"
+          for=":ru:-title"
+        >
+          Title
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id=":ru:-title-helper"
+      >
+        The document title displayed in the catalog
+      </div>
+      <input
+        aria-describedby=":ru:-title-helper"
+        aria-invalid="false"
+        aria-required="true"
+        class="input-base "
+        id=":ru:-title"
+        placeholder="Enter document title..."
+        required=""
+        type="text"
+        value="Document with Description"
+      />
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for=":ru:-description"
+        >
+          Description
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id=":ru:-description-helper"
+      >
+        Optional notes or description for this document
+      </div>
+      <textarea
+        aria-describedby=":ru:-description-helper"
+        class="input-base document-edit-description"
+        id=":ru:-description"
+        placeholder="Enter document description or notes..."
+        rows="4"
+      >
+        This is a detailed description of the document.
+      </textarea>
+    </div>
+    <div
+      class="document-edit-form-actions"
+    >
+      <button
+        class="button secondary"
+        type="button"
+      >
+        Cancel
+      </button>
+      <button
+        aria-busy="false"
+        class="button primary "
+        type="submit"
+      >
+        Save Changes
+      </button>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`DocumentEditForm > snapshot > matches snapshot with validation errors 1`] = `
+<div>
+  <form
+    aria-label="Edit document form"
+    class="document-edit-form"
+    id=":rt:-doc-edit-form"
+    novalidate=""
+  >
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label required"
+          for=":rt:-title"
+        >
+          Title
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id=":rt:-title-helper"
+      >
+        The document title displayed in the catalog
+      </div>
+      <input
+        aria-describedby=":rt:-title-error :rt:-title-helper"
+        aria-invalid="true"
+        aria-required="true"
+        class="input-base error"
+        id=":rt:-title"
+        placeholder="Enter document title..."
+        required=""
+        type="text"
+        value=""
+      />
+      <div
+        class="error-message"
+        id=":rt:-title-error"
+        role="alert"
+      >
+        Title is required
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for=":rt:-description"
+        >
+          Description
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id=":rt:-description-helper"
+      >
+        Optional notes or description for this document
+      </div>
+      <textarea
+        aria-describedby=":rt:-description-helper"
+        class="input-base document-edit-description"
+        id=":rt:-description"
+        placeholder="Enter document description or notes..."
+        rows="4"
+      />
+    </div>
+    <div
+      class="document-edit-form-actions"
+    >
+      <button
+        class="button secondary"
+        type="button"
+      >
+        Cancel
+      </button>
+      <button
+        aria-busy="false"
+        class="button primary "
+        type="submit"
+      >
+        Save Changes
+      </button>
+    </div>
+  </form>
+</div>
+`;
