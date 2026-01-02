@@ -47,3 +47,17 @@
 - **Fix**: No code change required. Sorting logic is correct. Consider adding sort transition animation for better UX feedback in future enhancement.
 - **Commit(s)**: N/A - No code change
 - **Status**: INVESTIGATION COMPLETE - Not a bug
+
+---
+
+### TypeScript Build Errors After Phase 6 Changes
+
+**Issue**: Docker build failing with 5 TypeScript errors after Phase 6 UI changes - `archived` property missing from `DocMeta` objects and `exactOptionalPropertyTypes` violations
+- **Location**: Multiple adapters (`idb-doc-store.ts`, `fs-local/index.ts`, `tauri-fs-adapter.ts`) and UI components (`DocumentRow.tsx`, `DocumentKebabMenu.tsx`)
+- **Root Cause**: Phase 6 added `archived` as a required property on `DocMeta` type, but adapters still constructed DocMeta objects without it. Additionally, `exactOptionalPropertyTypes` was enabled, requiring explicit `| undefined` for props that can be explicitly passed as undefined.
+- **Fix**:
+  1. Added `archived: false` (or `doc.archived ?? false`) to all DocMeta construction sites
+  2. Changed optional callback prop types from `prop?: Type` to `prop?: Type | undefined` for explicit undefined assignment compatibility
+  3. Fixed 30+ test files with same patterns plus unused variable warnings
+- **Commit(s)**: 8e9f2e8
+- **Status**: RESOLVED
