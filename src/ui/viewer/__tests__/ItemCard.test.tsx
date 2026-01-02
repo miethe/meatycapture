@@ -265,6 +265,183 @@ describe('ItemCard', () => {
     });
   });
 
+  describe('priority styling', () => {
+    it('applies priority-critical class for critical priority', () => {
+      const item = createMockItem({ priority: 'critical' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const priorityBadge = container.querySelector('.priority-badge');
+      expect(priorityBadge).toHaveClass('priority-critical');
+    });
+
+    it('applies priority-high class for high priority', () => {
+      const item = createMockItem({ priority: 'high' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const priorityBadge = container.querySelector('.priority-badge');
+      expect(priorityBadge).toHaveClass('priority-high');
+    });
+
+    it('applies priority-medium class for medium priority', () => {
+      const item = createMockItem({ priority: 'medium' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const priorityBadge = container.querySelector('.priority-badge');
+      expect(priorityBadge).toHaveClass('priority-medium');
+    });
+
+    it('applies priority-low class for low priority', () => {
+      const item = createMockItem({ priority: 'low' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const priorityBadge = container.querySelector('.priority-badge');
+      expect(priorityBadge).toHaveClass('priority-low');
+    });
+
+    it('applies no extra priority class for unknown priority', () => {
+      const item = createMockItem({ priority: 'unknown' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const priorityBadge = container.querySelector('.priority-badge');
+      expect(priorityBadge).not.toHaveClass('priority-critical');
+      expect(priorityBadge).not.toHaveClass('priority-high');
+      expect(priorityBadge).not.toHaveClass('priority-medium');
+      expect(priorityBadge).not.toHaveClass('priority-low');
+    });
+  });
+
+  describe('status styling', () => {
+    it('applies status-done class for done status', () => {
+      const item = createMockItem({ status: 'done' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const statusBadge = container.querySelector('.status-badge');
+      expect(statusBadge).toHaveClass('status-done');
+    });
+
+    it('applies status-in-progress class for in-progress status', () => {
+      const item = createMockItem({ status: 'in-progress' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const statusBadge = container.querySelector('.status-badge');
+      expect(statusBadge).toHaveClass('status-in-progress');
+    });
+
+    it('applies status-planned class for planned status', () => {
+      const item = createMockItem({ status: 'planned' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const statusBadge = container.querySelector('.status-badge');
+      expect(statusBadge).toHaveClass('status-planned');
+    });
+
+    it('applies status-backlog class for backlog status', () => {
+      const item = createMockItem({ status: 'backlog' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const statusBadge = container.querySelector('.status-badge');
+      expect(statusBadge).toHaveClass('status-backlog');
+    });
+
+    it('applies status-triage class for triage status', () => {
+      const item = createMockItem({ status: 'triage' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const statusBadge = container.querySelector('.status-badge');
+      expect(statusBadge).toHaveClass('status-triage');
+    });
+
+    it('applies status-wontfix class for wontfix status', () => {
+      const item = createMockItem({ status: 'wontfix' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const statusBadge = container.querySelector('.status-badge');
+      expect(statusBadge).toHaveClass('status-wontfix');
+    });
+
+    it('applies no extra status class for unknown status', () => {
+      const item = createMockItem({ status: 'unknown' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const statusBadge = container.querySelector('.status-badge');
+      expect(statusBadge).not.toHaveClass('status-done');
+      expect(statusBadge).not.toHaveClass('status-in-progress');
+      expect(statusBadge).not.toHaveClass('status-planned');
+      expect(statusBadge).not.toHaveClass('status-backlog');
+      expect(statusBadge).not.toHaveClass('status-triage');
+      expect(statusBadge).not.toHaveClass('status-wontfix');
+    });
+  });
+
+  describe('copy ID functionality', () => {
+    it('copies ID to clipboard and shows success feedback', async () => {
+      const user = userEvent.setup({ delay: null });
+      const mockWriteText = vi.fn().mockResolvedValue(undefined);
+      vi.stubGlobal('navigator', {
+        ...navigator,
+        clipboard: {
+          writeText: mockWriteText,
+        },
+      });
+
+      const onCopyId = vi.fn();
+      render(<ItemCard item={createMockItem()} onCopyId={onCopyId} />);
+
+      const copyButton = screen.getByRole('button', { name: /copy item id/i });
+      await user.click(copyButton);
+
+      expect(mockWriteText).toHaveBeenCalledWith('REQ-20251231-test-01');
+      expect(onCopyId).toHaveBeenCalledWith('REQ-20251231-test-01');
+      expect(screen.getByText('Copied!')).toBeInTheDocument();
+
+      vi.unstubAllGlobals();
+    });
+
+    it('shows failure feedback when clipboard copy fails', async () => {
+      const user = userEvent.setup({ delay: null });
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const mockWriteText = vi.fn().mockRejectedValue(new Error('Clipboard error'));
+      vi.stubGlobal('navigator', {
+        ...navigator,
+        clipboard: {
+          writeText: mockWriteText,
+        },
+      });
+
+      const onCopyId = vi.fn();
+      render(<ItemCard item={createMockItem()} onCopyId={onCopyId} />);
+
+      const copyButton = screen.getByRole('button', { name: /copy item id/i });
+      await user.click(copyButton);
+
+      expect(mockWriteText).toHaveBeenCalledWith('REQ-20251231-test-01');
+      expect(onCopyId).not.toHaveBeenCalled();
+      expect(screen.getByText('Failed to copy')).toBeInTheDocument();
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to copy item ID:', expect.any(Error));
+
+      consoleSpy.mockRestore();
+      vi.unstubAllGlobals();
+    });
+  });
+
+  describe('empty tags', () => {
+    it('does not render tags section when tags array is empty', () => {
+      const item = createMockItem({ tags: [] });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      expect(container.querySelector('.viewer-item-tags')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('empty notes', () => {
+    it('does not render notes section when notes is empty', () => {
+      const item = createMockItem({ notes: '' });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      expect(container.querySelector('.viewer-item-notes')).not.toBeInTheDocument();
+    });
+  });
+
   describe('modified date display', () => {
     it('shows Modified date when modified_at differs from created_at', () => {
       const createdAt = new Date('2025-12-31T10:00:00Z');

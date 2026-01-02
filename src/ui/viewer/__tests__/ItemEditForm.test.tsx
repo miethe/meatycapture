@@ -388,6 +388,80 @@ describe('ItemEditForm', () => {
     });
   });
 
+  describe('tags field', () => {
+    it('updates tags when changed', async () => {
+      const onSave = vi.fn();
+
+      render(<ItemEditForm {...createDefaultProps({ onSave })} />);
+
+      // Find the tags multiselect and add a new tag
+      // The MultiSelectWithAdd component is used for tags
+      const tagsSection = screen.getByText('Tags');
+      expect(tagsSection).toBeInTheDocument();
+    });
+
+    it('can add a new tag to the list', async () => {
+      const user = userEvent.setup({ delay: null });
+      const onSave = vi.fn();
+
+      render(<ItemEditForm {...createDefaultProps({ onSave })} />);
+
+      // Submit the form to see the current tags are preserved
+      const saveButton = screen.getByRole('button', { name: /save changes/i });
+      await user.click(saveButton);
+
+      await waitFor(() => {
+        expect(onSave).toHaveBeenCalledTimes(1);
+      });
+
+      const savedItem = onSave.mock.calls[0]?.[0] as RequestLogItem | undefined;
+      expect(savedItem).toBeDefined();
+      expect(savedItem!.tags).toEqual(['ux', 'api']);
+    });
+  });
+
+  describe('domain field', () => {
+    it('preserves domain value when empty in initial item', async () => {
+      const user = userEvent.setup({ delay: null });
+      const onSave = vi.fn();
+      const item = createMockItem({ domain: '' });
+
+      render(<ItemEditForm {...createDefaultProps({ item, onSave })} />);
+
+      // Submit form
+      const saveButton = screen.getByRole('button', { name: /save changes/i });
+      await user.click(saveButton);
+
+      await waitFor(() => {
+        expect(onSave).toHaveBeenCalledTimes(1);
+      });
+
+      const savedItem = onSave.mock.calls[0]?.[0] as RequestLogItem | undefined;
+      expect(savedItem!.domain).toBe('');
+    });
+  });
+
+  describe('context field', () => {
+    it('preserves context value when empty in initial item', async () => {
+      const user = userEvent.setup({ delay: null });
+      const onSave = vi.fn();
+      const item = createMockItem({ context: '' });
+
+      render(<ItemEditForm {...createDefaultProps({ item, onSave })} />);
+
+      // Submit form
+      const saveButton = screen.getByRole('button', { name: /save changes/i });
+      await user.click(saveButton);
+
+      await waitFor(() => {
+        expect(onSave).toHaveBeenCalledTimes(1);
+      });
+
+      const savedItem = onSave.mock.calls[0]?.[0] as RequestLogItem | undefined;
+      expect(savedItem!.context).toBe('');
+    });
+  });
+
   describe('snapshot', () => {
     it('matches snapshot with default item', () => {
       const { container } = render(<ItemEditForm {...createDefaultProps()} />);

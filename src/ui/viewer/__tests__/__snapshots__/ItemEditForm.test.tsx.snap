@@ -5,7 +5,7 @@ exports[`ItemEditForm > snapshot > matches snapshot in saving state 1`] = `
   <form
     aria-label="Edit item form"
     class="item-edit-form"
-    id=":rl:-edit-form"
+    id=":rp:-edit-form"
     novalidate=""
   >
     <div
@@ -16,7 +16,7 @@ exports[`ItemEditForm > snapshot > matches snapshot in saving state 1`] = `
       >
         <label
           class="field-label required"
-          for=":rl:-title"
+          for=":rp:-title"
         >
           Title
         </label>
@@ -26,7 +26,7 @@ exports[`ItemEditForm > snapshot > matches snapshot in saving state 1`] = `
         aria-required="true"
         class="input-base "
         disabled=""
-        id=":rl:-title"
+        id=":rp:-title"
         placeholder="Enter item title..."
         required=""
         type="text"
@@ -479,22 +479,22 @@ exports[`ItemEditForm > snapshot > matches snapshot in saving state 1`] = `
       >
         <label
           class="field-label"
-          for=":rl:-notes"
+          for=":rp:-notes"
         >
           Notes
         </label>
       </div>
       <div
         class="form-field-helper"
-        id=":rl:-notes-helper"
+        id=":rp:-notes-helper"
       >
         Detailed description, problem/goal, or any additional information
       </div>
       <textarea
-        aria-describedby=":rl:-notes-helper"
+        aria-describedby=":rp:-notes-helper"
         class="input-base item-edit-notes"
         disabled=""
-        id=":rl:-notes"
+        id=":rp:-notes"
         placeholder="Enter notes (supports Markdown)..."
         rows="6"
       >
@@ -542,7 +542,7 @@ exports[`ItemEditForm > snapshot > matches snapshot with default item 1`] = `
   <form
     aria-label="Edit item form"
     class="item-edit-form"
-    id=":rk:-edit-form"
+    id=":ro:-edit-form"
     novalidate=""
   >
     <div
@@ -553,7 +553,7 @@ exports[`ItemEditForm > snapshot > matches snapshot with default item 1`] = `
       >
         <label
           class="field-label required"
-          for=":rk:-title"
+          for=":ro:-title"
         >
           Title
         </label>
@@ -562,7 +562,7 @@ exports[`ItemEditForm > snapshot > matches snapshot with default item 1`] = `
         aria-invalid="false"
         aria-required="true"
         class="input-base "
-        id=":rk:-title"
+        id=":ro:-title"
         placeholder="Enter item title..."
         required=""
         type="text"
@@ -1008,21 +1008,21 @@ exports[`ItemEditForm > snapshot > matches snapshot with default item 1`] = `
       >
         <label
           class="field-label"
-          for=":rk:-notes"
+          for=":ro:-notes"
         >
           Notes
         </label>
       </div>
       <div
         class="form-field-helper"
-        id=":rk:-notes-helper"
+        id=":ro:-notes-helper"
       >
         Detailed description, problem/goal, or any additional information
       </div>
       <textarea
-        aria-describedby=":rk:-notes-helper"
+        aria-describedby=":ro:-notes-helper"
         class="input-base item-edit-notes"
-        id=":rk:-notes"
+        id=":ro:-notes"
         placeholder="Enter notes (supports Markdown)..."
         rows="6"
       >
@@ -1055,7 +1055,7 @@ exports[`ItemEditForm > snapshot > matches snapshot with validation errors 1`] =
   <form
     aria-label="Edit item form"
     class="item-edit-form"
-    id=":rm:-edit-form"
+    id=":rq:-edit-form"
     novalidate=""
   >
     <div
@@ -1066,17 +1066,17 @@ exports[`ItemEditForm > snapshot > matches snapshot with validation errors 1`] =
       >
         <label
           class="field-label required"
-          for=":rm:-title"
+          for=":rq:-title"
         >
           Title
         </label>
       </div>
       <input
-        aria-describedby=":rm:-title-error"
+        aria-describedby=":rq:-title-error"
         aria-invalid="true"
         aria-required="true"
         class="input-base error"
-        id=":rm:-title"
+        id=":rq:-title"
         placeholder="Enter item title..."
         required=""
         type="text"
@@ -1084,7 +1084,7 @@ exports[`ItemEditForm > snapshot > matches snapshot with validation errors 1`] =
       />
       <div
         class="error-message"
-        id=":rm:-title-error"
+        id=":rq:-title-error"
         role="alert"
       >
         Title is required
@@ -1531,21 +1531,21 @@ exports[`ItemEditForm > snapshot > matches snapshot with validation errors 1`] =
       >
         <label
           class="field-label"
-          for=":rm:-notes"
+          for=":rq:-notes"
         >
           Notes
         </label>
       </div>
       <div
         class="form-field-helper"
-        id=":rm:-notes-helper"
+        id=":rq:-notes-helper"
       >
         Detailed description, problem/goal, or any additional information
       </div>
       <textarea
-        aria-describedby=":rm:-notes-helper"
+        aria-describedby=":rq:-notes-helper"
         class="input-base item-edit-notes"
-        id=":rm:-notes"
+        id=":rq:-notes"
         placeholder="Enter notes (supports Markdown)..."
         rows="6"
       >

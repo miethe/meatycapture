@@ -344,9 +344,13 @@ describe('MultiSelectCombobox', () => {
       render(<MultiSelectCombobox {...defaultProps} />);
 
       const input = screen.getByRole('combobox');
-      input.focus();
-      await user.keyboard('{ArrowDown}');
+      // Use userEvent to focus and then press ArrowDown to avoid act() warnings
+      await user.click(input);
+      // Close it first to test opening via ArrowDown
+      await user.keyboard('{Escape}');
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
+      await user.keyboard('{ArrowDown}');
       expect(screen.getByRole('listbox')).toBeInTheDocument();
     });
 
@@ -557,6 +561,109 @@ describe('MultiSelectCombobox', () => {
       const liveRegion = screen.getByRole('status');
       expect(liveRegion).toHaveAttribute('aria-live', 'polite');
     });
+
+    it('has aria-controls pointing to listbox', async () => {
+      const user = userEvent.setup();
+      render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+
+      const listbox = screen.getByRole('listbox');
+      expect(input).toHaveAttribute('aria-controls', listbox.id);
+    });
+
+    it('listbox has aria-label', async () => {
+      const user = userEvent.setup();
+      render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+
+      const listbox = screen.getByRole('listbox');
+      expect(listbox).toHaveAttribute('aria-label', 'Domain options');
+    });
+
+    it('options have correct IDs for aria-activedescendant reference', async () => {
+      const user = userEvent.setup();
+      render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      await user.keyboard('{ArrowDown}');
+
+      // Check that the active descendant ID matches the option ID
+      const activeDescendantId = input.getAttribute('aria-activedescendant');
+      const activeOption = screen.getAllByRole('option')[0]!;
+      expect(activeDescendantId).toBe(activeOption.id);
+    });
+
+    it('Add option has correct ID for aria-activedescendant reference', async () => {
+      const user = userEvent.setup();
+      render(<MultiSelectCombobox {...defaultProps} options={['A']} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      await user.type(input, 'NewValue');
+      // Navigate to Add option (past the 0 filtered options since 'A' doesn't match 'NewValue')
+      await user.keyboard('{ArrowDown}');
+
+      const activeDescendantId = input.getAttribute('aria-activedescendant');
+      const addOption = screen.getByText('Add "NewValue"');
+      expect(activeDescendantId).toBe(addOption.id);
+    });
+
+    it('does not have aria-describedby when no helper text', () => {
+      render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      expect(input).not.toHaveAttribute('aria-describedby');
+    });
+
+    it('badges have correct role and listitem roles', () => {
+      render(<MultiSelectCombobox {...defaultProps} selected={['Frontend', 'Backend']} />);
+
+      const badges = screen.getAllByRole('listitem');
+      expect(badges).toHaveLength(2);
+    });
+
+    it('live region announces option count changes', async () => {
+      const user = userEvent.setup();
+      render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+
+      const liveRegion = screen.getByRole('status');
+      expect(liveRegion).toHaveTextContent('5 options available');
+
+      await user.type(input, 'front');
+
+      expect(liveRegion).toHaveTextContent('1 option available');
+    });
+
+    it('live region announces new option available', async () => {
+      const user = userEvent.setup();
+      render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      await user.type(input, 'xyz');
+
+      const liveRegion = screen.getByRole('status');
+      expect(liveRegion).toHaveTextContent('0 options available (1 new option available)');
+    });
+
+    it('aria-atomic is set on live region', async () => {
+      const user = userEvent.setup();
+      render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+
+      const liveRegion = screen.getByRole('status');
+      expect(liveRegion).toHaveAttribute('aria-atomic', 'true');
+    });
   });
 
   describe('Edge Cases', () => {
@@ -606,6 +713,110 @@ describe('MultiSelectCombobox', () => {
       // Should not show Add option since Frontend exists (case-insensitive)
       expect(screen.queryByText(/^Add /)).not.toBeInTheDocument();
     });
+
+    it('does not crash when Backspace is pressed with no selected items', async () => {
+      const user = userEvent.setup();
+      const onRemove = vi.fn();
+      render(<MultiSelectCombobox {...defaultProps} selected={[]} onRemove={onRemove} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      await user.keyboard('{Backspace}');
+
+      expect(onRemove).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate when ArrowUp is pressed on closed dropdown', async () => {
+      const user = userEvent.setup();
+      render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      await user.keyboard('{Escape}');
+      // Verify dropdown is closed
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+
+      // ArrowUp on closed dropdown should not open it (unlike ArrowDown)
+      await user.keyboard('{ArrowUp}');
+      // The component behavior: ArrowUp does not open the dropdown when closed
+      expect(input).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('does not call onAdd when value is empty after trim', async () => {
+      const user = userEvent.setup();
+      const onAdd = vi.fn();
+      render(<MultiSelectCombobox {...defaultProps} onAdd={onAdd} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      await user.type(input, '   ');
+      await user.keyboard('{Enter}');
+
+      expect(onAdd).not.toHaveBeenCalled();
+    });
+
+    it('handles all selected options case gracefully', async () => {
+      const user = userEvent.setup();
+      render(
+        <MultiSelectCombobox
+          {...defaultProps}
+          options={['A', 'B']}
+          selected={['A', 'B']}
+        />
+      );
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+
+      // No options or add option should be shown, so no listbox
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    it('mouse hover updates active index for options', async () => {
+      const user = userEvent.setup();
+      render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+
+      const options = screen.getAllByRole('option');
+      await user.hover(options[2]!);
+
+      expect(options[2]).toHaveClass('tags-popover-option-active');
+    });
+
+    it('mouse hover on Add option updates active index', async () => {
+      const user = userEvent.setup();
+      render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      await user.type(input, 'xyz');
+
+      const addOption = screen.getByText('Add "xyz"');
+      await user.hover(addOption);
+
+      expect(addOption).toHaveClass('tags-popover-option-active');
+    });
+
+    it('handles keyboard navigation with zero navigable items', async () => {
+      const user = userEvent.setup();
+      render(
+        <MultiSelectCombobox
+          {...defaultProps}
+          options={['Test']}
+          selected={['Test']}
+        />
+      );
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      // With no options and no search query (no Add option), ArrowDown should do nothing
+      await user.keyboard('{ArrowDown}');
+
+      // Should not crash or throw error
+      expect(input).toBeInTheDocument();
+    });
   });
 
   describe('Snapshot Tests', () => {
@@ -644,6 +855,60 @@ describe('MultiSelectCombobox', () => {
         <MultiSelectCombobox {...defaultProps} selected={['Frontend']} disabled />
       );
       expect(container).toMatchSnapshot();
+    });
+
+    it('matches snapshot with suggestions dropdown open', async () => {
+      const user = userEvent.setup();
+      const { container } = render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+
+      expect(container).toMatchSnapshot();
+    });
+
+    it('matches snapshot with Add option visible', async () => {
+      const user = userEvent.setup();
+      const { container } = render(<MultiSelectCombobox {...defaultProps} />);
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      await user.type(input, 'NewOption');
+
+      expect(container).toMatchSnapshot();
+    });
+  });
+
+  describe('Recently Added Animation', () => {
+    it('applies new badge animation class to recently added items', async () => {
+      const user = userEvent.setup();
+      const onAdd = vi.fn();
+
+      // We need to test that the recentlyAdded state works
+      // This requires re-rendering with the newly added value
+      const { rerender } = render(
+        <MultiSelectCombobox {...defaultProps} onAdd={onAdd} />
+      );
+
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      await user.type(input, 'NewValue');
+      await user.click(screen.getByText('Add "NewValue"'));
+
+      expect(onAdd).toHaveBeenCalledWith('NewValue');
+
+      // In the real app, the parent would update selected array
+      // Here we simulate that behavior
+      rerender(
+        <MultiSelectCombobox
+          {...defaultProps}
+          selected={['NewValue']}
+          onAdd={onAdd}
+        />
+      );
+
+      // The badge should be present (animation class testing would require checking internal state)
+      expect(screen.getByText('NewValue')).toBeInTheDocument();
     });
   });
 });

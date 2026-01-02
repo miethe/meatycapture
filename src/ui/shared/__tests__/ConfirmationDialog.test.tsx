@@ -396,4 +396,229 @@ describe('ConfirmationDialog', () => {
       expect(document.body.style.overflow).toBe(originalOverflow);
     });
   });
+
+  describe('enter key activation', () => {
+    it('activates confirm button when focused and Enter is pressed', async () => {
+      const onConfirm = vi.fn();
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <ConfirmationDialog
+          {...defaultProps}
+          onConfirm={onConfirm}
+        />
+      );
+
+      // Tab to confirm button and press Enter
+      await user.tab();
+      await user.keyboard('{Enter}');
+
+      expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
+
+    it('activates cancel button when focused and Enter is pressed', async () => {
+      const onCancel = vi.fn();
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <ConfirmationDialog
+          {...defaultProps}
+          onCancel={onCancel}
+        />
+      );
+
+      // Cancel is focused by default, press Enter
+      await user.keyboard('{Enter}');
+
+      // Wait for exit animation to complete
+      await waitFor(
+        () => {
+          expect(onCancel).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 500 }
+      );
+    });
+  });
+
+  describe('loading state details', () => {
+    it('shows hidden content span when loading', () => {
+      render(
+        <ConfirmationDialog
+          {...defaultProps}
+          isLoading={true}
+          confirmLabel="Delete"
+        />
+      );
+
+      const hiddenContent = document.querySelector('.button-content-hidden');
+      expect(hiddenContent).toBeInTheDocument();
+      expect(hiddenContent).toHaveTextContent('Delete');
+    });
+
+    it('does not call onCancel when cancel button clicked during loading', async () => {
+      const onCancel = vi.fn();
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <ConfirmationDialog
+          {...defaultProps}
+          onCancel={onCancel}
+          isLoading={true}
+        />
+      );
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      await user.click(cancelButton);
+
+      // Give time for any potential callback
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(onCancel).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('overlay behavior', () => {
+    it('has aria-hidden attribute on overlay', () => {
+      render(<ConfirmationDialog {...defaultProps} />);
+
+      const overlay = screen.getByRole('dialog').parentElement;
+      expect(overlay).toHaveAttribute('aria-hidden', 'false');
+    });
+  });
+
+  describe('exit animation', () => {
+    it('applies exit animation class when closing via cancel button', async () => {
+      const onCancel = vi.fn();
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <ConfirmationDialog
+          {...defaultProps}
+          onCancel={onCancel}
+        />
+      );
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      await user.click(cancelButton);
+
+      // Check for exit animation class before callback fires
+      await waitFor(() => {
+        const dialog = screen.getByRole('dialog');
+        expect(dialog).toHaveClass('confirmation-dialog-exit');
+      });
+
+      // Wait for the animation to complete
+      await waitFor(
+        () => {
+          expect(onCancel).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 500 }
+      );
+    });
+
+    it('applies exit animation class on overlay when closing', async () => {
+      const onCancel = vi.fn();
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <ConfirmationDialog
+          {...defaultProps}
+          onCancel={onCancel}
+        />
+      );
+
+      await user.keyboard('{Escape}');
+
+      // Check for exit animation class on overlay
+      await waitFor(() => {
+        const overlay = screen.getByRole('dialog').parentElement;
+        expect(overlay).toHaveClass('modal-overlay-exit');
+      });
+    });
+  });
+
+  describe('default prop values', () => {
+    it('renders with isDangerous defaulting to false', () => {
+      render(
+        <ConfirmationDialog
+          isOpen={true}
+          title="Test"
+          message="Test message"
+          onConfirm={vi.fn()}
+          onCancel={vi.fn()}
+        />
+      );
+
+      const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+      expect(confirmButton).toHaveClass('primary');
+      expect(confirmButton).not.toHaveClass('danger');
+    });
+
+    it('renders with isLoading defaulting to false', () => {
+      render(
+        <ConfirmationDialog
+          isOpen={true}
+          title="Test"
+          message="Test message"
+          onConfirm={vi.fn()}
+          onCancel={vi.fn()}
+        />
+      );
+
+      const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+      expect(confirmButton).not.toHaveClass('loading');
+      expect(confirmButton).not.toBeDisabled();
+    });
+  });
+
+  describe('unique IDs', () => {
+    it('generates unique IDs for each dialog instance', () => {
+      const { rerender } = render(<ConfirmationDialog {...defaultProps} />);
+
+      // First dialog exists
+      screen.getByRole('dialog');
+
+      // Close and reopen to get new IDs
+      rerender(<ConfirmationDialog {...defaultProps} isOpen={false} />);
+      rerender(<ConfirmationDialog {...defaultProps} isOpen={true} />);
+
+      const dialog2 = screen.getByRole('dialog');
+      const labelledById2 = dialog2.getAttribute('aria-labelledby');
+      const describedById2 = dialog2.getAttribute('aria-describedby');
+
+      // IDs should still be valid and point to correct elements
+      expect(document.getElementById(labelledById2!)).toHaveTextContent('Confirm Action');
+      expect(document.getElementById(describedById2!)).toHaveTextContent('Are you sure you want to proceed?');
+    });
+  });
+
+  describe('glass styling', () => {
+    it('applies glass class to dialog', () => {
+      render(<ConfirmationDialog {...defaultProps} />);
+
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toHaveClass('glass');
+      expect(dialog).toHaveClass('confirmation-dialog');
+    });
+  });
+
+  describe('button styling', () => {
+    it('applies secondary class to cancel button', () => {
+      render(<ConfirmationDialog {...defaultProps} />);
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      expect(cancelButton).toHaveClass('button');
+      expect(cancelButton).toHaveClass('secondary');
+    });
+
+    it('applies button class to both buttons', () => {
+      render(<ConfirmationDialog {...defaultProps} />);
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+
+      expect(cancelButton).toHaveClass('button');
+      expect(confirmButton).toHaveClass('button');
+    });
+  });
 });

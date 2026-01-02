@@ -1,13 +1,24 @@
 /**
  * DocumentRow Component Tests
  *
- * Tests for the document row component including archive status indicator.
+ * Tests for the document row component including archive status indicator,
+ * tag display, expansion states, and kebab menu actions.
  */
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DocumentRow } from '../DocumentRow';
 import type { CatalogEntry } from '@core/catalog';
+import type { RequestLogDoc } from '@core/models';
+
+// Mock DocumentDetail component to simplify testing
+vi.mock('../DocumentDetail', () => ({
+  DocumentDetail: ({ document, isLoading }: { document: RequestLogDoc; isLoading: boolean }) => (
+    <div data-testid="document-detail" data-loading={isLoading}>
+      Document Detail: {document.doc_id}
+    </div>
+  ),
+}));
 
 // Mock catalog entry for testing
 const createMockEntry = (overrides: Partial<CatalogEntry> = {}): CatalogEntry => ({
@@ -18,6 +29,21 @@ const createMockEntry = (overrides: Partial<CatalogEntry> = {}): CatalogEntry =>
   updated_at: new Date('2025-12-31T10:00:00Z'),
   project_id: 'test-project',
   project_name: 'Test Project',
+  archived: false,
+  ...overrides,
+});
+
+// Mock full document for testing
+const createMockDocument = (overrides: Partial<RequestLogDoc> = {}): RequestLogDoc => ({
+  doc_id: 'REQ-20251231-test',
+  title: 'Test Document',
+  project_id: 'test-project',
+  items: [],
+  items_index: [],
+  tags: [],
+  item_count: 5,
+  created_at: new Date('2025-12-31T09:00:00Z'),
+  updated_at: new Date('2025-12-31T10:00:00Z'),
   archived: false,
   ...overrides,
 });
@@ -283,6 +309,595 @@ describe('DocumentRow', () => {
       );
 
       expect(screen.getByLabelText('Loading document')).toBeInTheDocument();
+    });
+
+    it('does not call onLoadDocument when already loading', async () => {
+      const onLoadDocument = vi.fn();
+      const onToggle = vi.fn();
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow
+              {...defaultProps}
+              isLoading={true}
+              onLoadDocument={onLoadDocument}
+              onToggle={onToggle}
+            />
+          </tbody>
+        </table>
+      );
+
+      const row = screen.getByRole('row');
+      await user.click(row);
+
+      // onToggle is called regardless, but onLoadDocument should not be
+      expect(onToggle).toHaveBeenCalledTimes(1);
+      expect(onLoadDocument).not.toHaveBeenCalled();
+    });
+
+    it('does not call onLoadDocument when already expanded', async () => {
+      const onLoadDocument = vi.fn();
+      const onToggle = vi.fn();
+      const user = userEvent.setup({ delay: null });
+
+      const { container } = render(
+        <table>
+          <tbody>
+            <DocumentRow
+              {...defaultProps}
+              isExpanded={true}
+              onLoadDocument={onLoadDocument}
+              onToggle={onToggle}
+            />
+          </tbody>
+        </table>
+      );
+
+      // Get the main document row, not the detail row
+      const row = container.querySelector('.viewer-document-row');
+      await user.click(row!);
+
+      // onToggle is called to collapse, but onLoadDocument should not be
+      expect(onToggle).toHaveBeenCalledTimes(1);
+      expect(onLoadDocument).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('tags display', () => {
+    it('does not show tags when document is null', () => {
+      const { container } = render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} document={null} />
+          </tbody>
+        </table>
+      );
+
+      expect(container.querySelector('.doc-row-tags')).not.toBeInTheDocument();
+    });
+
+    it('does not show tags when document has empty tags array', () => {
+      const document = createMockDocument({ tags: [] });
+      const { container } = render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} document={document} />
+          </tbody>
+        </table>
+      );
+
+      expect(container.querySelector('.doc-row-tags')).not.toBeInTheDocument();
+    });
+
+    it('shows tags when document has tags', () => {
+      const document = createMockDocument({ tags: ['ux', 'api', 'bug'] });
+      const { container } = render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} document={document} />
+          </tbody>
+        </table>
+      );
+
+      expect(container.querySelector('.doc-row-tags')).toBeInTheDocument();
+      expect(screen.getByText('ux')).toBeInTheDocument();
+      expect(screen.getByText('api')).toBeInTheDocument();
+      expect(screen.getByText('bug')).toBeInTheDocument();
+    });
+
+    it('shows only first 3 tags with overflow indicator', () => {
+      const document = createMockDocument({
+        tags: ['ux', 'api', 'bug', 'enhancement', 'review'],
+      });
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} document={document} />
+          </tbody>
+        </table>
+      );
+
+      // First 3 tags should be visible
+      expect(screen.getByText('ux')).toBeInTheDocument();
+      expect(screen.getByText('api')).toBeInTheDocument();
+      expect(screen.getByText('bug')).toBeInTheDocument();
+
+      // 4th and 5th tags should not be visible as chips
+      expect(screen.queryByText('enhancement')).not.toBeInTheDocument();
+      expect(screen.queryByText('review')).not.toBeInTheDocument();
+
+      // Should show overflow indicator (+2)
+      expect(screen.getByText('+2')).toBeInTheDocument();
+    });
+
+    it('does not show overflow indicator with exactly 3 tags', () => {
+      const document = createMockDocument({ tags: ['ux', 'api', 'bug'] });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} document={document} />
+          </tbody>
+        </table>
+      );
+
+      expect(screen.queryByText(/\+\d/)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('date formatting', () => {
+    it('shows "Today" for current day', () => {
+      // Create a date that is today
+      const today = new Date();
+      today.setHours(8, 0, 0, 0);
+      const entry = createMockEntry({
+        updated_at: today,
+      });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} entry={entry} />
+          </tbody>
+        </table>
+      );
+
+      expect(screen.getByText('Today')).toBeInTheDocument();
+    });
+
+    it('shows "Yesterday" for previous day', () => {
+      // Create a date that is yesterday
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(8, 0, 0, 0);
+      const entry = createMockEntry({
+        updated_at: yesterday,
+      });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} entry={entry} />
+          </tbody>
+        </table>
+      );
+
+      expect(screen.getByText('Yesterday')).toBeInTheDocument();
+    });
+
+    it('shows "X days ago" for dates within a week', () => {
+      // Create a date that is 3 days ago
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      threeDaysAgo.setHours(8, 0, 0, 0);
+      const entry = createMockEntry({
+        updated_at: threeDaysAgo,
+      });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} entry={entry} />
+          </tbody>
+        </table>
+      );
+
+      expect(screen.getByText('3 days ago')).toBeInTheDocument();
+    });
+
+    it('shows formatted date for dates older than a week', () => {
+      // Create a date that is 11 days ago
+      const elevenDaysAgo = new Date();
+      elevenDaysAgo.setDate(elevenDaysAgo.getDate() - 11);
+      elevenDaysAgo.setHours(8, 0, 0, 0);
+      const entry = createMockEntry({
+        updated_at: elevenDaysAgo,
+      });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} entry={entry} />
+          </tbody>
+        </table>
+      );
+
+      // Should show localized date format
+      const timeElement = screen.getByRole('time');
+      expect(timeElement).toBeInTheDocument();
+      // The exact format depends on locale, but should not be "X days ago"
+      expect(screen.queryByText(/days ago/)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('expanded state with document', () => {
+    it('shows DocumentDetail when expanded with document', () => {
+      const document = createMockDocument();
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow
+              {...defaultProps}
+              isExpanded={true}
+              document={document}
+            />
+          </tbody>
+        </table>
+      );
+
+      expect(screen.getByTestId('document-detail')).toBeInTheDocument();
+      expect(screen.getByText(/Document Detail:/)).toBeInTheDocument();
+    });
+
+    it('shows fallback placeholder when expanded without document', () => {
+      render(
+        <table>
+          <tbody>
+            <DocumentRow
+              {...defaultProps}
+              isExpanded={true}
+              document={null}
+            />
+          </tbody>
+        </table>
+      );
+
+      expect(screen.getByText('Failed to load document')).toBeInTheDocument();
+      expect(screen.getByText(/Path:/)).toBeInTheDocument();
+    });
+
+    it('passes isLoading to DocumentDetail', () => {
+      const document = createMockDocument();
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow
+              {...defaultProps}
+              isExpanded={true}
+              document={document}
+              isLoading={true}
+            />
+          </tbody>
+        </table>
+      );
+
+      const detail = screen.getByTestId('document-detail');
+      expect(detail).toHaveAttribute('data-loading', 'true');
+    });
+  });
+
+  describe('kebab menu', () => {
+    it('renders kebab menu in document row', () => {
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} />
+          </tbody>
+        </table>
+      );
+
+      expect(screen.getByRole('button', { name: /actions for document/i })).toBeInTheDocument();
+    });
+
+    it('opens kebab menu on click', async () => {
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} />
+          </tbody>
+        </table>
+      );
+
+      const menuButton = screen.getByRole('button', { name: /actions for document/i });
+      await user.click(menuButton);
+
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Add Item' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Edit Document' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Archive Document' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Delete Document' })).toBeInTheDocument();
+    });
+
+    it('shows Unarchive for archived documents', async () => {
+      const user = userEvent.setup({ delay: null });
+      const entry = createMockEntry({ archived: true });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} entry={entry} />
+          </tbody>
+        </table>
+      );
+
+      const menuButton = screen.getByRole('button', { name: /actions for document/i });
+      await user.click(menuButton);
+
+      expect(screen.getByRole('menuitem', { name: 'Unarchive Document' })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Archive Document' })).not.toBeInTheDocument();
+    });
+
+    it('clicking kebab menu does not toggle row expansion', async () => {
+      const onToggle = vi.fn();
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} onToggle={onToggle} />
+          </tbody>
+        </table>
+      );
+
+      const menuButton = screen.getByRole('button', { name: /actions for document/i });
+      await user.click(menuButton);
+
+      expect(onToggle).not.toHaveBeenCalled();
+    });
+
+    it('calls onAddItem callback when provided', async () => {
+      const onAddItem = vi.fn();
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} onAddItem={onAddItem} />
+          </tbody>
+        </table>
+      );
+
+      const menuButton = screen.getByRole('button', { name: /actions for document/i });
+      await user.click(menuButton);
+
+      const addItemMenuItem = screen.getByRole('menuitem', { name: 'Add Item' });
+      await user.click(addItemMenuItem);
+
+      expect(onAddItem).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs to console when Add Item clicked without onAddItem callback', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} />
+          </tbody>
+        </table>
+      );
+
+      const menuButton = screen.getByRole('button', { name: /actions for document/i });
+      await user.click(menuButton);
+
+      const addItemMenuItem = screen.getByRole('menuitem', { name: 'Add Item' });
+      await user.click(addItemMenuItem);
+
+      expect(consoleSpy).toHaveBeenCalledWith('Add Item clicked for:', 'REQ-20251231-test');
+      consoleSpy.mockRestore();
+    });
+
+    it('logs to console when Edit clicked', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} />
+          </tbody>
+        </table>
+      );
+
+      const menuButton = screen.getByRole('button', { name: /actions for document/i });
+      await user.click(menuButton);
+
+      const editMenuItem = screen.getByRole('menuitem', { name: 'Edit Document' });
+      await user.click(editMenuItem);
+
+      expect(consoleSpy).toHaveBeenCalledWith('Edit clicked for:', 'REQ-20251231-test');
+      consoleSpy.mockRestore();
+    });
+
+    it('logs to console when Archive clicked', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} />
+          </tbody>
+        </table>
+      );
+
+      const menuButton = screen.getByRole('button', { name: /actions for document/i });
+      await user.click(menuButton);
+
+      const archiveMenuItem = screen.getByRole('menuitem', { name: 'Archive Document' });
+      await user.click(archiveMenuItem);
+
+      expect(consoleSpy).toHaveBeenCalledWith('Archive clicked for:', 'REQ-20251231-test');
+      consoleSpy.mockRestore();
+    });
+
+    it('logs to console when Unarchive clicked for archived document', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const user = userEvent.setup({ delay: null });
+      const entry = createMockEntry({ archived: true });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} entry={entry} />
+          </tbody>
+        </table>
+      );
+
+      const menuButton = screen.getByRole('button', { name: /actions for document/i });
+      await user.click(menuButton);
+
+      const unarchiveMenuItem = screen.getByRole('menuitem', { name: 'Unarchive Document' });
+      await user.click(unarchiveMenuItem);
+
+      expect(consoleSpy).toHaveBeenCalledWith('Unarchive clicked for:', 'REQ-20251231-test');
+      consoleSpy.mockRestore();
+    });
+
+    it('logs to console when Delete clicked', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} />
+          </tbody>
+        </table>
+      );
+
+      const menuButton = screen.getByRole('button', { name: /actions for document/i });
+      await user.click(menuButton);
+
+      const deleteMenuItem = screen.getByRole('menuitem', { name: 'Delete Document' });
+      await user.click(deleteMenuItem);
+
+      expect(consoleSpy).toHaveBeenCalledWith('Delete clicked for:', 'REQ-20251231-test');
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('keyboard navigation', () => {
+    it('ignores non-Enter keys', async () => {
+      const onToggle = vi.fn();
+      const user = userEvent.setup({ delay: null });
+
+      const { container } = render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} onToggle={onToggle} />
+          </tbody>
+        </table>
+      );
+
+      const row = container.querySelector('.viewer-document-row') as HTMLElement;
+      row.focus();
+      await user.keyboard('{ArrowDown}');
+      await user.keyboard('a');
+
+      expect(onToggle).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('expand button', () => {
+    it('has correct aria-label when collapsed', () => {
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} isExpanded={false} />
+          </tbody>
+        </table>
+      );
+
+      const expandButton = screen.getByRole('button', { name: 'Expand row' });
+      expect(expandButton).toBeInTheDocument();
+      expect(expandButton).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('has correct aria-label when expanded', () => {
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} isExpanded={true} />
+          </tbody>
+        </table>
+      );
+
+      const collapseButton = screen.getByRole('button', { name: 'Collapse row' });
+      expect(collapseButton).toBeInTheDocument();
+      expect(collapseButton).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('expands row when expand button is clicked', async () => {
+      const onToggle = vi.fn();
+      const onLoadDocument = vi.fn();
+      const user = userEvent.setup({ delay: null });
+
+      render(
+        <table>
+          <tbody>
+            <DocumentRow
+              {...defaultProps}
+              onToggle={onToggle}
+              onLoadDocument={onLoadDocument}
+            />
+          </tbody>
+        </table>
+      );
+
+      const expandButton = screen.getByRole('button', { name: 'Expand row' });
+      await user.click(expandButton);
+
+      expect(onToggle).toHaveBeenCalledTimes(1);
+      expect(onLoadDocument).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('accessibility', () => {
+    it('row is focusable via tabindex', () => {
+      const { container } = render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} />
+          </tbody>
+        </table>
+      );
+
+      const row = container.querySelector('.viewer-document-row');
+      expect(row).toHaveAttribute('tabindex', '0');
+    });
+
+    it('has correct role attributes', () => {
+      render(
+        <table>
+          <tbody>
+            <DocumentRow {...defaultProps} />
+          </tbody>
+        </table>
+      );
+
+      const rows = screen.getAllByRole('row');
+      expect(rows.length).toBeGreaterThan(0);
+
+      const cells = screen.getAllByRole('cell');
+      expect(cells.length).toBeGreaterThan(0);
     });
   });
 });

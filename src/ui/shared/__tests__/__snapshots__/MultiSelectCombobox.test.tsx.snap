@@ -74,6 +74,74 @@ exports[`MultiSelectCombobox > Snapshot Tests > matches snapshot when disabled 1
 </div>
 `;
 
+exports[`MultiSelectCombobox > Snapshot Tests > matches snapshot with Add option visible 1`] = `
+<div>
+  <div
+    class="field-container"
+  >
+    <div
+      class="form-field-label-row"
+    >
+      <label
+        class="field-label"
+        for="multiselect-combobox-domain"
+      >
+        Domain
+      </label>
+    </div>
+    <div
+      class="tags-input-container"
+    >
+      <div
+        class="tags-input-wrapper"
+      >
+        <input
+          aria-autocomplete="list"
+          aria-controls="multiselect-combobox-domain-listbox"
+          aria-expanded="true"
+          aria-haspopup="listbox"
+          aria-invalid="false"
+          autocomplete="off"
+          class="input-base tags-search-input "
+          id="multiselect-combobox-domain"
+          placeholder="Type to search..."
+          role="combobox"
+          type="text"
+          value="NewOption"
+        />
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+          id="multiselect-combobox-domain-live"
+          role="status"
+          style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+        >
+          0 options available (1 new option available)
+        </div>
+        <ul
+          aria-label="Domain options"
+          class="tags-popover-content"
+          id="multiselect-combobox-domain-listbox"
+          role="listbox"
+        >
+          <li
+            aria-selected="false"
+            class="tags-popover-create "
+            id="multiselect-combobox-domain-listbox-add"
+            role="option"
+          >
+            Add "
+            NewOption
+            "
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`MultiSelectCombobox > Snapshot Tests > matches snapshot with default props 1`] = `
 <div>
   <div
@@ -329,6 +397,114 @@ exports[`MultiSelectCombobox > Snapshot Tests > matches snapshot with selected v
           role="status"
           style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
         />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MultiSelectCombobox > Snapshot Tests > matches snapshot with suggestions dropdown open 1`] = `
+<div>
+  <div
+    class="field-container"
+  >
+    <div
+      class="form-field-label-row"
+    >
+      <label
+        class="field-label"
+        for="multiselect-combobox-domain"
+      >
+        Domain
+      </label>
+    </div>
+    <div
+      class="tags-input-container"
+    >
+      <div
+        class="tags-input-wrapper"
+      >
+        <input
+          aria-autocomplete="list"
+          aria-controls="multiselect-combobox-domain-listbox"
+          aria-expanded="true"
+          aria-haspopup="listbox"
+          aria-invalid="false"
+          autocomplete="off"
+          class="input-base tags-search-input "
+          id="multiselect-combobox-domain"
+          placeholder="Type to search..."
+          role="combobox"
+          type="text"
+          value=""
+        />
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+          id="multiselect-combobox-domain-live"
+          role="status"
+          style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+        >
+          5 options available
+        </div>
+        <ul
+          aria-label="Domain options"
+          class="tags-popover-content"
+          id="multiselect-combobox-domain-listbox"
+          role="listbox"
+        >
+          <li
+            aria-selected="false"
+            class="tags-popover-option "
+            id="multiselect-combobox-domain-listbox-option-0"
+            role="option"
+          >
+            <span>
+              Frontend
+            </span>
+          </li>
+          <li
+            aria-selected="false"
+            class="tags-popover-option "
+            id="multiselect-combobox-domain-listbox-option-1"
+            role="option"
+          >
+            <span>
+              Backend
+            </span>
+          </li>
+          <li
+            aria-selected="false"
+            class="tags-popover-option "
+            id="multiselect-combobox-domain-listbox-option-2"
+            role="option"
+          >
+            <span>
+              Database
+            </span>
+          </li>
+          <li
+            aria-selected="false"
+            class="tags-popover-option "
+            id="multiselect-combobox-domain-listbox-option-3"
+            role="option"
+          >
+            <span>
+              API
+            </span>
+          </li>
+          <li
+            aria-selected="false"
+            class="tags-popover-option "
+            id="multiselect-combobox-domain-listbox-option-4"
+            role="option"
+          >
+            <span>
+              Infrastructure
+            </span>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
