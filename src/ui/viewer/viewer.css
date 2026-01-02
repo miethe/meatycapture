@@ -680,7 +680,7 @@
 .viewer-document-row {
   border-bottom: 1px solid var(--color-border);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), opacity var(--transition-fast);
 }
 
 .viewer-document-row:hover {
@@ -694,6 +694,23 @@
 
 .viewer-document-row.expanded {
   background: var(--color-bg-glass-active);
+}
+
+/* Archived Document Row */
+.viewer-document-row.archived {
+  opacity: 0.7;
+}
+
+.viewer-document-row.archived:hover {
+  opacity: 0.85;
+}
+
+.viewer-document-row.archived .doc-id-code {
+  color: var(--color-text-muted);
+}
+
+.viewer-document-row.archived .viewer-title-cell {
+  color: var(--color-text-muted);
 }
 
 .viewer-document-cell {
@@ -737,7 +754,14 @@
   transition: transform var(--transition-fast);
 }
 
-/* Document ID Code */
+/* Document ID Container and Code */
+.doc-id-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
 .doc-id-code {
   font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
   font-size: 0.8125rem;
@@ -746,6 +770,33 @@
   border-radius: var(--radius-sm);
   color: var(--color-text);
   white-space: nowrap;
+}
+
+/* Archived Badge */
+.doc-archived-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  background: rgba(150, 150, 150, 0.2);
+  border: 1px solid rgba(150, 150, 150, 0.4);
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.doc-archived-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+}
+
+.doc-archived-text {
+  line-height: 1;
 }
 
 /* Title Cell */

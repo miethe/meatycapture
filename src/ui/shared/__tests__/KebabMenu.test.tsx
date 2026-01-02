@@ -239,9 +239,15 @@ describe('KebabMenu', () => {
       render(<KebabMenu items={defaultItems} />);
 
       await user.click(screen.getByRole('button', { name: 'Menu' }));
+      // Wait for menu to open and focus first item
+      await waitFor(() => {
+        expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Edit' }));
+      });
 
       await user.keyboard('{End}');
-      expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Delete' }));
+      await waitFor(() => {
+        expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Delete' }));
+      });
     });
 
     it('selects item with Enter key', async () => {

@@ -111,6 +111,7 @@ export function MobileDocCard({
   const cardClassName = [
     'mobile-doc-card',
     isSelected ? 'mobile-doc-card--selected' : '',
+    entry.archived ? 'mobile-doc-card--archived' : '',
     className,
   ]
     .filter(Boolean)
@@ -125,8 +126,14 @@ export function MobileDocCard({
   // Format date for display
   const formattedDate = formatRelativeTime(entry.updated_at);
 
-  // Build accessible label
-  const accessibleLabel = `Document ${entry.doc_id}: ${entry.title}, ${entry.item_count} items, updated ${formattedDate}`;
+  // Build accessible label including archive status
+  const accessibleLabel = [
+    `Document ${entry.doc_id}: ${entry.title}`,
+    entry.archived ? '(Archived)' : '',
+    `, ${entry.item_count} items, updated ${formattedDate}`,
+  ]
+    .filter(Boolean)
+    .join('');
 
   return (
     <article
@@ -146,18 +153,29 @@ export function MobileDocCard({
     >
       {/* Card Header */}
       <div className="mobile-doc-card__header">
-        {/* Doc ID Badge */}
-        <code
-          style={{
-            fontSize: '0.75rem',
-            backgroundColor: 'var(--mobile-surface-secondary)',
-            padding: '2px 6px',
-            borderRadius: 'var(--mobile-radius-sm)',
-            fontFamily: 'monospace',
-          }}
-        >
-          {entry.doc_id}
-        </code>
+        {/* Doc ID Badge and Archive Status */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <code
+            style={{
+              fontSize: '0.75rem',
+              backgroundColor: 'var(--mobile-surface-secondary)',
+              padding: '2px 6px',
+              borderRadius: 'var(--mobile-radius-sm)',
+              fontFamily: 'monospace',
+            }}
+          >
+            {entry.doc_id}
+          </code>
+          {entry.archived && (
+            <span
+              className="mobile-doc-card__archived-badge"
+              role="status"
+              aria-label="Archived"
+            >
+              Archived
+            </span>
+          )}
+        </div>
 
         {/* Item Count */}
         <span

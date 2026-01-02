@@ -6,6 +6,7 @@
  */
 
 import type { ProjectStore, DocStore } from '@core/ports';
+import type { CaptureContext } from '../wizard';
 
 // Re-export catalog types for convenience
 export type {
@@ -60,4 +61,7 @@ export interface ViewerContainerProps {
 
   /** Document store for listing and reading documents */
   docStore: DocStore;
+
+  /** Callback when user wants to add an item to a document (navigates to capture wizard) */
+  onAddItemToDocument?: (context: CaptureContext) => void;
 }

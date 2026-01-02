@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import type { RequestLogDoc } from '@core/models';
+import type { RequestLogDoc, Project } from '@core/models';
 import type { CatalogEntry, FilterState, CatalogSort, FilterOptions } from '@core/catalog';
 import {
   createEmptyFilter,
@@ -27,6 +27,7 @@ import {
 } from '@core/catalog';
 import { listAllDocuments, extractFilterOptions } from '@core/catalog/utils';
 import type { ViewerContainerProps } from './types';
+import type { CaptureContext } from '../wizard';
 import { DocumentCatalog } from './DocumentCatalog';
 import { DocumentFilters } from './DocumentFilters';
 import { useDocumentCache } from './hooks/useDocumentCache';
@@ -55,6 +56,7 @@ import './viewer.css';
 export function ViewerContainer({
   projectStore,
   docStore,
+  onAddItemToDocument,
 }: ViewerContainerProps): React.JSX.Element {
   // ============================================================================
   // Viewport Detection
@@ -79,6 +81,9 @@ export function ViewerContainer({
 
   /** All loaded catalog entries from filesystem */
   const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
+
+  /** Projects list for resolving project info */
+  const [projects, setProjects] = useState<Project[]>([]);
 
   /** Current filter criteria */
   const [filterState, setFilterState] = useState<FilterState>(createEmptyFilter());
@@ -129,13 +134,14 @@ export function ViewerContainer({
       // Load all documents across enabled projects
       const entries = await listAllDocuments(projectStore, docStore);
 
-      // Load projects for filter options
-      const projects = await projectStore.list();
+      // Load projects for filter options and reference
+      const projectList = await projectStore.list();
 
       // Extract available filter values
-      const options = extractFilterOptions(entries, projects);
+      const options = extractFilterOptions(entries, projectList);
 
       setCatalog(entries);
+      setProjects(projectList);
       setFilterOptions(options);
 
       console.info(`[ViewerContainer] Loaded ${entries.length} document(s)`);
@@ -273,6 +279,46 @@ export function ViewerContainer({
   }, []);
 
   // ============================================================================
+  // Add Item to Document Handler
+  // ============================================================================
+
+  /**
+   * Handle "Add Item" action from document menu
+   *
+   * Creates capture context and navigates to wizard via callback.
+   * Requires the document to be loaded and the project to be found.
+   *
+   * @param path - Document file path
+   * @param doc - Full document data
+   */
+  const handleAddItemToDocument = useCallback(
+    (path: string, doc: RequestLogDoc) => {
+      if (!onAddItemToDocument) {
+        console.warn('[ViewerContainer] onAddItemToDocument callback not provided');
+        return;
+      }
+
+      // Find the project for this document
+      const project = projects.find((p) => p.id === doc.project_id);
+      if (!project) {
+        console.error(`[ViewerContainer] Project not found for document: ${doc.project_id}`);
+        return;
+      }
+
+      // Create capture context
+      const context: CaptureContext = {
+        project,
+        documentPath: path,
+        document: doc,
+      };
+
+      // Navigate to wizard with context
+      onAddItemToDocument(context);
+    },
+    [projects, onAddItemToDocument]
+  );
+
+  // ============================================================================
   // Derived State (Filtering & Sorting)
   // ============================================================================
 
@@ -390,6 +436,7 @@ export function ViewerContainer({
             expandedPaths={expandedPaths}
             onToggleExpand={handleToggleExpand}
             documentCache={documentCache.cache}
+            onAddItemToDocument={handleAddItemToDocument}
           />
         </>
       )}
@@ -432,7 +479,7 @@ function ErrorState({ error, onRetry }: ErrorStateProps): React.JSX.Element {
   return (
     <div className="viewer-error glass" role="alert" aria-live="assertive">
       <div className="error-message">
-        <span className="error-icon" aria-hidden="true">⚠</span>
+        <span className="error-icon" aria-hidden="true">Warning</span>
         <div>
           <h3>Failed to Load Catalog</h3>
           <p>{error}</p>
@@ -459,7 +506,7 @@ function ErrorState({ error, onRetry }: ErrorStateProps): React.JSX.Element {
 function EmptyState(): React.JSX.Element {
   return (
     <div className="empty-state">
-      <span className="empty-state-icon" aria-hidden="true">📄</span>
+      <span className="empty-state-icon" aria-hidden="true">Document</span>
       <h3 className="empty-state-title">No Documents Found</h3>
       <p className="empty-state-description">
         No request-log documents found in enabled projects.

@@ -29,6 +29,9 @@ interface ItemStepProps {
   onBack: () => void;
   onNext: () => void;
   isLoading?: boolean;
+
+  /** When true, the back button is hidden (used in batching mode or pre-selection) */
+  lockNavigation?: boolean;
 }
 
 export function ItemStep({
@@ -39,6 +42,7 @@ export function ItemStep({
   onBack,
   onNext,
   isLoading = false,
+  lockNavigation = false,
 }: ItemStepProps): React.JSX.Element {
   // Track validation states for fields
   const [titleValidation, setTitleValidation] = useState<ValidationState>('idle');
@@ -218,6 +222,7 @@ export function ItemStep({
       onNext={onNext}
       nextDisabled={isNextDisabled}
       nextLabel="Review"
+      showBack={!lockNavigation}
     >
       <form className="item-form" aria-label="Item details form">
         {/* Title - Required */}

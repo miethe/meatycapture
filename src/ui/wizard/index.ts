@@ -9,3 +9,6 @@ export { DocStep } from './DocStep';
 export { ItemStep } from './ItemStep';
 export { ReviewStep } from './ReviewStep';
 export { WizardFlow } from './WizardFlow';
+
+// Export types
+export type { CaptureContext } from './WizardFlow';

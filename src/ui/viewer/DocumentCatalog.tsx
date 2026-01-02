@@ -58,6 +58,9 @@ export interface DocumentCatalogProps {
 
   /** Cached full documents */
   documentCache: Map<string, RequestLogDoc>;
+
+  /** Callback when "Add Item" is clicked for a document */
+  onAddItemToDocument?: (path: string, doc: RequestLogDoc) => void;
 }
 
 /**
@@ -78,6 +81,7 @@ export function DocumentCatalog({
   expandedPaths,
   onToggleExpand,
   documentCache,
+  onAddItemToDocument,
 }: DocumentCatalogProps): React.JSX.Element {
   // ============================================================================
   // State Management
@@ -215,6 +219,31 @@ export function DocumentCatalog({
     [loadingPaths, documentCache, onLoadDocument]
   );
 
+  /**
+   * Handle "Add Item" action for a document
+   * Loads document if not cached, then triggers callback
+   */
+  const handleAddItem = useCallback(
+    async (path: string) => {
+      if (!onAddItemToDocument) return;
+
+      // Check cache first
+      let doc = documentCache.get(path);
+
+      // If not cached, load it
+      if (!doc) {
+        doc = (await onLoadDocument(path)) ?? undefined;
+      }
+
+      if (doc) {
+        onAddItemToDocument(path, doc);
+      } else {
+        console.error(`[DocumentCatalog] Failed to load document for Add Item: ${path}`);
+      }
+    },
+    [documentCache, onLoadDocument, onAddItemToDocument]
+  );
+
   // ============================================================================
   // Render Helpers
   // ============================================================================
@@ -247,7 +276,7 @@ export function DocumentCatalog({
       <div className="viewer-catalog-empty glass" role="status">
         <div className="empty-state">
           <span className="empty-state-icon" aria-hidden="true">
-            🔍
+            Search
           </span>
           <h3 className="empty-state-title">No Documents Found</h3>
           <p className="empty-state-description">
@@ -337,6 +366,7 @@ export function DocumentCatalog({
                         onLoadDocument={() => handleLoadDocument(entry.path)}
                         isLoading={loadingPaths.has(entry.path)}
                         document={documentCache.get(entry.path) || null}
+                        onAddItem={onAddItemToDocument ? () => handleAddItem(entry.path) : undefined}
                       />
                     ))}
                 </React.Fragment>

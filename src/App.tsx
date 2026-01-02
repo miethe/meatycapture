@@ -7,10 +7,11 @@
  * - Admin field management interface
  * - Store initialization and view routing
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Pencil2Icon, EyeOpenIcon, GearIcon, PersonIcon } from '@radix-ui/react-icons';
 import { ToastProvider, ToastContainer, useToast, useNavigationShortcuts } from './ui/shared';
 import { WizardFlow } from './ui/wizard';
+import type { CaptureContext } from './ui/wizard';
 import { AdminContainer } from './ui/admin';
 import { ViewerContainer } from './ui/viewer';
 import { createProjectStore, createFieldCatalogStore } from './adapters/config-local/platform-factory';
@@ -62,6 +63,9 @@ function AppContent() {
   const { toasts, dismissToast } = useToast();
   const [view, setView] = useState<View>('wizard');
 
+  // Capture context for "Add Item" navigation from viewer
+  const [captureContext, setCaptureContext] = useState<CaptureContext | null>(null);
+
   // Detect platform adapter mode
   const adapterMode = detectAdapterMode();
 
@@ -71,6 +75,34 @@ function AppContent() {
   // Initialize stores once using useMemo to prevent recreation on re-renders
   // Error handling is done in initializeStores to avoid setState during render
   const { stores, error: initError } = useMemo(() => initializeStores(), []);
+
+  /**
+   * Handle "Add Item" navigation from viewer
+   * Sets capture context and navigates to wizard
+   */
+  const handleAddItemFromViewer = useCallback((context: CaptureContext) => {
+    setCaptureContext(context);
+    setView('wizard');
+  }, []);
+
+  /**
+   * Clear capture context when wizard is done or reset
+   */
+  const handleClearCaptureContext = useCallback(() => {
+    setCaptureContext(null);
+  }, []);
+
+  /**
+   * Handle wizard completion
+   * Navigates back to viewer if came from "Add Item" action
+   */
+  const handleWizardComplete = useCallback(() => {
+    if (captureContext) {
+      // If we came from viewer, go back to viewer
+      setView('viewer');
+      setCaptureContext(null);
+    }
+  }, [captureContext]);
 
   // Show error UI if initialization failed
   if (initError || !stores) {
@@ -180,11 +212,15 @@ function AppContent() {
               fieldCatalogStore={stores.fieldCatalogStore}
               docStore={stores.docStore}
               clock={stores.clock}
+              captureContext={captureContext}
+              onClearContext={handleClearCaptureContext}
+              onComplete={handleWizardComplete}
             />
           ) : view === 'viewer' ? (
             <ViewerContainer
               projectStore={stores.projectStore}
               docStore={stores.docStore}
+              onAddItemToDocument={handleAddItemFromViewer}
             />
           ) : (
             <AdminContainer

@@ -10,6 +10,9 @@
  *
  * Supports batching mode: After first submit, user can add multiple items
  * to the same document without re-selecting project/doc.
+ *
+ * Supports pre-selection mode: When navigating from viewer "Add Item" action,
+ * project and document can be pre-selected, starting the wizard at Step 3.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -44,6 +47,19 @@ const STEP_INDEX_MAP: Record<WizardStep, number> = {
   review: 3,
 };
 
+/**
+ * Capture context for pre-selecting project and document
+ * Used when navigating from viewer "Add Item" action
+ */
+export interface CaptureContext {
+  /** Pre-selected project */
+  project: Project;
+  /** Pre-selected document path */
+  documentPath: string;
+  /** Pre-selected document (full data) */
+  document: RequestLogDoc;
+}
+
 interface WizardFlowProps {
   /** Project store for CRUD operations */
   projectStore: ProjectStore;
@@ -55,6 +71,10 @@ interface WizardFlowProps {
   clock: Clock;
   /** Called when wizard completes and user clicks Done */
   onComplete?: () => void;
+  /** Pre-selected context (project + document) for "Add Item" flow */
+  captureContext?: CaptureContext | null;
+  /** Called when capture context should be cleared (wizard reset) */
+  onClearContext?: () => void;
 }
 
 /**
@@ -77,26 +97,37 @@ export function WizardFlow({
   docStore,
   clock,
   onComplete,
+  captureContext,
+  onClearContext,
 }: WizardFlowProps): React.JSX.Element {
   // ============================================================================
   // State Management
   // ============================================================================
 
+  // Determine initial step based on capture context
+  const initialStep: WizardStep = captureContext ? 'item' : 'project';
+
   // Current step in the wizard flow
-  const [currentStep, setCurrentStep] = useState<WizardStep>('project');
+  const [currentStep, setCurrentStep] = useState<WizardStep>(initialStep);
 
   // Track completed steps for progress indicator
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [completedSteps, setCompletedSteps] = useState<number[]>(
+    captureContext ? [0, 1] : [] // Mark project and doc as completed when pre-selected
+  );
 
   // Project step state
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(
+    captureContext?.project ?? null
+  );
 
   // Doc step state
   const [existingDocs, setExistingDocs] = useState<RequestLogDoc[]>([]);
-  const [selectedDocPath, setSelectedDocPath] = useState<string | null>(null);
-  const [docPath, setDocPath] = useState<string>('');
-  const [isNewDoc, setIsNewDoc] = useState<boolean>(true);
+  const [selectedDocPath, setSelectedDocPath] = useState<string | null>(
+    captureContext?.documentPath ?? null
+  );
+  const [docPath, setDocPath] = useState<string>(captureContext?.documentPath ?? '');
+  const [isNewDoc, setIsNewDoc] = useState<boolean>(!captureContext);
 
   // Item step state
   const [draft, setDraft] = useState<ItemDraft>(EMPTY_DRAFT);
@@ -118,7 +149,30 @@ export function WizardFlow({
   const [error, setError] = useState<string | null>(null);
 
   // Batching mode: Lock project/doc after first successful submit
-  const [batchingMode, setBatchingMode] = useState<boolean>(false);
+  // Also true when there's a capture context (pre-selected project/doc)
+  const [batchingMode, setBatchingMode] = useState<boolean>(!!captureContext);
+
+  // ============================================================================
+  // Effects - Initialize from Capture Context
+  // ============================================================================
+
+  /**
+   * Reset wizard state when capture context changes
+   */
+  useEffect(() => {
+    if (captureContext) {
+      // Pre-populate from context
+      setSelectedProject(captureContext.project);
+      setSelectedDocPath(captureContext.documentPath);
+      setDocPath(captureContext.documentPath);
+      setIsNewDoc(false);
+      setBatchingMode(true);
+      setCurrentStep('item');
+      setCompletedSteps([0, 1]); // Mark project and doc as completed
+      setDraft(EMPTY_DRAFT); // Reset draft for new item
+      setSubmitSuccess(false);
+    }
+  }, [captureContext]);
 
   // ============================================================================
   // Effects - Data Loading
@@ -434,11 +488,16 @@ export function WizardFlow({
     setCompletedSteps([]);
     setCurrentStep('project');
 
+    // Clear capture context if provided
+    if (onClearContext) {
+      onClearContext();
+    }
+
     // Call external completion handler if provided
     if (onComplete) {
       onComplete();
     }
-  }, [onComplete]);
+  }, [onComplete, onClearContext]);
 
   // ============================================================================
   // Render Current Step
@@ -457,6 +516,31 @@ export function WizardFlow({
   }
 
   const currentStepIndex = STEP_INDEX_MAP[currentStep];
+
+  // Render pre-selection summary when in batching mode with capture context
+  const renderPreSelectionSummary = () => {
+    if (!batchingMode || !selectedProject) return null;
+
+    return (
+      <div className="wizard-preselection-summary glass" role="region" aria-label="Pre-selected context">
+        <div className="preselection-header">
+          <span className="preselection-label">Adding item to:</span>
+        </div>
+        <div className="preselection-details">
+          <div className="preselection-item">
+            <span className="preselection-key">Project:</span>
+            <span className="preselection-value">{selectedProject.name}</span>
+          </div>
+          <div className="preselection-item">
+            <span className="preselection-key">Document:</span>
+            <code className="preselection-value preselection-doc-id">
+              {docPath.split('/').pop()?.replace('.md', '') || docPath}
+            </code>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   switch (currentStep) {
     case 'project':
@@ -508,6 +592,7 @@ export function WizardFlow({
             currentStep={currentStepIndex}
             completedSteps={completedSteps}
           />
+          {renderPreSelectionSummary()}
           <ItemStep
             draft={draft}
             onDraftChange={handleDraftChange}
@@ -516,6 +601,7 @@ export function WizardFlow({
             onBack={handleItemBack}
             onNext={handleItemNext}
             isLoading={isLoading}
+            lockNavigation={batchingMode}
           />
         </>
       );

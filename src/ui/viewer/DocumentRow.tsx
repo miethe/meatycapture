@@ -11,13 +11,15 @@
  * - Tags displayed as chips
  * - Keyboard accessible (Enter to expand)
  * - Hover states for interaction feedback
+ * - Kebab menu for document actions (Add Item, Edit, Archive, Delete)
  */
 
 import React from 'react';
-import { FileTextIcon, CalendarIcon, ChevronDownIcon, DotsVerticalIcon } from '@radix-ui/react-icons';
+import { FileTextIcon, CalendarIcon, ChevronDownIcon, ArchiveIcon } from '@radix-ui/react-icons';
 import type { CatalogEntry } from '@core/catalog';
 import type { RequestLogDoc } from '@core/models';
 import { DocumentDetail } from './DocumentDetail';
+import { DocumentKebabMenu } from './DocumentKebabMenu';
 
 export interface DocumentRowProps {
   /** Catalog entry metadata */
@@ -37,6 +39,9 @@ export interface DocumentRowProps {
 
   /** Full document data (cached) */
   document: RequestLogDoc | null;
+
+  /** Callback when "Add Item" is clicked */
+  onAddItem?: () => void;
 }
 
 /**
@@ -58,6 +63,7 @@ export const DocumentRow = React.memo(function DocumentRow({
   onLoadDocument,
   isLoading,
   document,
+  onAddItem,
 }: DocumentRowProps): React.JSX.Element {
   /**
    * Handle row click for expansion
@@ -68,16 +74,6 @@ export const DocumentRow = React.memo(function DocumentRow({
       onLoadDocument();
     }
     onToggle();
-  };
-
-  /**
-   * Handle menu button click
-   * Prevents row expansion and shows placeholder console log
-   */
-  const handleMenuClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    // Placeholder - menu will be added later
-    console.log('Menu clicked for:', entry.doc_id);
   };
 
   /**
@@ -111,16 +107,66 @@ export const DocumentRow = React.memo(function DocumentRow({
     }
   };
 
+  /**
+   * Placeholder handlers for document actions
+   * These will be wired up in future tasks
+   */
+  const handleEdit = () => {
+    console.log('Edit clicked for:', entry.doc_id);
+  };
+
+  const handleArchive = () => {
+    console.log('Archive clicked for:', entry.doc_id);
+  };
+
+  const handleUnarchive = () => {
+    console.log('Unarchive clicked for:', entry.doc_id);
+  };
+
+  const handleDelete = () => {
+    console.log('Delete clicked for:', entry.doc_id);
+  };
+
+  const handleAddItem = () => {
+    if (onAddItem) {
+      onAddItem();
+    } else {
+      console.log('Add Item clicked for:', entry.doc_id);
+    }
+  };
+
+  // Build class name for row
+  const rowClassName = [
+    'viewer-document-row',
+    isExpanded ? 'expanded' : '',
+    entry.archived ? 'archived' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  // Build accessible label including archive status
+  const ariaLabel = [
+    `Document ${entry.doc_id}: ${entry.title}`,
+    entry.archived ? '(Archived)' : '',
+    `, ${entry.item_count} items`,
+    `, updated ${formatDate(entry.updated_at)}`,
+  ]
+    .filter(Boolean)
+    .join('');
+
+  // Get the document to use for the kebab menu
+  const docForMenu = document || createPlaceholderDoc(entry);
+
   return (
     <>
       <tr
-        className={`viewer-document-row ${isExpanded ? 'expanded' : ''}`}
+        className={rowClassName}
         onClick={handleRowClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="row"
         aria-expanded={isExpanded}
-        aria-label={`Document ${entry.doc_id}: ${entry.title}, ${entry.item_count} items, updated ${formatDate(entry.updated_at)}`}
+        aria-label={ariaLabel}
       >
         {/* Expand/Collapse Button */}
         <td className="viewer-document-cell viewer-expand-cell" role="cell">
@@ -147,7 +193,19 @@ export const DocumentRow = React.memo(function DocumentRow({
 
         {/* Document ID */}
         <td className="viewer-document-cell" role="cell">
-          <code className="doc-id-code">{entry.doc_id}</code>
+          <div className="doc-id-container">
+            <code className="doc-id-code">{entry.doc_id}</code>
+            {entry.archived && (
+              <span
+                className="doc-archived-badge"
+                role="status"
+                aria-label="Archived document"
+              >
+                <ArchiveIcon className="doc-archived-icon" aria-hidden="true" />
+                <span className="doc-archived-text">Archived</span>
+              </span>
+            )}
+          </div>
         </td>
 
         {/* Title */}
@@ -180,16 +238,19 @@ export const DocumentRow = React.memo(function DocumentRow({
                 )}
               </div>
             )}
-            <div className="doc-row-actions">
-              <button
-                type="button"
-                className="doc-row-menu-btn"
-                onClick={handleMenuClick}
-                aria-label="More actions"
-                title="More actions"
-              >
-                <DotsVerticalIcon aria-hidden="true" />
-              </button>
+            <div
+              className="doc-row-actions"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              <DocumentKebabMenu
+                doc={docForMenu}
+                onAddItem={handleAddItem}
+                onEdit={handleEdit}
+                onArchive={handleArchive}
+                onUnarchive={entry.archived ? handleUnarchive : undefined}
+                onDelete={handleDelete}
+              />
             </div>
           </div>
         </td>
@@ -218,5 +279,24 @@ export const DocumentRow = React.memo(function DocumentRow({
     </>
   );
 });
+
+/**
+ * Create a placeholder document from catalog entry for kebab menu
+ * Used when the full document hasn't been loaded yet
+ */
+function createPlaceholderDoc(entry: CatalogEntry): RequestLogDoc {
+  return {
+    doc_id: entry.doc_id,
+    title: entry.title,
+    project_id: entry.project_id,
+    items: [],
+    items_index: [],
+    tags: [],
+    item_count: entry.item_count,
+    created_at: entry.updated_at, // Use updated_at as fallback
+    updated_at: entry.updated_at,
+    archived: entry.archived ?? false,
+  };
+}
 
 export default DocumentRow;
