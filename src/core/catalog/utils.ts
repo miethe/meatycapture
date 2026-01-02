@@ -202,14 +202,14 @@ export function extractFilterOptions(
  * @example
  * ```typescript
  * const docMetas: DocMeta[] = [
- *   { path: '/docs/REQ-20251216.md', doc_id: 'REQ-20251216-app', ... }
+ *   { path: '/docs/REQ-20251216.md', doc_id: 'REQ-20251216-app', archived: false, ... }
  * ];
  * const project: Project = { id: 'app', name: 'My App', ... };
  *
  * const entries = enrichWithProjectInfo(docMetas, project);
  * // Returns: [
  * //   { path: '/docs/REQ-20251216.md', doc_id: 'REQ-20251216-app',
- * //     project_id: 'app', project_name: 'My App', ... }
+ * //     project_id: 'app', project_name: 'My App', archived: false, ... }
  * // ]
  * ```
  */
@@ -218,8 +218,13 @@ export function enrichWithProjectInfo(
   project: Project
 ): CatalogEntry[] {
   return docMetas.map((docMeta) => ({
-    ...docMeta,
+    path: docMeta.path,
+    doc_id: docMeta.doc_id,
+    title: docMeta.title,
+    item_count: docMeta.item_count,
+    updated_at: docMeta.updated_at,
     project_id: project.id,
     project_name: project.name,
+    archived: docMeta.archived,
   }));
 }

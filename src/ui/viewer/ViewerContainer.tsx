@@ -312,6 +312,7 @@ export function ViewerContainer({
     if (filterState.statuses.length > 0) count++;
     if (filterState.tags.length > 0) count++;
     if (filterState.text.trim()) count++;
+    if (filterState.archiveStatus !== 'active') count++;
     return count;
   }, [filterState]);
 

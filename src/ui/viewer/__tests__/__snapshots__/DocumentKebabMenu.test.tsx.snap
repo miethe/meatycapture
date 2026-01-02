@@ -1,0 +1,464 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DocumentKebabMenu > snapshot > matches closed state snapshot 1`] = `
+<div>
+  <div
+    class="kebab-menu-container"
+  >
+    <button
+      aria-expanded="false"
+      aria-haspopup="menu"
+      aria-label="Actions for document REQ-20251231-test"
+      class="kebab-menu-trigger"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        fill="currentColor"
+        height="16"
+        viewBox="0 0 16 16"
+        width="16"
+      >
+        <circle
+          cx="8"
+          cy="3"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="8"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="13"
+          r="1.5"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`DocumentKebabMenu > snapshot > matches open state snapshot for archived doc 1`] = `
+<div>
+  <div
+    class="kebab-menu-container"
+  >
+    <button
+      aria-expanded="true"
+      aria-haspopup="menu"
+      aria-label="Actions for document REQ-20251231-test"
+      class="kebab-menu-trigger"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        fill="currentColor"
+        height="16"
+        viewBox="0 0 16 16"
+        width="16"
+      >
+        <circle
+          cx="8"
+          cy="3"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="8"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="13"
+          r="1.5"
+        />
+      </svg>
+    </button>
+    <div
+      aria-label="Actions for document REQ-20251231-test"
+      class="kebab-menu-panel"
+      role="menu"
+    >
+      <button
+        class="kebab-menu-item  kebab-menu-item-focused"
+        role="menuitem"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="kebab-menu-item-icon"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <line
+              x1="8"
+              x2="8"
+              y1="3"
+              y2="13"
+            />
+            <line
+              x1="3"
+              x2="13"
+              y1="8"
+              y2="8"
+            />
+          </svg>
+        </span>
+        <span
+          class="kebab-menu-item-label"
+        >
+          Add Item
+        </span>
+      </button>
+      <button
+        class="kebab-menu-item  "
+        role="menuitem"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="kebab-menu-item-icon"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <path
+              d="M7 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V9"
+            />
+            <path
+              d="M12.5 1.5a1.414 1.414 0 0 1 2 2L8 10l-2.5.5.5-2.5 6.5-6.5z"
+            />
+          </svg>
+        </span>
+        <span
+          class="kebab-menu-item-label"
+        >
+          Edit Document
+        </span>
+      </button>
+      <button
+        class="kebab-menu-item  "
+        role="menuitem"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="kebab-menu-item-icon"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="14 6 14 13 2 13 2 6"
+            />
+            <rect
+              height="3"
+              width="14"
+              x="1"
+              y="2"
+            />
+            <polyline
+              points="6 9 8 7 10 9"
+            />
+          </svg>
+        </span>
+        <span
+          class="kebab-menu-item-label"
+        >
+          Unarchive Document
+        </span>
+      </button>
+      <button
+        class="kebab-menu-item kebab-menu-item-dangerous "
+        role="menuitem"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="kebab-menu-item-icon"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="2 4 3 4 14 4"
+            />
+            <path
+              d="M12.5 4v9a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V4m2 0V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1"
+            />
+            <line
+              x1="6.5"
+              x2="6.5"
+              y1="7"
+              y2="11"
+            />
+            <line
+              x1="9.5"
+              x2="9.5"
+              y1="7"
+              y2="11"
+            />
+          </svg>
+        </span>
+        <span
+          class="kebab-menu-item-label"
+        >
+          Delete Document
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`DocumentKebabMenu > snapshot > matches open state snapshot for non-archived doc 1`] = `
+<div>
+  <div
+    class="kebab-menu-container"
+  >
+    <button
+      aria-expanded="true"
+      aria-haspopup="menu"
+      aria-label="Actions for document REQ-20251231-test"
+      class="kebab-menu-trigger"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        fill="currentColor"
+        height="16"
+        viewBox="0 0 16 16"
+        width="16"
+      >
+        <circle
+          cx="8"
+          cy="3"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="8"
+          r="1.5"
+        />
+        <circle
+          cx="8"
+          cy="13"
+          r="1.5"
+        />
+      </svg>
+    </button>
+    <div
+      aria-label="Actions for document REQ-20251231-test"
+      class="kebab-menu-panel"
+      role="menu"
+    >
+      <button
+        class="kebab-menu-item  kebab-menu-item-focused"
+        role="menuitem"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="kebab-menu-item-icon"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <line
+              x1="8"
+              x2="8"
+              y1="3"
+              y2="13"
+            />
+            <line
+              x1="3"
+              x2="13"
+              y1="8"
+              y2="8"
+            />
+          </svg>
+        </span>
+        <span
+          class="kebab-menu-item-label"
+        >
+          Add Item
+        </span>
+      </button>
+      <button
+        class="kebab-menu-item  "
+        role="menuitem"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="kebab-menu-item-icon"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <path
+              d="M7 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V9"
+            />
+            <path
+              d="M12.5 1.5a1.414 1.414 0 0 1 2 2L8 10l-2.5.5.5-2.5 6.5-6.5z"
+            />
+          </svg>
+        </span>
+        <span
+          class="kebab-menu-item-label"
+        >
+          Edit Document
+        </span>
+      </button>
+      <button
+        class="kebab-menu-item  "
+        role="menuitem"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="kebab-menu-item-icon"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="14 4 14 13 2 13 2 4"
+            />
+            <rect
+              height="3"
+              width="14"
+              x="1"
+              y="2"
+            />
+            <line
+              x1="6"
+              x2="10"
+              y1="8"
+              y2="8"
+            />
+          </svg>
+        </span>
+        <span
+          class="kebab-menu-item-label"
+        >
+          Archive Document
+        </span>
+      </button>
+      <button
+        class="kebab-menu-item kebab-menu-item-dangerous "
+        role="menuitem"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="kebab-menu-item-icon"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="2 4 3 4 14 4"
+            />
+            <path
+              d="M12.5 4v9a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V4m2 0V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1"
+            />
+            <line
+              x1="6.5"
+              x2="6.5"
+              y1="7"
+              y2="11"
+            />
+            <line
+              x1="9.5"
+              x2="9.5"
+              y1="7"
+              y2="11"
+            />
+          </svg>
+        </span>
+        <span
+          class="kebab-menu-item-label"
+        >
+          Delete Document
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;

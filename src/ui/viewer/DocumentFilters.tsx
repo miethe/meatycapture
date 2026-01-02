@@ -4,6 +4,7 @@
  * Filter toolbar for the Request Log Viewer.
  * Provides multi-faceted filtering with:
  * - Project single-select dropdown (Radix UI Select)
+ * - Archive status single-select dropdown (All/Active/Archived)
  * - Type, Domain, Priority, Status multi-selects
  * - Tags multi-select with type-to-filter
  * - Text search with debounce
@@ -22,8 +23,9 @@ import {
   CircleIcon,
   ChevronDownIcon,
   MixerVerticalIcon,
+  ArchiveIcon,
 } from '@radix-ui/react-icons';
-import type { FilterState, FilterOptions } from '@core/catalog';
+import type { FilterState, FilterOptions, ArchiveStatus } from '@core/catalog';
 import { FilterDropdown } from './FilterDropdown';
 import { FilterBadge } from './FilterBadge';
 import { useDebounce } from '@ui/shared/hooks/useDebounce';
@@ -31,6 +33,13 @@ import './viewer.css';
 
 // Sentinel value for "All Projects" option (Radix UI Select prohibits empty string)
 const ALL_PROJECTS_VALUE = '__all__';
+
+/** Archive status display labels */
+const ARCHIVE_STATUS_LABELS: Record<ArchiveStatus, string> = {
+  all: 'All Documents',
+  active: 'Active',
+  archived: 'Archived',
+};
 
 export interface DocumentFiltersProps {
   /** Current filter state */
@@ -55,6 +64,7 @@ export interface DocumentFiltersProps {
  *
  * Filter Controls:
  * - Project: Single-select dropdown (Radix UI)
+ * - Archive Status: Single-select dropdown (All/Active/Archived)
  * - Type, Domain, Priority, Status: Multi-select dropdowns with checkboxes
  * - Tags: Multi-select with type-to-filter autocomplete
  * - Text: Search input with 300ms debounce
@@ -104,6 +114,14 @@ export function DocumentFilters({
     [onFilterChange]
   );
 
+  // Handle archive status selection
+  const handleArchiveStatusChange = useCallback(
+    (value: string) => {
+      onFilterChange('archiveStatus', value as ArchiveStatus);
+    },
+    [onFilterChange]
+  );
+
   // Handle multi-select filter changes
   const handleMultiSelectChange = useCallback(
     (key: 'types' | 'domains' | 'priorities' | 'statuses' | 'tags', values: string[]) => {
@@ -148,7 +166,7 @@ export function DocumentFilters({
     [filterState.tags, onFilterChange]
   );
 
-  // Check if any filters are active
+  // Check if any filters are active (including non-default archive status)
   const hasActiveFilters = useMemo(() => {
     return (
       filterState.project_id !== undefined ||
@@ -157,7 +175,8 @@ export function DocumentFilters({
       filterState.priorities.length > 0 ||
       filterState.statuses.length > 0 ||
       filterState.tags.length > 0 ||
-      filterState.text.trim() !== ''
+      filterState.text.trim() !== '' ||
+      filterState.archiveStatus !== 'active'
     );
   }, [filterState]);
 
@@ -176,6 +195,16 @@ export function DocumentFilters({
           onRemove: () => onFilterChange('project_id', undefined),
         });
       }
+    }
+
+    // Archive status filter (only show badge if not default 'active')
+    if (filterState.archiveStatus !== 'active') {
+      badges.push({
+        key: 'archiveStatus',
+        label: 'Status',
+        value: ARCHIVE_STATUS_LABELS[filterState.archiveStatus],
+        onRemove: () => onFilterChange('archiveStatus', 'active'),
+      });
     }
 
     // Multi-select filters
@@ -265,6 +294,43 @@ export function DocumentFilters({
                       <Select.ItemText>{project.name}</Select.ItemText>
                     </Select.Item>
                   ))}
+                </Select.Viewport>
+              </Select.Content>
+            </Select.Portal>
+          </Select.Root>
+        </div>
+
+        {/* Archive Status Selector (Radix UI Select) */}
+        <div className="filter-control">
+          <Select.Root value={filterState.archiveStatus} onValueChange={handleArchiveStatusChange}>
+            <Select.Trigger
+              className="filter-select-trigger input-base select-base"
+              aria-label="Archive status filter"
+              data-has-active={filterState.archiveStatus !== 'active' ? 'true' : undefined}
+            >
+              <span className="filter-icon" aria-hidden="true">
+                <ArchiveIcon />
+              </span>
+              <Select.Value placeholder="Active" />
+              {filterState.archiveStatus !== 'active' && (
+                <span className="filter-dropdown-badge" aria-label="Non-default filter active">
+                  1
+                </span>
+              )}
+              <ChevronDownIcon className="filter-chevron" aria-hidden="true" />
+            </Select.Trigger>
+            <Select.Portal>
+              <Select.Content className="filter-select-content" position="popper" sideOffset={4}>
+                <Select.Viewport className="filter-select-viewport">
+                  <Select.Item value="active" className="filter-select-item">
+                    <Select.ItemText>Active</Select.ItemText>
+                  </Select.Item>
+                  <Select.Item value="archived" className="filter-select-item">
+                    <Select.ItemText>Archived</Select.ItemText>
+                  </Select.Item>
+                  <Select.Item value="all" className="filter-select-item">
+                    <Select.ItemText>All Documents</Select.ItemText>
+                  </Select.Item>
                 </Select.Viewport>
               </Select.Content>
             </Select.Portal>

@@ -163,6 +163,8 @@ export interface DocMeta {
   item_count: number;
   /** Timestamp of last modification */
   updated_at: Date;
+  /** Whether the document is archived (hidden from active view) */
+  archived: boolean;
 }
 
 /**

@@ -21,6 +21,16 @@
 import type { DocMeta } from '@core/ports';
 
 /**
+ * Archive status filter values
+ *
+ * Controls which documents are shown based on their archived state:
+ * - 'all': Show all documents (archived and non-archived)
+ * - 'active': Show only non-archived documents (default)
+ * - 'archived': Show only archived documents
+ */
+export type ArchiveStatus = 'all' | 'active' | 'archived';
+
+/**
  * Filter state for catalog browsing
  *
  * Supports multi-faceted filtering with different logic modes:
@@ -28,6 +38,7 @@ import type { DocMeta } from '@core/ports';
  * - Multi-select OR logic: types, domains, priorities, statuses (any match)
  * - Multi-select AND logic: tags (all must match - intersection)
  * - Text search: case-insensitive on title/doc_id
+ * - Archive status: all/active/archived
  *
  * Empty arrays or undefined values = no filter applied for that facet
  */
@@ -55,6 +66,14 @@ export interface FilterState {
 
   /** Case-insensitive text search on title and doc_id */
   text: string;
+
+  /**
+   * Archive status filter
+   * - 'all': Show all documents
+   * - 'active': Show only non-archived documents (default)
+   * - 'archived': Show only archived documents
+   */
+  archiveStatus: ArchiveStatus;
 }
 
 /**
@@ -84,6 +103,9 @@ export interface CatalogEntry {
 
   /** Human-readable project name for display */
   project_name: string;
+
+  /** Whether the document is archived */
+  archived: boolean;
 }
 
 /**
@@ -175,9 +197,22 @@ export interface CatalogSort {
 // ============================================================================
 
 /**
+ * Type guard to check if a value is a valid ArchiveStatus
+ *
+ * @param value - Value to check
+ * @returns true if value is a valid archive status
+ */
+export function isArchiveStatus(value: unknown): value is ArchiveStatus {
+  return typeof value === 'string' && ['all', 'active', 'archived'].includes(value);
+}
+
+/**
  * Type guard to check if a filter state is completely empty
  *
- * Returns true if no filters are applied (all facets are empty/undefined).
+ * Returns true if no filters are applied (all facets are empty/undefined/default).
+ * Note: archiveStatus='active' is considered the default, so it doesn't count
+ * as having an active filter.
+ *
  * Useful for optimizing catalog queries - skip filtering if no criteria set.
  *
  * @param filter - Filter state to check
@@ -191,7 +226,8 @@ export function isFilterEmpty(filter: FilterState): boolean {
     filter.priorities.length === 0 &&
     filter.statuses.length === 0 &&
     filter.tags.length === 0 &&
-    filter.text.trim() === ''
+    filter.text.trim() === '' &&
+    filter.archiveStatus === 'active'
   );
 }
 
@@ -215,7 +251,8 @@ export function isCatalogEntry(obj: unknown): obj is CatalogEntry {
     typeof entry.item_count === 'number' &&
     entry.updated_at instanceof Date &&
     typeof entry.project_id === 'string' &&
-    typeof entry.project_name === 'string'
+    typeof entry.project_name === 'string' &&
+    typeof entry.archived === 'boolean'
   );
 }
 
@@ -244,7 +281,8 @@ export function isFilterState(obj: unknown): obj is FilterState {
     filter.statuses.every((s) => typeof s === 'string') &&
     Array.isArray(filter.tags) &&
     filter.tags.every((t) => typeof t === 'string') &&
-    typeof filter.text === 'string'
+    typeof filter.text === 'string' &&
+    isArchiveStatus(filter.archiveStatus)
   );
 }
 
@@ -293,6 +331,7 @@ export function isCatalogSort(obj: unknown): obj is CatalogSort {
  * Create an empty filter state
  *
  * Returns a FilterState with all facets cleared/empty.
+ * Note: archiveStatus defaults to 'active' to show non-archived documents by default.
  * Use this as the initial state or to reset all filters.
  *
  * @returns Empty filter state with no criteria applied
@@ -305,6 +344,7 @@ export function createEmptyFilter(): FilterState {
     statuses: [],
     tags: [],
     text: '',
+    archiveStatus: 'active',
   };
 }
 
@@ -365,12 +405,14 @@ export function createEmptyGroupedCatalog(): GroupedCatalog {
  * @param docMeta - Document metadata from DocStore
  * @param projectId - Associated project ID
  * @param projectName - Human-readable project name
+ * @param archived - Whether the document is archived (defaults to false for backward compatibility)
  * @returns Catalog entry with project information
  */
 export function createCatalogEntry(
   docMeta: DocMeta,
   projectId: string,
-  projectName: string
+  projectName: string,
+  archived: boolean = false
 ): CatalogEntry {
   return {
     path: docMeta.path,
@@ -380,6 +422,7 @@ export function createCatalogEntry(
     updated_at: docMeta.updated_at,
     project_id: projectId,
     project_name: projectName,
+    archived,
   };
 }
 
@@ -390,6 +433,7 @@ export function createCatalogEntry(
  * - project_id: 1 if set
  * - types, domains, priorities, statuses, tags: count of selected values
  * - text: 1 if non-empty
+ * - archiveStatus: 1 if not 'active' (non-default)
  *
  * Useful for displaying filter badges and determining if filters are applied.
  *
@@ -413,6 +457,11 @@ export function getActiveFilterCount(filter: FilterState): number {
 
   // Text search filter
   if (filter.text.trim() !== '') {
+    count += 1;
+  }
+
+  // Archive status filter (count if not default 'active')
+  if (filter.archiveStatus !== 'active') {
     count += 1;
   }
 

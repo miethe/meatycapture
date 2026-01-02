@@ -30,6 +30,7 @@ function mockCatalogEntry(
     updated_at,
     project_id,
     project_name,
+    archived: false,
   };
 }
 

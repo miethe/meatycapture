@@ -34,7 +34,8 @@ function mockDocMeta(
   doc_id: string,
   title: string,
   updated_at: Date = new Date('2025-12-16T12:00:00Z'),
-  item_count: number = 1
+  item_count: number = 1,
+  archived: boolean = false
 ): DocMeta {
   return {
     path: `/data/${doc_id}.md`,
@@ -42,6 +43,7 @@ function mockDocMeta(
     title,
     item_count,
     updated_at,
+    archived,
   };
 }
 
@@ -63,6 +65,7 @@ function mockCatalogEntry(
     updated_at,
     project_id,
     project_name,
+    archived: false,
   };
 }
 

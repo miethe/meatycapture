@@ -574,8 +574,9 @@ describe('getActiveFilterCount', () => {
       statuses: ['triage'],
       tags: ['ux', 'api'],
       text: 'search',
+      archiveStatus: 'all',
     };
-    // 1 project + 2 types + 1 domain + 2 priorities + 1 status + 2 tags + 1 text = 10
-    expect(getActiveFilterCount(filter)).toBe(10);
+    // 1 project + 2 types + 1 domain + 2 priorities + 1 status + 2 tags + 1 text + 1 archiveStatus(all) = 11
+    expect(getActiveFilterCount(filter)).toBe(11);
   });
 });

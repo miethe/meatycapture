@@ -7,6 +7,7 @@ import {
   filterByStatus,
   filterByTags,
   filterByText,
+  filterByArchiveStatus,
   applyFilters,
 } from '../filter';
 import type { CatalogEntry, FilterState } from '../types';
@@ -23,7 +24,8 @@ function mockCatalogEntry(
   doc_id: string,
   title: string,
   project_id: string = 'test-project',
-  updated_at: Date = new Date('2025-12-16T12:00:00Z')
+  updated_at: Date = new Date('2025-12-16T12:00:00Z'),
+  archived: boolean = false
 ): CatalogEntry {
   return {
     path: `/data/${doc_id}.md`,
@@ -33,6 +35,7 @@ function mockCatalogEntry(
     updated_at,
     project_id,
     project_name: project_id,
+    archived,
   };
 }
 
@@ -45,6 +48,17 @@ const testEntries: CatalogEntry[] = [
   mockCatalogEntry('REQ-20251214-api', 'Rate Limiting Implementation', 'api'),
   mockCatalogEntry('REQ-20251213-api', 'Database Migration', 'api'),
   mockCatalogEntry('REQ-20251212-admin', 'Admin Panel Redesign', 'admin'),
+];
+
+/**
+ * Test data: catalog entries with mixed archived status
+ */
+const entriesWithArchived: CatalogEntry[] = [
+  mockCatalogEntry('REQ-001', 'Active Document 1', 'app', new Date('2025-12-16'), false),
+  mockCatalogEntry('REQ-002', 'Archived Document 1', 'app', new Date('2025-12-15'), true),
+  mockCatalogEntry('REQ-003', 'Active Document 2', 'api', new Date('2025-12-14'), false),
+  mockCatalogEntry('REQ-004', 'Archived Document 2', 'api', new Date('2025-12-13'), true),
+  mockCatalogEntry('REQ-005', 'Active Document 3', 'admin', new Date('2025-12-12'), false),
 ];
 
 // ============================================================================
@@ -372,17 +386,118 @@ describe('filterByText', () => {
 });
 
 // ============================================================================
+// filterByArchiveStatus Tests
+// ============================================================================
+
+describe('filterByArchiveStatus', () => {
+  it('should return all entries when status is "all"', () => {
+    const result = filterByArchiveStatus(entriesWithArchived, 'all');
+
+    expect(result).toHaveLength(entriesWithArchived.length);
+    expect(result).toEqual(entriesWithArchived);
+  });
+
+  it('should return only active (non-archived) entries when status is "active"', () => {
+    const result = filterByArchiveStatus(entriesWithArchived, 'active');
+
+    expect(result).toHaveLength(3);
+    expect(result.every((e) => e.archived === false)).toBe(true);
+    expect(result.map((e) => e.doc_id)).toEqual(['REQ-001', 'REQ-003', 'REQ-005']);
+  });
+
+  it('should return only archived entries when status is "archived"', () => {
+    const result = filterByArchiveStatus(entriesWithArchived, 'archived');
+
+    expect(result).toHaveLength(2);
+    expect(result.every((e) => e.archived === true)).toBe(true);
+    expect(result.map((e) => e.doc_id)).toEqual(['REQ-002', 'REQ-004']);
+  });
+
+  it('should return empty array when filtering for "archived" on entries with none archived', () => {
+    const result = filterByArchiveStatus(testEntries, 'archived');
+
+    expect(result).toHaveLength(0);
+    expect(result).toEqual([]);
+  });
+
+  it('should return all entries when filtering for "active" on entries with none archived', () => {
+    const result = filterByArchiveStatus(testEntries, 'active');
+
+    expect(result).toHaveLength(testEntries.length);
+    expect(result).toEqual(testEntries);
+  });
+
+  it('should not mutate original array', () => {
+    const original = [...entriesWithArchived];
+    filterByArchiveStatus(entriesWithArchived, 'archived');
+
+    expect(entriesWithArchived).toEqual(original);
+  });
+
+  it('should handle empty array input', () => {
+    const result = filterByArchiveStatus([], 'active');
+
+    expect(result).toEqual([]);
+  });
+
+  it('should handle all archived entries when filtering for "active"', () => {
+    const allArchived = [
+      mockCatalogEntry('REQ-001', 'Archived 1', 'app', new Date(), true),
+      mockCatalogEntry('REQ-002', 'Archived 2', 'app', new Date(), true),
+    ];
+
+    const result = filterByArchiveStatus(allArchived, 'active');
+
+    expect(result).toHaveLength(0);
+  });
+
+  it('should handle single entry array', () => {
+    const singleArchived = [mockCatalogEntry('REQ-001', 'Test', 'app', new Date(), true)];
+    const singleActive = [mockCatalogEntry('REQ-002', 'Test', 'app', new Date(), false)];
+
+    expect(filterByArchiveStatus(singleArchived, 'archived')).toHaveLength(1);
+    expect(filterByArchiveStatus(singleArchived, 'active')).toHaveLength(0);
+    expect(filterByArchiveStatus(singleActive, 'archived')).toHaveLength(0);
+    expect(filterByArchiveStatus(singleActive, 'active')).toHaveLength(1);
+  });
+});
+
+// ============================================================================
 // applyFilters Tests
 // ============================================================================
 
 describe('applyFilters', () => {
-  it('should return all entries when filter is completely empty', () => {
+  it('should return only active entries when filter is empty (default archiveStatus is "active")', () => {
     const emptyFilter = createEmptyFilter();
 
-    const result = applyFilters(testEntries, emptyFilter);
+    const result = applyFilters(entriesWithArchived, emptyFilter);
 
-    expect(result).toHaveLength(testEntries.length);
-    expect(result).toEqual(testEntries);
+    // Default filter has archiveStatus: 'active', so only non-archived entries
+    expect(result).toHaveLength(3);
+    expect(result.every((e) => e.archived === false)).toBe(true);
+  });
+
+  it('should return all entries when archiveStatus is "all"', () => {
+    const filter: FilterState = {
+      ...createEmptyFilter(),
+      archiveStatus: 'all',
+    };
+
+    const result = applyFilters(entriesWithArchived, filter);
+
+    expect(result).toHaveLength(entriesWithArchived.length);
+  });
+
+  it('should return only archived entries when archiveStatus is "archived"', () => {
+    const filter: FilterState = {
+      ...createEmptyFilter(),
+      archiveStatus: 'archived',
+    };
+
+    const result = applyFilters(entriesWithArchived, filter);
+
+    expect(result).toHaveLength(2);
+    expect(result.every((e) => e.archived === true)).toBe(true);
   });
 
   it('should apply project filter only', () => {
@@ -394,6 +509,7 @@ describe('applyFilters', () => {
       statuses: [],
       tags: [],
       text: '',
+      archiveStatus: 'active',
     };
 
     const result = applyFilters(testEntries, filter);
@@ -428,6 +544,20 @@ describe('applyFilters', () => {
     expect(result[0]!.title).toBe('Dashboard Layout');
   });
 
+  it('should apply archiveStatus with project filter (AND logic)', () => {
+    const filter: FilterState = {
+      ...createEmptyFilter(),
+      project_id: 'app',
+      archiveStatus: 'archived',
+    };
+
+    const result = applyFilters(entriesWithArchived, filter);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]!.project_id).toBe('app');
+    expect(result[0]!.archived).toBe(true);
+  });
+
   it('should return empty array when filters do not match', () => {
     const filter: FilterState = {
       project_id: 'app',
@@ -437,10 +567,25 @@ describe('applyFilters', () => {
       statuses: [],
       tags: [],
       text: 'nonexistent',
+      archiveStatus: 'active',
     };
 
     const result = applyFilters(testEntries, filter);
 
+    expect(result).toHaveLength(0);
+  });
+
+  it('should short-circuit after archiveStatus filter reduces to empty', () => {
+    const filter: FilterState = {
+      ...createEmptyFilter(),
+      archiveStatus: 'archived', // testEntries has no archived entries
+      project_id: 'app',
+      text: 'auth',
+    };
+
+    const result = applyFilters(testEntries, filter);
+
+    // Should return empty immediately after archive filter
     expect(result).toHaveLength(0);
   });
 
@@ -453,6 +598,7 @@ describe('applyFilters', () => {
       statuses: ['triage'],
       tags: ['api'],
       text: 'auth',
+      archiveStatus: 'active',
     };
 
     const result = applyFilters(testEntries, filter);
@@ -470,6 +616,7 @@ describe('applyFilters', () => {
       statuses: [],
       tags: [],
       text: 'nonexistent',
+      archiveStatus: 'active',
     };
 
     const result = applyFilters(testEntries, filter);
@@ -478,7 +625,7 @@ describe('applyFilters', () => {
   });
 
   it('should apply all filter facets in sequence', () => {
-    // All facets provided, but only project and text are functional
+    // All facets provided, but only project, text, and archiveStatus are functional
     const filter: FilterState = {
       ...createEmptyFilter(),
       project_id: 'api',
@@ -488,11 +635,12 @@ describe('applyFilters', () => {
       statuses: ['triage'],
       tags: ['performance'],
       text: 'rate',
+      archiveStatus: 'active',
     };
 
     const result = applyFilters(testEntries, filter);
 
-    // Should filter by project='api' AND text='rate'
+    // Should filter by archiveStatus='active' AND project='api' AND text='rate'
     expect(result).toHaveLength(1);
     expect(result[0]!.doc_id).toBe('REQ-20251214-api');
     expect(result[0]!.title).toBe('Rate Limiting Implementation');
@@ -508,6 +656,7 @@ describe('applyFilters', () => {
       statuses: [],
       tags: [],
       text: '',
+      archiveStatus: 'active',
     };
 
     applyFilters(testEntries, filter);
@@ -524,6 +673,7 @@ describe('applyFilters', () => {
       statuses: [],
       tags: [],
       text: 'auth',
+      archiveStatus: 'active',
     };
 
     const result = applyFilters([], filter);
@@ -531,7 +681,7 @@ describe('applyFilters', () => {
     expect(result).toHaveLength(0);
   });
 
-  it('should preserve filter order optimization (project first, then text)', () => {
+  it('should preserve filter order optimization (archiveStatus first, then project, then text)', () => {
     // This test verifies the filter application order
     const filter: FilterState = {
       project_id: 'admin',
@@ -541,6 +691,7 @@ describe('applyFilters', () => {
       statuses: [],
       tags: [],
       text: 'panel',
+      archiveStatus: 'active',
     };
 
     const result = applyFilters(testEntries, filter);
@@ -548,5 +699,21 @@ describe('applyFilters', () => {
     expect(result).toHaveLength(1);
     expect(result[0]!.project_id).toBe('admin');
     expect(result[0]!.title).toContain('Panel');
+  });
+
+  it('should combine archiveStatus, project, and text filters correctly', () => {
+    const filter: FilterState = {
+      ...createEmptyFilter(),
+      project_id: 'app',
+      text: 'active',
+      archiveStatus: 'active',
+    };
+
+    const result = applyFilters(entriesWithArchived, filter);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]!.title).toBe('Active Document 1');
+    expect(result[0]!.archived).toBe(false);
+    expect(result[0]!.project_id).toBe('app');
   });
 });

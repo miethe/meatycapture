@@ -86,6 +86,7 @@ describe('useViewerFilters', () => {
         statuses: [],
         tags: [],
         text: '',
+        archiveStatus: 'active',
       };
       mockSessionStorage.setItem(
         'meatycapture-viewer-filters',
@@ -190,6 +191,16 @@ describe('useViewerFilters', () => {
       expect(result.current.filterState.text).toBe('search query');
     });
 
+    it('updates archiveStatus filter', () => {
+      const { result } = renderHook(() => useViewerFilters());
+
+      act(() => {
+        result.current.setFilter('archiveStatus', 'archived');
+      });
+
+      expect(result.current.filterState.archiveStatus).toBe('archived');
+    });
+
     it('preserves other filters when updating one', () => {
       const { result } = renderHook(() => useViewerFilters());
 
@@ -250,6 +261,7 @@ describe('useViewerFilters', () => {
         result.current.setFilter('types', ['bug']);
         result.current.setFilter('domains', ['api']);
         result.current.setFilter('text', 'search');
+        result.current.setFilter('archiveStatus', 'archived');
       });
 
       expect(result.current.activeCount).toBeGreaterThan(0);
@@ -275,6 +287,20 @@ describe('useViewerFilters', () => {
       });
 
       expect(result.current.filterState.project_id).toBeUndefined();
+    });
+
+    it('resets archiveStatus to active', () => {
+      const { result } = renderHook(() => useViewerFilters());
+
+      act(() => {
+        result.current.setFilter('archiveStatus', 'archived');
+      });
+
+      act(() => {
+        result.current.clearAll();
+      });
+
+      expect(result.current.filterState.archiveStatus).toBe('active');
     });
   });
 
@@ -349,6 +375,23 @@ describe('useViewerFilters', () => {
       expect(result.current.activeCount).toBe(1);
     });
 
+    it('counts archiveStatus as 1 when not "active"', () => {
+      const { result } = renderHook(() => useViewerFilters());
+
+      act(() => {
+        result.current.setFilter('archiveStatus', 'archived');
+      });
+
+      expect(result.current.activeCount).toBe(1);
+    });
+
+    it('does not count archiveStatus when "active" (default)', () => {
+      const { result } = renderHook(() => useViewerFilters());
+
+      // Default archiveStatus is 'active'
+      expect(result.current.activeCount).toBe(0);
+    });
+
     it('does not count whitespace-only text', () => {
       const { result } = renderHook(() => useViewerFilters());
 
@@ -372,7 +415,7 @@ describe('useViewerFilters', () => {
       expect(result.current.activeCount).toBe(4);
     });
 
-    it('returns maximum 7 when all filters are active', () => {
+    it('returns maximum 8 when all filters are active', () => {
       const { result } = renderHook(() => useViewerFilters());
 
       act(() => {
@@ -383,9 +426,10 @@ describe('useViewerFilters', () => {
         result.current.setFilter('statuses', ['open']);
         result.current.setFilter('tags', ['ux']);
         result.current.setFilter('text', 'search');
+        result.current.setFilter('archiveStatus', 'archived');
       });
 
-      expect(result.current.activeCount).toBe(7);
+      expect(result.current.activeCount).toBe(8);
     });
 
     it('does not count empty arrays', () => {
@@ -602,6 +646,7 @@ describe('useViewerFilters', () => {
       expect(result.current.filterState).toHaveProperty('statuses');
       expect(result.current.filterState).toHaveProperty('tags');
       expect(result.current.filterState).toHaveProperty('text');
+      expect(result.current.filterState).toHaveProperty('archiveStatus');
     });
 
     it('setFilter is a function', () => {

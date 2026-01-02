@@ -17,6 +17,9 @@
  * // Set a single filter
  * filters.setFilter('types', ['bug', 'enhancement']);
  *
+ * // Set archive status
+ * filters.setFilter('archiveStatus', 'archived');
+ *
  * // Clear all filters
  * filters.clearAll();
  *
@@ -54,7 +57,7 @@ export interface UseViewerFiltersReturn {
    *
    * Updates the specified filter key with a new value.
    * Supports all FilterState keys: project_id, types, domains,
-   * priorities, statuses, tags, text.
+   * priorities, statuses, tags, text, archiveStatus.
    *
    * @param key - Filter facet to update
    * @param value - New value for the facet
@@ -65,6 +68,7 @@ export interface UseViewerFiltersReturn {
    * Clear all filters to empty state
    *
    * Resets all filter facets to their default empty values.
+   * Note: archiveStatus is reset to 'active' (the default).
    * Useful for "Clear All" button in filter UI.
    */
   clearAll: () => void;
@@ -79,6 +83,7 @@ export interface UseViewerFiltersReturn {
    * - project_id: 1 if defined
    * - types, domains, priorities, statuses, tags: 1 each if length > 0
    * - text: 1 if non-empty string after trim
+   * - archiveStatus: 1 if not 'active' (non-default)
    */
   activeCount: number;
 
@@ -176,6 +181,9 @@ function calculateActiveCount(state: FilterState): number {
 
   // text: active if non-empty after trim
   if (state.text.trim() !== '') count += 1;
+
+  // archiveStatus: active if not 'active' (non-default)
+  if (state.archiveStatus !== 'active') count += 1;
 
   return count;
 }

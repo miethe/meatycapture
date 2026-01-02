@@ -15,6 +15,7 @@
  * - Multi-select OR: types, domains, priorities, statuses (match ANY)
  * - Multi-select AND: tags (match ALL - intersection)
  * - Text search: case-insensitive on title/doc_id
+ * - Archive status: all/active/archived
  *
  * Metadata Limitations:
  * CatalogEntry contains only document-level metadata (doc_id, title, item_count, etc).
@@ -31,7 +32,7 @@
  * 3. Apply type/domain/priority/status/tag filters on loaded docs
  */
 
-import type { CatalogEntry, FilterState } from './types';
+import type { ArchiveStatus, CatalogEntry, FilterState } from './types';
 
 /**
  * Filter catalog entries by project
@@ -324,16 +325,67 @@ export function filterByText(entries: CatalogEntry[], text: string): CatalogEntr
 }
 
 /**
+ * Filter catalog entries by archive status
+ *
+ * Filters documents based on their archived state:
+ * - 'all': Returns all entries (no filtering)
+ * - 'active': Returns only non-archived entries (archived === false)
+ * - 'archived': Returns only archived entries (archived === true)
+ *
+ * Performance: O(n) where n = number of entries
+ *
+ * @param entries - Array of catalog entries to filter
+ * @param archiveStatus - Archive status filter ('all', 'active', or 'archived')
+ * @returns Filtered array based on archive status
+ *
+ * @example
+ * ```typescript
+ * const entries = [
+ *   { doc_id: 'REQ-001', archived: false, ... },
+ *   { doc_id: 'REQ-002', archived: true, ... },
+ *   { doc_id: 'REQ-003', archived: false, ... }
+ * ];
+ *
+ * filterByArchiveStatus(entries, 'all');
+ * // Returns: all 3 entries
+ *
+ * filterByArchiveStatus(entries, 'active');
+ * // Returns: [REQ-001, REQ-003] (archived === false)
+ *
+ * filterByArchiveStatus(entries, 'archived');
+ * // Returns: [REQ-002] (archived === true)
+ * ```
+ */
+export function filterByArchiveStatus(
+  entries: CatalogEntry[],
+  archiveStatus: ArchiveStatus
+): CatalogEntry[] {
+  // 'all' means no filtering - return all entries
+  if (archiveStatus === 'all') {
+    return entries;
+  }
+
+  // Filter based on archived state
+  if (archiveStatus === 'active') {
+    return entries.filter((entry) => !entry.archived);
+  }
+
+  // archiveStatus === 'archived'
+  return entries.filter((entry) => entry.archived);
+}
+
+/**
  * Apply all filters to catalog entries
  *
  * Composite filter function that applies all filter facets in sequence using AND logic.
  * Each filter type is applied one after another, progressively narrowing the result set.
  *
  * Filter Application Order (optimized for performance):
- * 1. Project filter (typically most selective)
- * 2. Text search (works on metadata, relatively fast)
- * 3. Type, domain, priority, status filters (metadata limited - currently pass-through)
- * 4. Tag filter (metadata limited - currently pass-through)
+ * 1. Archive status filter (typically very selective for 'archived' mode)
+ * 2. Project filter (typically most selective)
+ * 3. Text search (works on metadata, relatively fast)
+ * 4. Type, domain, priority, status filters (metadata limited - currently pass-through)
+ * 5. Tag filter (metadata limited - currently pass-through)
  *
  * Short-circuit optimization: If any filter reduces the set to empty, subsequent filters
  * are skipped (no point filtering an empty array).
@@ -355,11 +407,13 @@ export function filterByText(entries: CatalogEntry[], text: string): CatalogEntr
  *   priorities: ['high'],
  *   statuses: [],
  *   tags: ['api', 'security'],
- *   text: 'authentication'
+ *   text: 'authentication',
+ *   archiveStatus: 'active'
  * };
  *
  * const filtered = applyFilters(allEntries, filter);
  * // Returns entries that match ALL criteria:
+ * // - Not archived
  * // - From 'capture-app' project
  * // - Contains 'authentication' in title or doc_id
  * // - (type/domain/priority/status/tags currently pass-through due to metadata limits)
@@ -369,7 +423,11 @@ export function applyFilters(entries: CatalogEntry[], filter: FilterState): Cata
   // Start with all entries
   let filtered = entries;
 
-  // Apply project filter first (often most selective)
+  // Apply archive status filter first (often very selective for 'archived' mode)
+  filtered = filterByArchiveStatus(filtered, filter.archiveStatus);
+  if (filtered.length === 0) return filtered; // Short-circuit if empty
+
+  // Apply project filter (often most selective)
   filtered = filterByProject(filtered, filter.project_id);
   if (filtered.length === 0) return filtered; // Short-circuit if empty
 

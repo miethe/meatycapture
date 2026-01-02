@@ -26,6 +26,7 @@
  */
 
 export type {
+  ArchiveStatus,
   FilterState,
   CatalogEntry,
   ProjectInfo,
@@ -37,6 +38,7 @@ export type {
 } from './types';
 
 export {
+  isArchiveStatus,
   isFilterEmpty,
   isCatalogEntry,
   isFilterState,
@@ -61,6 +63,7 @@ export {
   filterByStatus,
   filterByTags,
   filterByText,
+  filterByArchiveStatus,
   applyFilters,
 } from './filter';
 
