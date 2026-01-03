@@ -94,10 +94,10 @@ export interface ItemDraft {
   title: string;
   /** Item type (enhancement, bug, idea, etc.) */
   type: string;
-  /** Domain/area (web, api, mobile, etc.) */
-  domain: string;
-  /** Additional context information */
-  context: string;
+  /** Domain/area (web, api, mobile, etc.) - supports multiple selections */
+  domain: string[];
+  /** Additional context information - supports multiple selections */
+  context: string[];
   /** Priority level (low, medium, high, critical) */
   priority: string;
   /** Current status (triage, backlog, in-progress, etc.) */
@@ -120,10 +120,10 @@ export interface RequestLogItem {
   title: string;
   /** Item type (enhancement, bug, idea, etc.) */
   type: string;
-  /** Domain/area (web, api, mobile, etc.) */
-  domain: string;
-  /** Additional context information */
-  context: string;
+  /** Domain/area (web, api, mobile, etc.) - supports multiple selections */
+  domain: string[];
+  /** Additional context information - supports multiple selections */
+  context: string[];
   /** Priority level (low, medium, high, critical) */
   priority: string;
   /** Current status (triage, backlog, in-progress, etc.) */
@@ -235,8 +235,10 @@ export function isItemDraft(obj: unknown): obj is ItemDraft {
   return (
     typeof i.title === 'string' &&
     typeof i.type === 'string' &&
-    typeof i.domain === 'string' &&
-    typeof i.context === 'string' &&
+    Array.isArray(i.domain) &&
+    i.domain.every((d) => typeof d === 'string') &&
+    Array.isArray(i.context) &&
+    i.context.every((c) => typeof c === 'string') &&
     typeof i.priority === 'string' &&
     typeof i.status === 'string' &&
     Array.isArray(i.tags) &&
@@ -256,8 +258,10 @@ export function isRequestLogItem(obj: unknown): obj is RequestLogItem {
     typeof i.id === 'string' &&
     typeof i.title === 'string' &&
     typeof i.type === 'string' &&
-    typeof i.domain === 'string' &&
-    typeof i.context === 'string' &&
+    Array.isArray(i.domain) &&
+    i.domain.every((d) => typeof d === 'string') &&
+    Array.isArray(i.context) &&
+    i.context.every((c) => typeof c === 'string') &&
     typeof i.priority === 'string' &&
     typeof i.status === 'string' &&
     Array.isArray(i.tags) &&

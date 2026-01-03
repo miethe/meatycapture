@@ -163,16 +163,24 @@ export function ReviewStep({
                 <span className="review-label">Type:</span>
                 <span className="review-value review-badge-inline type">{draft.type}</span>
               </div>
-              {draft.domain && (
-                <div className="review-metadata-item">
+              {draft.domain.length > 0 && (
+                <div className="review-field">
                   <span className="review-label">Domain:</span>
-                  <span className="review-value review-badge-inline domain">{draft.domain}</span>
+                  <div className="review-badges">
+                    {draft.domain.map((d) => (
+                      <span key={d} className="review-badge-inline domain">{d}</span>
+                    ))}
+                  </div>
                 </div>
               )}
-              {draft.context && (
-                <div className="review-metadata-item">
+              {draft.context.length > 0 && (
+                <div className="review-field">
                   <span className="review-label">Context:</span>
-                  <span className="review-value review-badge-inline context">{draft.context}</span>
+                  <div className="review-badges">
+                    {draft.context.map((c) => (
+                      <span key={c} className="review-badge-inline context">{c}</span>
+                    ))}
+                  </div>
                 </div>
               )}
               <div className="review-metadata-item">

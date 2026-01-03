@@ -64,8 +64,10 @@ function isValidItemDraft(obj: unknown): obj is ItemDraft {
   return (
     typeof item.title === 'string' &&
     typeof item.type === 'string' &&
-    typeof item.domain === 'string' &&
-    typeof item.context === 'string' &&
+    Array.isArray(item.domain) &&
+    item.domain.every((d) => typeof d === 'string') &&
+    Array.isArray(item.context) &&
+    item.context.every((c) => typeof c === 'string') &&
     typeof item.priority === 'string' &&
     typeof item.status === 'string' &&
     Array.isArray(item.tags) &&
@@ -124,7 +126,7 @@ function parseAppendInput(content: string, source: string): AppendCliInput {
   if (!isValidAppendInput(data)) {
     throw new ValidationError(
       'Invalid JSON structure for append',
-      'Expected format: {"project": "slug", "items": [{title, type, domain, context, priority, status, tags[], notes}]}'
+      'Expected format: {"project": "slug", "items": [{title, type, domain[], context[], priority, status, tags[], notes}]}'
     );
   }
 

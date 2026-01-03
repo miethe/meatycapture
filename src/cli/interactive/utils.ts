@@ -124,8 +124,10 @@ export async function promptItemDraft(projectId: string): Promise<ItemDraft> {
   );
 
   const type = await promptFieldValue('type', projectId);
-  const domain = await promptFieldValue('domain', projectId);
-  const context = await promptFieldValue('context', projectId);
+  const domainValue = await promptFieldValue('domain', projectId, false);
+  const domain = domainValue ? [domainValue] : [];
+  const contextValue = await promptFieldValue('context', projectId, false);
+  const context = contextValue ? [contextValue] : [];
   const priority = await promptFieldValue('priority', projectId);
   const status = await promptFieldValue('status', projectId);
 

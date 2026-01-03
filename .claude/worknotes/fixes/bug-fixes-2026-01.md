@@ -61,3 +61,22 @@
   3. Fixed 30+ test files with same patterns plus unused variable warnings
 - **Commit(s)**: 8e9f2e8
 - **Status**: RESOLVED
+
+---
+
+### Multi-Select Not Implemented in Capture Wizard
+
+**Issue**: The UI enhancement plan (ui-enhancements-batch-v1) created multi-select components for ItemEditForm (viewer) but left the capture wizard's ItemStep unchanged. Domain and context fields remained single-select dropdowns instead of multi-select, and the model incorrectly used `string` instead of `string[]` for these fields.
+- **Location**: `src/ui/wizard/ItemStep.tsx`, `src/core/models/index.ts`, `src/core/serializer/index.ts`
+- **Root Cause**: Enhancement plan scope gap - multi-select was implemented for ItemEditForm (editing existing items) but not for ItemStep (capturing new items). Additionally, ItemEditForm appeared to support multi-select but only saved the first value due to model mismatch.
+- **Fix**: Comprehensive multi-select implementation:
+  1. Updated core model: `domain` and `context` changed from `string` to `string[]`
+  2. Updated serializer: read/write comma-separated values for domain/context
+  3. Updated ItemStep: replaced DropdownWithAdd with MultiSelectCombobox for domain/context
+  4. Fixed ItemEditForm: now saves all selected values instead of just first
+  5. Updated ReviewStep: displays multiple badges for domain/context
+  6. Updated WizardFlow: initializes domain/context as empty arrays
+  7. Updated CLI validation: accepts array format for domain/context
+  8. Updated 26 files with test fixtures and type assertions
+- **Commit(s)**: 97ea409
+- **Status**: RESOLVED

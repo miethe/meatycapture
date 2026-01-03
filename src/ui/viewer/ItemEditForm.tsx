@@ -77,8 +77,8 @@ export function ItemEditForm({
   // Form state - initialize from item prop
   const [title, setTitle] = useState(item.title);
   const [type, setType] = useState(item.type);
-  const [domain, setDomain] = useState<string[]>(item.domain ? [item.domain] : []);
-  const [context, setContext] = useState<string[]>(item.context ? [item.context] : []);
+  const [domain, setDomain] = useState<string[]>(item.domain || []);
+  const [context, setContext] = useState<string[]>(item.context || []);
   const [priority, setPriority] = useState(item.priority);
   const [status, setStatus] = useState(item.status);
   const [tags, setTags] = useState<string[]>(item.tags);
@@ -141,8 +141,8 @@ export function ItemEditForm({
         ...item,
         title: title.trim(),
         type,
-        domain: domain[0] || '',
-        context: context[0] || '',
+        domain: domain,
+        context: context,
         priority,
         status,
         tags,

@@ -218,7 +218,7 @@ function serializeItem(item: RequestLogItem): string {
   const lines = [
     `## ${item.id} - ${item.title}`,
     '',
-    `**Type:** ${item.type} | **Domain:** ${item.domain} | **Priority:** ${item.priority} | **Status:** ${item.status}`,
+    `**Type:** ${item.type} | **Domain:** ${item.domain.join(', ')} | **Priority:** ${item.priority} | **Status:** ${item.status}`,
     `**Tags:** ${item.tags.join(', ')}`,
   ];
 
@@ -227,7 +227,7 @@ function serializeItem(item: RequestLogItem): string {
     lines.push(`**Modified:** ${item.modified_at.toISOString()}`);
   }
 
-  lines.push(`**Context:** ${item.context}`);
+  lines.push(`**Context:** ${item.context.join(', ')}`);
   lines.push('');
   lines.push('### Problem/Goal');
   lines.push(item.notes);
@@ -432,7 +432,8 @@ function parseItems(body: string): RequestLogItem[] {
     }
 
     const type = metadataMatch[1]?.trim() || '';
-    const domain = metadataMatch[2]?.trim() || '';
+    const domainStr = metadataMatch[2]?.trim() || '';
+    const domain = domainStr ? domainStr.split(',').map((d) => d.trim()).filter((d) => d.length > 0) : [];
     const priority = metadataMatch[3]?.trim() || '';
     const status = metadataMatch[4]?.trim() || '';
 
@@ -450,7 +451,8 @@ function parseItems(body: string): RequestLogItem[] {
 
     // Parse context line
     const contextMatch = content.match(/\*\*Context:\*\*\s*([^\n]+)/);
-    const context = contextMatch?.[1]?.trim() || '';
+    const contextStr = contextMatch?.[1]?.trim() || '';
+    const context = contextStr ? contextStr.split(',').map((c) => c.trim()).filter((c) => c.length > 0) : [];
 
     // Parse notes (everything after "### Problem/Goal")
     const notesMatch = content.match(/###\s*Problem\/Goal\s*\n([\s\S]*)/);

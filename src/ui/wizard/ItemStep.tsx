@@ -10,6 +10,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { StepShell } from '../shared/StepShell';
 import { DropdownWithAdd } from '../shared/DropdownWithAdd';
 import { MultiSelectWithAdd } from '../shared/MultiSelectWithAdd';
+import { MultiSelectCombobox } from '../shared/MultiSelectCombobox';
 import { FormField, type ValidationState } from '../shared/FormField';
 import type { ItemDraft, FieldOption, FieldName } from '../../core/models';
 import './ItemStep.css';
@@ -110,18 +111,54 @@ export function ItemStep({
     [draft, onDraftChange]
   );
 
-  const handleDomainChange = useCallback(
+  // Domain multi-select handlers
+  const handleDomainSelect = useCallback(
     (value: string) => {
-      onDraftChange({ ...draft, domain: value });
+      if (!draft.domain.includes(value)) {
+        onDraftChange({ ...draft, domain: [...draft.domain, value] });
+      }
     },
     [draft, onDraftChange]
   );
 
-  const handleContextChange = useCallback(
+  const handleDomainRemove = useCallback(
     (value: string) => {
-      onDraftChange({ ...draft, context: value });
+      onDraftChange({ ...draft, domain: draft.domain.filter((d) => d !== value) });
     },
     [draft, onDraftChange]
+  );
+
+  const handleDomainAdd = useCallback(
+    async (value: string) => {
+      await onAddFieldOption('domain', value);
+      onDraftChange({ ...draft, domain: [...draft.domain, value] });
+    },
+    [draft, onDraftChange, onAddFieldOption]
+  );
+
+  // Context multi-select handlers
+  const handleContextSelect = useCallback(
+    (value: string) => {
+      if (!draft.context.includes(value)) {
+        onDraftChange({ ...draft, context: [...draft.context, value] });
+      }
+    },
+    [draft, onDraftChange]
+  );
+
+  const handleContextRemove = useCallback(
+    (value: string) => {
+      onDraftChange({ ...draft, context: draft.context.filter((c) => c !== value) });
+    },
+    [draft, onDraftChange]
+  );
+
+  const handleContextAdd = useCallback(
+    async (value: string) => {
+      await onAddFieldOption('context', value);
+      onDraftChange({ ...draft, context: [...draft.context, value] });
+    },
+    [draft, onDraftChange, onAddFieldOption]
   );
 
   const handlePriorityChange = useCallback(
@@ -161,21 +198,6 @@ export function ItemStep({
     [draft, onAddFieldOption, onDraftChange]
   );
 
-  const handleAddDomain = useCallback(
-    async (value: string) => {
-      await onAddFieldOption('domain', value);
-      onDraftChange({ ...draft, domain: value });
-    },
-    [draft, onAddFieldOption, onDraftChange]
-  );
-
-  const handleAddContext = useCallback(
-    async (value: string) => {
-      await onAddFieldOption('context', value);
-      onDraftChange({ ...draft, context: value });
-    },
-    [draft, onAddFieldOption, onDraftChange]
-  );
 
   const handleAddPriority = useCallback(
     async (value: string) => {
@@ -265,26 +287,28 @@ export function ItemStep({
             required
           />
 
-          {/* Domain - Optional */}
-          <DropdownWithAdd
+          {/* Domain - Optional (multi-select) */}
+          <MultiSelectCombobox
+            options={domainOptions.map((o) => o.label)}
+            selected={draft.domain}
+            onSelect={handleDomainSelect}
+            onRemove={handleDomainRemove}
+            onAdd={handleDomainAdd}
+            placeholder="Select domains..."
             label="Domain"
-            options={domainOptions}
-            value={draft.domain || null}
-            onChange={handleDomainChange}
-            onAddNew={handleAddDomain}
-            placeholder="Select domain..."
             helperText="Which area of the product?"
             tooltip="The functional area or module this request applies to (web, mobile, api, etc.)"
           />
 
-          {/* Context - Optional */}
-          <DropdownWithAdd
-            label="Context"
-            options={contextOptions}
-            value={draft.context || null}
-            onChange={handleContextChange}
-            onAddNew={handleAddContext}
+          {/* Context - Optional (multi-select) */}
+          <MultiSelectCombobox
+            options={contextOptions.map((o) => o.label)}
+            selected={draft.context}
+            onSelect={handleContextSelect}
+            onRemove={handleContextRemove}
+            onAdd={handleContextAdd}
             placeholder="Select context..."
+            label="Context"
             helperText="Additional context or category"
             tooltip="Specific context or subcategory for this request"
           />

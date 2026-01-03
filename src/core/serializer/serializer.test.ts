@@ -281,11 +281,11 @@ Multiple lines supported.
     expect(item.id).toBe('REQ-20251203-test-01');
     expect(item.title).toBe('Test Item');
     expect(item.type).toBe('enhancement');
-    expect(item.domain).toBe('web');
+    expect(item.domain).toStrictEqual(['web']);
     expect(item.priority).toBe('high');
     expect(item.status).toBe('backlog');
     expect(item.tags).toEqual(['urgent', 'api', 'feature']);
-    expect(item.context).toBe('Test context here');
+    expect(item.context).toStrictEqual(['Test context here']);
     expect(item.notes).toContain('Detailed notes go here');
     expect(item.notes).toContain('Multiple lines supported');
   });
@@ -516,8 +516,8 @@ describe('serialize/parse roundtrip', () => {
       expect(parsedItem.id).toBe(origItem.id);
       expect(parsedItem.title).toBe(origItem.title);
       expect(parsedItem.type).toBe(origItem.type);
-      expect(parsedItem.domain).toBe(origItem.domain);
-      expect(parsedItem.context).toBe(origItem.context);
+      expect(parsedItem.domain).toStrictEqual(origItem.domain);
+      expect(parsedItem.context).toStrictEqual(origItem.context);
       expect(parsedItem.priority).toBe(origItem.priority);
       expect(parsedItem.status).toBe(origItem.status);
       expect(parsedItem.tags).toEqual(origItem.tags);
@@ -693,7 +693,7 @@ describe('updateItemsIndex', () => {
         id: 'REQ-20251203-test-01',
         type: 'enhancement',
         title: 'Test Item',
-        domain: 'web',
+        domain: ['web'],
         priority: 'high',
         tags: ['test', 'example'],
         notes: 'Lots of notes here',

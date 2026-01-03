@@ -19,8 +19,8 @@ const createMockItem = (overrides: Partial<RequestLogItem> = {}): RequestLogItem
   id: 'REQ-20251231-test-01',
   title: 'Test Item Title',
   type: 'enhancement',
-  domain: 'web',
-  context: 'frontend',
+  domain: ['web'],
+  context: ['frontend'],
   priority: 'medium',
   status: 'triage',
   tags: ['ux', 'api'],
@@ -424,7 +424,7 @@ describe('ItemEditForm', () => {
     it('preserves domain value when empty in initial item', async () => {
       const user = userEvent.setup({ delay: null });
       const onSave = vi.fn();
-      const item = createMockItem({ domain: '' });
+      const item = createMockItem({ domain: [] });
 
       render(<ItemEditForm {...createDefaultProps({ item, onSave })} />);
 
@@ -437,7 +437,7 @@ describe('ItemEditForm', () => {
       });
 
       const savedItem = onSave.mock.calls[0]?.[0] as RequestLogItem | undefined;
-      expect(savedItem!.domain).toBe('');
+      expect(savedItem!.domain).toEqual([]);
     });
   });
 
@@ -445,7 +445,7 @@ describe('ItemEditForm', () => {
     it('preserves context value when empty in initial item', async () => {
       const user = userEvent.setup({ delay: null });
       const onSave = vi.fn();
-      const item = createMockItem({ context: '' });
+      const item = createMockItem({ context: [] });
 
       render(<ItemEditForm {...createDefaultProps({ item, onSave })} />);
 
@@ -458,7 +458,7 @@ describe('ItemEditForm', () => {
       });
 
       const savedItem = onSave.mock.calls[0]?.[0] as RequestLogItem | undefined;
-      expect(savedItem!.context).toBe('');
+      expect(savedItem!.context).toEqual([]);
     });
   });
 

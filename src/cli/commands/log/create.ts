@@ -105,8 +105,10 @@ function isValidItemDraft(obj: unknown): obj is ItemDraft {
   return (
     typeof item.title === 'string' &&
     typeof item.type === 'string' &&
-    typeof item.domain === 'string' &&
-    typeof item.context === 'string' &&
+    Array.isArray(item.domain) &&
+    item.domain.every((d) => typeof d === 'string') &&
+    Array.isArray(item.context) &&
+    item.context.every((c) => typeof c === 'string') &&
     typeof item.priority === 'string' &&
     typeof item.status === 'string' &&
     Array.isArray(item.tags) &&
@@ -126,8 +128,8 @@ function getExpectedFormatHint(): string {
     '  "items": [{\n' +
     '    "title": "Item title",\n' +
     '    "type": "enhancement",\n' +
-    '    "domain": "web",\n' +
-    '    "context": "Context",\n' +
+    '    "domain": ["web"],\n' +
+    '    "context": ["Context"],\n' +
     '    "priority": "medium",\n' +
     '    "status": "triage",\n' +
     '    "tags": ["tag1"],\n' +

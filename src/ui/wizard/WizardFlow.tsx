@@ -78,8 +78,8 @@ interface WizardFlowProps {
 const EMPTY_DRAFT: ItemDraft = {
   title: '',
   type: '',
-  domain: '',
-  context: '',
+  domain: [],
+  context: [],
   priority: 'medium',
   status: 'triage',
   tags: [],
