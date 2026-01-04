@@ -104,9 +104,7 @@ describe('calculateTransform', () => {
   });
 
   it('should clamp distance exceeding default max', () => {
-    expect(calculateTransform(500)).toBe(
-      `translateY(${DEFAULT_MAX_DRAG_DISTANCE}px)`
-    );
+    expect(calculateTransform(500)).toBe(`translateY(${DEFAULT_MAX_DRAG_DISTANCE}px)`);
   });
 
   it('should use custom maxDistance when provided', () => {
@@ -256,9 +254,7 @@ describe('DEFAULT_MAX_DRAG_DISTANCE', () => {
   it('should be used as default in calculateTransform', () => {
     // Verify it's actually used as the default
     const overMaxDistance = DEFAULT_MAX_DRAG_DISTANCE + 100;
-    expect(calculateTransform(overMaxDistance)).toBe(
-      `translateY(${DEFAULT_MAX_DRAG_DISTANCE}px)`
-    );
+    expect(calculateTransform(overMaxDistance)).toBe(`translateY(${DEFAULT_MAX_DRAG_DISTANCE}px)`);
   });
 });
 

@@ -115,9 +115,7 @@ describe('useHalfSheet', () => {
 
     it('calls onClose callback when closing', () => {
       const onClose = vi.fn();
-      const { result } = renderHook(() =>
-        useHalfSheet({ onClose, initialOpen: true })
-      );
+      const { result } = renderHook(() => useHalfSheet({ onClose, initialOpen: true }));
 
       act(() => {
         result.current.close();
@@ -152,9 +150,7 @@ describe('useHalfSheet', () => {
 
     it('calls onExpand callback when expanding', () => {
       const onExpand = vi.fn();
-      const { result } = renderHook(() =>
-        useHalfSheet({ onExpand, initialOpen: true })
-      );
+      const { result } = renderHook(() => useHalfSheet({ onExpand, initialOpen: true }));
 
       act(() => {
         result.current.expand();
@@ -274,9 +270,7 @@ describe('useHalfSheet', () => {
     it('does nothing when sheet is closed', () => {
       const onExpand = vi.fn();
       const onCollapse = vi.fn();
-      const { result } = renderHook(() =>
-        useHalfSheet({ onExpand, onCollapse })
-      );
+      const { result } = renderHook(() => useHalfSheet({ onExpand, onCollapse }));
 
       act(() => {
         result.current.toggle();
@@ -417,16 +411,11 @@ describe('useHalfSheet', () => {
     it('removes event listener on unmount', () => {
       const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
 
-      const { unmount } = renderHook(() =>
-        useHalfSheet({ initialOpen: true })
-      );
+      const { unmount } = renderHook(() => useHalfSheet({ initialOpen: true }));
 
       unmount();
 
-      expect(removeEventListenerSpy).toHaveBeenCalledWith(
-        'keydown',
-        expect.any(Function)
-      );
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
 
       removeEventListenerSpy.mockRestore();
     });
@@ -438,10 +427,7 @@ describe('useHalfSheet', () => {
       const { result } = renderHook(() => useHalfSheet({ initialOpen: true }));
 
       // Listener should be added
-      expect(addEventListenerSpy).toHaveBeenCalledWith(
-        'keydown',
-        expect.any(Function)
-      );
+      expect(addEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
 
       // Close the sheet
       act(() => {
@@ -449,10 +435,7 @@ describe('useHalfSheet', () => {
       });
 
       // Listener should be removed
-      expect(removeEventListenerSpy).toHaveBeenCalledWith(
-        'keydown',
-        expect.any(Function)
-      );
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
 
       addEventListenerSpy.mockRestore();
       removeEventListenerSpy.mockRestore();
@@ -463,9 +446,7 @@ describe('useHalfSheet', () => {
     it('debounces rapid state changes with default 100ms', () => {
       const onOpen = vi.fn();
       const onClose = vi.fn();
-      const { result } = renderHook(() =>
-        useHalfSheet({ onOpen, onClose })
-      );
+      const { result } = renderHook(() => useHalfSheet({ onOpen, onClose }));
 
       // First call should go through immediately
       act(() => {
@@ -492,9 +473,7 @@ describe('useHalfSheet', () => {
     it('respects custom debounceMs option', () => {
       const onOpen = vi.fn();
       const onClose = vi.fn();
-      const { result } = renderHook(() =>
-        useHalfSheet({ onOpen, onClose, debounceMs: 200 })
-      );
+      const { result } = renderHook(() => useHalfSheet({ onOpen, onClose, debounceMs: 200 }));
 
       act(() => {
         result.current.open();
@@ -522,9 +501,7 @@ describe('useHalfSheet', () => {
     it('cancels pending state change when new change requested', () => {
       const onOpen = vi.fn();
       const onClose = vi.fn();
-      const { result } = renderHook(() =>
-        useHalfSheet({ onOpen, onClose, debounceMs: 100 })
-      );
+      const { result } = renderHook(() => useHalfSheet({ onOpen, onClose, debounceMs: 100 }));
 
       // Open first
       act(() => {
@@ -556,9 +533,7 @@ describe('useHalfSheet', () => {
     it('allows immediate state change with debounceMs: 0', () => {
       const onOpen = vi.fn();
       const onClose = vi.fn();
-      const { result } = renderHook(() =>
-        useHalfSheet({ onOpen, onClose, debounceMs: 0 })
-      );
+      const { result } = renderHook(() => useHalfSheet({ onOpen, onClose, debounceMs: 0 }));
 
       act(() => {
         result.current.open();
@@ -580,9 +555,7 @@ describe('useHalfSheet', () => {
     });
 
     it('cleans up pending timeout on unmount', () => {
-      const { result, unmount } = renderHook(() =>
-        useHalfSheet({ debounceMs: 100 })
-      );
+      const { result, unmount } = renderHook(() => useHalfSheet({ debounceMs: 100 }));
 
       act(() => {
         result.current.open();
@@ -627,9 +600,7 @@ describe('useHalfSheet', () => {
 
   describe('edge cases', () => {
     it('handles multiple rapid toggles', () => {
-      const { result } = renderHook(() =>
-        useHalfSheet({ initialOpen: true, debounceMs: 0 })
-      );
+      const { result } = renderHook(() => useHalfSheet({ initialOpen: true, debounceMs: 0 }));
 
       act(() => {
         result.current.toggle(); // expand

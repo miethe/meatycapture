@@ -20,10 +20,9 @@ describe('useDebounce', () => {
   });
 
   it('debounces value changes', () => {
-    const { result, rerender } = renderHook(
-      ({ value }) => useDebounce(value, 300),
-      { initialProps: { value: 'initial' } }
-    );
+    const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+      initialProps: { value: 'initial' },
+    });
 
     expect(result.current).toBe('initial');
 
@@ -45,10 +44,9 @@ describe('useDebounce', () => {
   });
 
   it('resets debounce timer on rapid changes', () => {
-    const { result, rerender } = renderHook(
-      ({ value }) => useDebounce(value, 300),
-      { initialProps: { value: 'initial' } }
-    );
+    const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+      initialProps: { value: 'initial' },
+    });
 
     // First change
     rerender({ value: 'first' });
@@ -115,10 +113,9 @@ describe('useDebounce', () => {
   });
 
   it('cleans up timer on unmount', () => {
-    const { unmount, rerender } = renderHook(
-      ({ value }) => useDebounce(value, 300),
-      { initialProps: { value: 'initial' } }
-    );
+    const { unmount, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+      initialProps: { value: 'initial' },
+    });
 
     rerender({ value: 'updated' });
     unmount();
@@ -133,10 +130,9 @@ describe('useDebounce', () => {
   });
 
   it('updates immediately when delay is 0', () => {
-    const { result, rerender } = renderHook(
-      ({ value }) => useDebounce(value, 0),
-      { initialProps: { value: 'initial' } }
-    );
+    const { result, rerender } = renderHook(({ value }) => useDebounce(value, 0), {
+      initialProps: { value: 'initial' },
+    });
 
     rerender({ value: 'updated' });
 
@@ -223,9 +219,7 @@ describe('useDebouncedCallback', () => {
 
   it('uses latest callback version', () => {
     let callbackVersion = 1;
-    const { result, rerender } = renderHook(
-      () => useDebouncedCallback(() => callbackVersion, 300)
-    );
+    const { result, rerender } = renderHook(() => useDebouncedCallback(() => callbackVersion, 300));
 
     // Call with version 1
     act(() => {
@@ -247,9 +241,7 @@ describe('useDebouncedCallback', () => {
 
   it('cleans up timer on unmount', () => {
     const callback = vi.fn();
-    const { result, unmount } = renderHook(() =>
-      useDebouncedCallback(callback, 300)
-    );
+    const { result, unmount } = renderHook(() => useDebouncedCallback(callback, 300));
 
     act(() => {
       result.current();

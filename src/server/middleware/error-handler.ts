@@ -261,8 +261,7 @@ export function mapErrorToResponse(error: unknown): { status: number; body: Erro
 
   // Default: 500 Internal Server Error
   // Sanitize internal error details in production
-  const message =
-    error instanceof Error ? error.message : 'An unexpected error occurred';
+  const message = error instanceof Error ? error.message : 'An unexpected error occurred';
 
   return {
     status: 500,

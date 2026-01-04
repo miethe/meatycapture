@@ -71,11 +71,7 @@ export function Tooltip({
     >
       {children}
       {isVisible && (
-        <div
-          className={`tooltip tooltip-${position}`}
-          role="tooltip"
-          aria-live="polite"
-        >
+        <div className={`tooltip tooltip-${position}`} role="tooltip" aria-live="polite">
           <div className="tooltip-content">{content}</div>
         </div>
       )}

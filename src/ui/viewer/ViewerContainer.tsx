@@ -479,7 +479,9 @@ function ErrorState({ error, onRetry }: ErrorStateProps): React.JSX.Element {
   return (
     <div className="viewer-error glass" role="alert" aria-live="assertive">
       <div className="error-message">
-        <span className="error-icon" aria-hidden="true">Warning</span>
+        <span className="error-icon" aria-hidden="true">
+          Warning
+        </span>
         <div>
           <h3>Failed to Load Catalog</h3>
           <p>{error}</p>
@@ -506,7 +508,9 @@ function ErrorState({ error, onRetry }: ErrorStateProps): React.JSX.Element {
 function EmptyState(): React.JSX.Element {
   return (
     <div className="empty-state">
-      <span className="empty-state-icon" aria-hidden="true">Document</span>
+      <span className="empty-state-icon" aria-hidden="true">
+        Document
+      </span>
       <h3 className="empty-state-title">No Documents Found</h3>
       <p className="empty-state-description">
         No request-log documents found in enabled projects.

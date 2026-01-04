@@ -61,9 +61,7 @@ export function checkAuth(req: Request): AuthResult {
   if (!configuredToken) {
     // Log warning in development/debug mode
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(
-        '[AUTH] Warning: MEATYCAPTURE_AUTH_TOKEN not set. Authentication is disabled.'
-      );
+      console.warn('[AUTH] Warning: MEATYCAPTURE_AUTH_TOKEN not set. Authentication is disabled.');
     }
 
     return {

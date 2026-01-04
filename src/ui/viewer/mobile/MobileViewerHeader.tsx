@@ -198,10 +198,7 @@ export function MobileViewerHeader({
           </button>
 
           {/* Sort dropdown */}
-          <MobileSortDropdown
-            currentSort={currentSort}
-            onSort={onSort}
-          />
+          <MobileSortDropdown currentSort={currentSort} onSort={onSort} />
 
           {/* Filter button with badge */}
           <button

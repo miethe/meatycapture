@@ -408,9 +408,7 @@ function DocumentManagementTestHarness({
           {isExpanded && document && (
             <tr data-testid="document-detail-row">
               <td colSpan={4}>
-                <div data-testid="document-detail">
-                  Document Detail: {document.doc_id}
-                </div>
+                <div data-testid="document-detail">Document Detail: {document.doc_id}</div>
               </td>
             </tr>
           )}
@@ -455,7 +453,9 @@ function DocumentManagementTestHarness({
       <div data-testid="status-indicators" style={{ display: 'none' }}>
         <span data-testid="is-archived">{entry.archived ? 'true' : 'false'}</span>
         <span data-testid="document-title">{document?.title ?? entry.title}</span>
-        <span data-testid="is-deleted">{document === null && !initialDocument ? 'true' : 'false'}</span>
+        <span data-testid="is-deleted">
+          {document === null && !initialDocument ? 'true' : 'false'}
+        </span>
       </div>
     </div>
   );
@@ -501,7 +501,9 @@ describe('Document Management Integration', () => {
       // Confirmation dialog should be open
       expect(screen.getByRole('dialog')).toBeInTheDocument();
       expect(screen.getByText('Delete Document')).toBeInTheDocument();
-      expect(screen.getByText(/Delete document REQ-20251231-test-project with 2 items/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Delete document REQ-20251231-test-project with 2 items/)
+      ).toBeInTheDocument();
     });
 
     it('shows correct message for empty document', async () => {
@@ -776,7 +778,9 @@ describe('Document Management Integration', () => {
       // Confirmation dialog should be open
       expect(screen.getByRole('dialog')).toBeInTheDocument();
       expect(screen.getByText('Unarchive Document')).toBeInTheDocument();
-      expect(screen.getByText(/Restore document REQ-20251231-test-project to active documents/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Restore document REQ-20251231-test-project to active documents/)
+      ).toBeInTheDocument();
     });
 
     it('unarchives document when Unarchive is confirmed', async () => {

@@ -164,18 +164,14 @@ describe('MobileDocCard', () => {
 
   describe('selected state', () => {
     it('applies selected class when isSelected is true', () => {
-      const { container } = render(
-        <MobileDocCard {...defaultProps} isSelected={true} />
-      );
+      const { container } = render(<MobileDocCard {...defaultProps} isSelected={true} />);
 
       const card = container.querySelector('.mobile-doc-card');
       expect(card).toHaveClass('mobile-doc-card--selected');
     });
 
     it('does not apply selected class when isSelected is false', () => {
-      const { container } = render(
-        <MobileDocCard {...defaultProps} isSelected={false} />
-      );
+      const { container } = render(<MobileDocCard {...defaultProps} isSelected={false} />);
 
       const card = container.querySelector('.mobile-doc-card');
       expect(card).not.toHaveClass('mobile-doc-card--selected');
@@ -212,18 +208,9 @@ describe('MobileDocCard', () => {
       render(<MobileDocCard {...defaultProps} />);
 
       const card = screen.getByRole('button');
-      expect(card).toHaveAttribute(
-        'aria-label',
-        expect.stringContaining('REQ-20251231-test')
-      );
-      expect(card).toHaveAttribute(
-        'aria-label',
-        expect.stringContaining('Test Document Title')
-      );
-      expect(card).toHaveAttribute(
-        'aria-label',
-        expect.stringContaining('5 items')
-      );
+      expect(card).toHaveAttribute('aria-label', expect.stringContaining('REQ-20251231-test'));
+      expect(card).toHaveAttribute('aria-label', expect.stringContaining('Test Document Title'));
+      expect(card).toHaveAttribute('aria-label', expect.stringContaining('5 items'));
     });
   });
 });

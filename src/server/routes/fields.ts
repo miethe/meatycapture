@@ -30,7 +30,12 @@
  * ```
  */
 
-import { withErrorHandling, NotFoundError, ValidationError, ConflictError } from '../middleware/error-handler.js';
+import {
+  withErrorHandling,
+  NotFoundError,
+  ValidationError,
+  ConflictError,
+} from '../middleware/error-handler.js';
 import { parseJsonBody, extractQueryParam, extractPathParam } from '../middleware/validation.js';
 import {
   validateFieldOptionCreateBody,
@@ -296,7 +301,6 @@ export function createFieldsRouter(fieldStore: FieldCatalogStore) {
         { method: 'DELETE', path: `/api/fields/${id}` }
       );
     },
-
   };
 }
 

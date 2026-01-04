@@ -125,9 +125,7 @@ class MockFieldCatalogStore implements FieldCatalogStore {
 /**
  * Creates a test field option with sensible defaults.
  */
-function createTestOption(
-  overrides: Partial<FieldOption> = {}
-): FieldOption {
+function createTestOption(overrides: Partial<FieldOption> = {}): FieldOption {
   return {
     id: 'test-option-123',
     field: 'type',
@@ -181,9 +179,7 @@ describe('FieldCatalogStore Routes', () => {
 
     it('should serialize dates to ISO 8601 strings', async () => {
       const testDate = new Date('2025-12-08T12:00:00Z');
-      const globalOptions = [
-        createTestOption({ id: 'test-1', created_at: testDate }),
-      ];
+      const globalOptions = [createTestOption({ id: 'test-1', created_at: testDate })];
       store.seed(globalOptions, {});
 
       const res = await router.getGlobal();

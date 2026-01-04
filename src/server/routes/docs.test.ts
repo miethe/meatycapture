@@ -352,14 +352,17 @@ describe('DocStore Routes', () => {
     });
 
     it('should return 400 if request body is invalid', async () => {
-      const req = new Request('http://localhost/api/docs/REQ-20251208-project1?path=/data/docs/doc1.md', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          doc_id: 'REQ-20251208-project1',
-          // Missing required fields
-        }),
-      });
+      const req = new Request(
+        'http://localhost/api/docs/REQ-20251208-project1?path=/data/docs/doc1.md',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doc_id: 'REQ-20251208-project1',
+            // Missing required fields
+          }),
+        }
+      );
 
       const res = await router.write(req);
 
@@ -367,11 +370,14 @@ describe('DocStore Routes', () => {
     });
 
     it('should return 400 if Content-Type is not JSON', async () => {
-      const req = new Request('http://localhost/api/docs/REQ-20251208-project1?path=/data/docs/doc1.md', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: 'not json',
-      });
+      const req = new Request(
+        'http://localhost/api/docs/REQ-20251208-project1?path=/data/docs/doc1.md',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: 'not json',
+        }
+      );
 
       const res = await router.write(req);
 

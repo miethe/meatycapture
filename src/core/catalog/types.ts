@@ -294,8 +294,7 @@ export function isFilterState(obj: unknown): obj is FilterState {
  */
 export function isSortField(value: unknown): value is SortField {
   return (
-    typeof value === 'string' &&
-    ['updated_at', 'item_count', 'doc_id', 'title'].includes(value)
+    typeof value === 'string' && ['updated_at', 'item_count', 'doc_id', 'title'].includes(value)
   );
 }
 

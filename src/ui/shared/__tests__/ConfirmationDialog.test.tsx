@@ -21,12 +21,7 @@ describe('ConfirmationDialog', () => {
 
   describe('rendering', () => {
     it('renders nothing when isOpen is false', () => {
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          isOpen={false}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} isOpen={false} />);
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
@@ -47,13 +42,7 @@ describe('ConfirmationDialog', () => {
     });
 
     it('renders with custom button labels', () => {
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          confirmLabel="Delete"
-          cancelLabel="Keep"
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} confirmLabel="Delete" cancelLabel="Keep" />);
 
       expect(screen.getByRole('button', { name: 'Keep' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
@@ -65,12 +54,7 @@ describe('ConfirmationDialog', () => {
       const onConfirm = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onConfirm={onConfirm}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onConfirm={onConfirm} />);
 
       const confirmButton = screen.getByRole('button', { name: 'Confirm' });
       await user.click(confirmButton);
@@ -82,13 +66,7 @@ describe('ConfirmationDialog', () => {
       const onConfirm = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onConfirm={onConfirm}
-          isLoading={true}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onConfirm={onConfirm} isLoading={true} />);
 
       const confirmButton = screen.getByRole('button', { name: /confirm/i });
       await user.click(confirmButton);
@@ -102,12 +80,7 @@ describe('ConfirmationDialog', () => {
       const onCancel = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onCancel={onCancel}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onCancel={onCancel} />);
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
       await user.click(cancelButton);
@@ -125,12 +98,7 @@ describe('ConfirmationDialog', () => {
       const onCancel = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onCancel={onCancel}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onCancel={onCancel} />);
 
       // Click on the overlay (outside the dialog)
       const overlay = screen.getByRole('dialog').parentElement;
@@ -151,12 +119,7 @@ describe('ConfirmationDialog', () => {
       const onCancel = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onCancel={onCancel}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onCancel={onCancel} />);
 
       // Click on the dialog itself (not buttons)
       const dialog = screen.getByRole('dialog');
@@ -172,13 +135,7 @@ describe('ConfirmationDialog', () => {
       const onCancel = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onCancel={onCancel}
-          isLoading={true}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onCancel={onCancel} isLoading={true} />);
 
       const overlay = screen.getByRole('dialog').parentElement;
       if (overlay) {
@@ -197,12 +154,7 @@ describe('ConfirmationDialog', () => {
       const onCancel = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onCancel={onCancel}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onCancel={onCancel} />);
 
       await user.keyboard('{Escape}');
 
@@ -219,13 +171,7 @@ describe('ConfirmationDialog', () => {
       const onCancel = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onCancel={onCancel}
-          isLoading={true}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onCancel={onCancel} isLoading={true} />);
 
       await user.keyboard('{Escape}');
 
@@ -283,12 +229,7 @@ describe('ConfirmationDialog', () => {
 
   describe('dangerous styling', () => {
     it('applies danger class when isDangerous is true', () => {
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          isDangerous={true}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} isDangerous={true} />);
 
       const confirmButton = screen.getByRole('button', { name: 'Confirm' });
       expect(confirmButton).toHaveClass('danger');
@@ -296,12 +237,7 @@ describe('ConfirmationDialog', () => {
     });
 
     it('applies primary class when isDangerous is false', () => {
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          isDangerous={false}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} isDangerous={false} />);
 
       const confirmButton = screen.getByRole('button', { name: 'Confirm' });
       expect(confirmButton).toHaveClass('primary');
@@ -311,36 +247,21 @@ describe('ConfirmationDialog', () => {
 
   describe('loading state', () => {
     it('applies loading class when isLoading is true', () => {
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          isLoading={true}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} isLoading={true} />);
 
       const confirmButton = screen.getByRole('button', { name: /confirm/i });
       expect(confirmButton).toHaveClass('loading');
     });
 
     it('disables both buttons when loading', () => {
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          isLoading={true}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} isLoading={true} />);
 
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
       expect(screen.getByRole('button', { name: /confirm/i })).toBeDisabled();
     });
 
     it('does not disable buttons when not loading', () => {
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          isLoading={false}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} isLoading={false} />);
 
       expect(screen.getByRole('button', { name: 'Cancel' })).not.toBeDisabled();
       expect(screen.getByRole('button', { name: 'Confirm' })).not.toBeDisabled();
@@ -378,7 +299,9 @@ describe('ConfirmationDialog', () => {
       const describedById = dialog.getAttribute('aria-describedby');
 
       expect(describedById).toBeTruthy();
-      expect(document.getElementById(describedById!)).toHaveTextContent('Are you sure you want to proceed?');
+      expect(document.getElementById(describedById!)).toHaveTextContent(
+        'Are you sure you want to proceed?'
+      );
     });
   });
 
@@ -402,12 +325,7 @@ describe('ConfirmationDialog', () => {
       const onConfirm = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onConfirm={onConfirm}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onConfirm={onConfirm} />);
 
       // Tab to confirm button and press Enter
       await user.tab();
@@ -420,12 +338,7 @@ describe('ConfirmationDialog', () => {
       const onCancel = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onCancel={onCancel}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onCancel={onCancel} />);
 
       // Cancel is focused by default, press Enter
       await user.keyboard('{Enter}');
@@ -442,13 +355,7 @@ describe('ConfirmationDialog', () => {
 
   describe('loading state details', () => {
     it('shows hidden content span when loading', () => {
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          isLoading={true}
-          confirmLabel="Delete"
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} isLoading={true} confirmLabel="Delete" />);
 
       const hiddenContent = document.querySelector('.button-content-hidden');
       expect(hiddenContent).toBeInTheDocument();
@@ -459,13 +366,7 @@ describe('ConfirmationDialog', () => {
       const onCancel = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onCancel={onCancel}
-          isLoading={true}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onCancel={onCancel} isLoading={true} />);
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
       await user.click(cancelButton);
@@ -491,12 +392,7 @@ describe('ConfirmationDialog', () => {
       const onCancel = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onCancel={onCancel}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onCancel={onCancel} />);
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
       await user.click(cancelButton);
@@ -520,12 +416,7 @@ describe('ConfirmationDialog', () => {
       const onCancel = vi.fn();
       const user = userEvent.setup({ delay: null });
 
-      render(
-        <ConfirmationDialog
-          {...defaultProps}
-          onCancel={onCancel}
-        />
-      );
+      render(<ConfirmationDialog {...defaultProps} onCancel={onCancel} />);
 
       await user.keyboard('{Escape}');
 
@@ -588,7 +479,9 @@ describe('ConfirmationDialog', () => {
 
       // IDs should still be valid and point to correct elements
       expect(document.getElementById(labelledById2!)).toHaveTextContent('Confirm Action');
-      expect(document.getElementById(describedById2!)).toHaveTextContent('Are you sure you want to proceed?');
+      expect(document.getElementById(describedById2!)).toHaveTextContent(
+        'Are you sure you want to proceed?'
+      );
     });
   });
 

@@ -78,8 +78,8 @@ export function parseAllowedOrigins(): string[] {
 
   return envOrigins
     .split(',')
-    .map(origin => origin.trim())
-    .filter(origin => origin.length > 0);
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
 }
 
 /**
@@ -89,10 +89,7 @@ export function parseAllowedOrigins(): string[] {
  * @param allowedOrigins - List of allowed origins from configuration
  * @returns true if origin is allowed, false otherwise
  */
-export function isOriginAllowed(
-  origin: string | null,
-  allowedOrigins: string[]
-): boolean {
+export function isOriginAllowed(origin: string | null, allowedOrigins: string[]): boolean {
   // No origin header (same-origin request)
   if (!origin) {
     return true;
@@ -238,7 +235,7 @@ export function corsMiddleware(userConfig?: Partial<CorsConfig>) {
 
     // Handle both sync and async responses
     if (responseOrPromise instanceof Promise) {
-      return responseOrPromise.then(response => {
+      return responseOrPromise.then((response) => {
         return addCorsHeadersToResponse(response, corsHeaders);
       });
     }

@@ -34,13 +34,7 @@ export interface KebabMenuProps {
  */
 function KebabIcon(): React.JSX.Element {
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="currentColor"
-      aria-hidden="true"
-    >
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
       <circle cx="8" cy="3" r="1.5" />
       <circle cx="8" cy="8" r="1.5" />
       <circle cx="8" cy="13" r="1.5" />
@@ -87,10 +81,7 @@ export function KebabMenu({
     if (!isOpen) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -108,15 +99,12 @@ export function KebabMenu({
   }, []);
 
   // Handle item selection
-  const handleItemClick = useCallback(
-    (item: KebabMenuItem) => {
-      item.onClick();
-      setIsOpen(false);
-      // Return focus to trigger after selection
-      triggerRef.current?.focus();
-    },
-    []
-  );
+  const handleItemClick = useCallback((item: KebabMenuItem) => {
+    item.onClick();
+    setIsOpen(false);
+    // Return focus to trigger after selection
+    triggerRef.current?.focus();
+  }, []);
 
   // Keyboard navigation
   const handleKeyDown = useCallback(
@@ -186,11 +174,7 @@ export function KebabMenu({
   );
 
   return (
-    <div
-      ref={containerRef}
-      className="kebab-menu-container"
-      onKeyDown={handleKeyDown}
-    >
+    <div ref={containerRef} className="kebab-menu-container" onKeyDown={handleKeyDown}>
       <button
         ref={triggerRef}
         type="button"
@@ -204,12 +188,7 @@ export function KebabMenu({
       </button>
 
       {isOpen && (
-        <div
-          ref={menuRef}
-          className="kebab-menu-panel"
-          role="menu"
-          aria-label={ariaLabel}
-        >
+        <div ref={menuRef} className="kebab-menu-panel" role="menu" aria-label={ariaLabel}>
           {items.map((item, index) => (
             <button
               key={`${item.label}-${index}`}

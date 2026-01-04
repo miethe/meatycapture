@@ -67,7 +67,10 @@ export class NetworkError extends ApiError {
  */
 export class ValidationError extends ApiError {
   constructor(message: string, options?: { code?: string }) {
-    super(message, options?.code !== undefined ? { status: 400, code: options.code } : { status: 400 });
+    super(
+      message,
+      options?.code !== undefined ? { status: 400, code: options.code } : { status: 400 }
+    );
     this.name = 'ValidationError';
   }
 }

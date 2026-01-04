@@ -151,9 +151,7 @@ describe('ApiProjectStore', () => {
         enabled: true,
       };
 
-      vi.mocked(mockClient.post).mockRejectedValue(
-        new ValidationError('Project name is required')
-      );
+      vi.mocked(mockClient.post).mockRejectedValue(new ValidationError('Project name is required'));
 
       await expect(store.create(input)).rejects.toThrow(ValidationError);
     });
@@ -273,7 +271,7 @@ describe('ApiFieldCatalogStore', () => {
 
       expect(mockClient.get).toHaveBeenCalledWith('/api/fields/global');
       expect(result).toEqual(mockOptions);
-      expect(result.every(opt => opt.scope === 'global')).toBe(true);
+      expect(result.every((opt) => opt.scope === 'global')).toBe(true);
     });
 
     it('should return empty array when no global options exist', async () => {
@@ -340,7 +338,7 @@ describe('ApiFieldCatalogStore', () => {
 
       expect(mockClient.get).toHaveBeenCalledWith('/api/fields/by-field/type', undefined);
       expect(result).toEqual(mockOptions);
-      expect(result.every(opt => opt.field === 'type')).toBe(true);
+      expect(result.every((opt) => opt.field === 'type')).toBe(true);
     });
 
     it('should fetch options for a specific field with project filter', async () => {
@@ -459,9 +457,7 @@ describe('ApiFieldCatalogStore', () => {
         scope: 'global' as const,
       };
 
-      vi.mocked(mockClient.post).mockRejectedValue(
-        new ValidationError('Option value is required')
-      );
+      vi.mocked(mockClient.post).mockRejectedValue(new ValidationError('Option value is required'));
 
       await expect(store.addOption(input)).rejects.toThrow(ValidationError);
     });

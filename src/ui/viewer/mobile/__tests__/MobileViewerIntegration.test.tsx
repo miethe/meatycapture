@@ -169,7 +169,10 @@ function createMockFilterOptions(): FilterOptions {
  * @returns GroupedCatalog structure
  */
 function createMockGroupedCatalog(entries: CatalogEntry[]): GroupedCatalog {
-  const groups = new Map<string, { project: { id: string; name: string }; entries: CatalogEntry[] }>();
+  const groups = new Map<
+    string,
+    { project: { id: string; name: string }; entries: CatalogEntry[] }
+  >();
 
   for (const entry of entries) {
     const existing = groups.get(entry.project_id);
@@ -474,10 +477,7 @@ describe('MobileViewerIntegration', () => {
       const onFilterStateChange = vi.fn();
 
       render(
-        <TestWrapper
-          initialFilterState={filterState}
-          onFilterStateChange={onFilterStateChange}
-        />
+        <TestWrapper initialFilterState={filterState} onFilterStateChange={onFilterStateChange} />
       );
 
       // Open filter sheet

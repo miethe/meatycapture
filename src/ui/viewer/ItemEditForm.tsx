@@ -99,7 +99,10 @@ export function ItemEditForm({
     () => toDropdownOptions(fieldOptions.priority),
     [fieldOptions.priority]
   );
-  const statusOptions = useMemo(() => toDropdownOptions(fieldOptions.status), [fieldOptions.status]);
+  const statusOptions = useMemo(
+    () => toDropdownOptions(fieldOptions.status),
+    [fieldOptions.status]
+  );
   const tagMultiOptions = useMemo(
     () => localTagOptions.map((t) => ({ id: t, label: t })),
     [localTagOptions]
@@ -276,13 +279,10 @@ export function ItemEditForm({
   /**
    * Handle adding new tag
    */
-  const handleAddTag = useCallback(
-    async (value: string) => {
-      setLocalTagOptions((prev) => [...prev, value]);
-      setTags((prev) => [...prev, value]);
-    },
-    []
-  );
+  const handleAddTag = useCallback(async (value: string) => {
+    setLocalTagOptions((prev) => [...prev, value]);
+    setTags((prev) => [...prev, value]);
+  }, []);
 
   // Notes editing is disabled for MVP - full UI comes in Phase 3
   // Notes are preserved as-is when saving
@@ -298,10 +298,7 @@ export function ItemEditForm({
       {/* Title Field */}
       <div className="field-container">
         <div className="form-field-label-row">
-          <label
-            className="field-label required"
-            htmlFor={`${formId}-title`}
-          >
+          <label className="field-label required" htmlFor={`${formId}-title`}>
             Title
           </label>
         </div>
@@ -417,19 +414,14 @@ export function ItemEditForm({
             style={{ minHeight: '100px', whiteSpace: 'pre-wrap', opacity: 0.7 }}
             aria-describedby={`${formId}-notes-helper`}
           >
-            {notes.map(n => n.content).join('\n\n---\n\n')}
+            {notes.map((n) => n.content).join('\n\n---\n\n')}
           </div>
         </div>
       )}
 
       {/* Form Actions */}
       <div className="item-edit-form-actions">
-        <button
-          type="button"
-          className="button secondary"
-          onClick={onCancel}
-          disabled={isSaving}
-        >
+        <button type="button" className="button secondary" onClick={onCancel} disabled={isSaving}>
           Cancel
         </button>
         <button

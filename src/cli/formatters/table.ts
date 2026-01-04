@@ -14,10 +14,7 @@
 import Table from 'cli-table3';
 import type { RequestLogDoc, RequestLogItem, Project } from '@core/models';
 import type { DocMeta } from '@core/ports';
-import type {
-  SearchMatch,
-  FormattableData,
-} from './types.js';
+import type { SearchMatch, FormattableData } from './types.js';
 import {
   serializeDate,
   isRequestLogDoc,
@@ -86,7 +83,7 @@ export function formatItemAsTable(item: RequestLogItem): string {
     ['Priority', item.priority],
     ['Status', item.status],
     ['Tags', formatTags(item.tags)],
-    ['Notes', truncate(item.notes?.map(n => n.content).join('\n') || '(none)', 55)],
+    ['Notes', truncate(item.notes?.map((n) => n.content).join('\n') || '(none)', 55)],
     ['Created', formatDate(item.created_at)]
   );
 

@@ -60,7 +60,9 @@ async function confirmDelete(doc: RequestLogDoc, willBackup: boolean): Promise<b
 
   try {
     console.log(`Are you sure you want to delete ${doc.doc_id}?`);
-    console.log(`This document contains ${doc.item_count} item(s).${willBackup ? ' A backup will be created.' : ''}`);
+    console.log(
+      `This document contains ${doc.item_count} item(s).${willBackup ? ' A backup will be created.' : ''}`
+    );
 
     const answer = await rl.question("Type 'yes' to confirm: ");
     return answer.toLowerCase().trim() === 'yes';

@@ -105,9 +105,7 @@ function getViewportDimensions(): { width: number; height: number } {
  * @param debounceDelay - Optional custom debounce delay (default: 100ms)
  * @returns ViewportState with isMobile, width, and height
  */
-export function useMobileViewport(
-  debounceDelay: number = DEFAULT_DEBOUNCE_DELAY
-): ViewportState {
+export function useMobileViewport(debounceDelay: number = DEFAULT_DEBOUNCE_DELAY): ViewportState {
   // Initialize with current viewport dimensions (SSR-safe)
   const [dimensions, setDimensions] = useState<{
     width: number;

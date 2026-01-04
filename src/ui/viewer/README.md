@@ -7,6 +7,7 @@ Read-only catalog viewer for browsing, filtering, and inspecting request-log doc
 The Viewer module provides a comprehensive UI for exploring request-log documents with powerful search, filtering, and sorting capabilities. It's designed as a read-only interface for discovering and examining existing request logs while maintaining a clean separation from the capture workflow.
 
 **Key Characteristics**:
+
 - Read-only access to request-log documents
 - Multi-project support with project grouping
 - Multi-faceted filtering across all document attributes
@@ -35,12 +36,7 @@ export default function ViewerPage() {
   const projectStore = createProjectStore();
   const docStore = createDocStore();
 
-  return (
-    <ViewerContainer
-      projectStore={projectStore}
-      docStore={docStore}
-    />
-  );
+  return <ViewerContainer projectStore={projectStore} docStore={docStore} />;
 }
 ```
 
@@ -50,12 +46,7 @@ export default function ViewerPage() {
 import { ViewerContainer } from '@ui/viewer';
 
 export default function App() {
-  return (
-    <ViewerContainer
-      projectStore={customProjectStore}
-      docStore={customDocStore}
-    />
-  );
+  return <ViewerContainer projectStore={customProjectStore} docStore={customDocStore} />;
 }
 ```
 
@@ -82,6 +73,7 @@ ViewerContainer (orchestration)
 **Purpose**: Main orchestration component for the Request Log Viewer.
 
 **Responsibilities**:
+
 - Load full catalog on mount from ProjectStore/DocStore
 - Manage filter state with multi-faceted filtering
 - Manage sort state and options
@@ -90,6 +82,7 @@ ViewerContainer (orchestration)
 - Display loading, error, and empty states
 
 **Props**:
+
 ```typescript
 interface ViewerContainerProps {
   /** Project store for fetching project metadata */
@@ -101,6 +94,7 @@ interface ViewerContainerProps {
 ```
 
 **State Management**:
+
 - `catalog`: All loaded documents (CatalogEntry[])
 - `filterState`: Current filter criteria (multi-faceted)
 - `sort`: Current sort configuration
@@ -110,11 +104,9 @@ interface ViewerContainerProps {
 - `error`: Error message if load fails
 
 **Example**:
+
 ```tsx
-<ViewerContainer
-  projectStore={projectStore}
-  docStore={docStore}
-/>
+<ViewerContainer projectStore={projectStore} docStore={docStore} />
 ```
 
 ### DocumentFilters
@@ -122,6 +114,7 @@ interface ViewerContainerProps {
 **Purpose**: Filter toolbar for multi-faceted filtering of documents.
 
 **Features**:
+
 - Project single-select dropdown
 - Type/Domain/Priority/Status multi-select dropdowns
 - Tags multi-select with autocomplete suggestions
@@ -131,6 +124,7 @@ interface ViewerContainerProps {
 - Result count summary
 
 **Props**:
+
 ```typescript
 interface DocumentFiltersProps {
   /** Current filter state */
@@ -154,17 +148,19 @@ interface DocumentFiltersProps {
 ```
 
 **Keyboard Support**:
+
 - Tab to navigate between controls
 - Arrow keys within dropdowns
 - Enter to select/deselect options
 - Escape to close dropdowns
 
 **Example**:
+
 ```tsx
 <DocumentFilters
   filterState={filterState}
   filterOptions={filterOptions}
-  onFilterChange={(key, value) => setFilterState(prev => ({...prev, [key]: value}))}
+  onFilterChange={(key, value) => setFilterState((prev) => ({ ...prev, [key]: value }))}
   onClearFilters={() => resetFilters()}
   resultCount={filtered.length}
   totalCount={catalog.length}
@@ -176,6 +172,7 @@ interface DocumentFiltersProps {
 **Purpose**: Main catalog table displaying documents grouped by project.
 
 **Features**:
+
 - Project-based grouping with collapsible headers
 - Sortable columns (doc_id, title, item_count, updated_at)
 - Row expansion for document detail view
@@ -185,6 +182,7 @@ interface DocumentFiltersProps {
 - Empty state when no documents match filters
 
 **Props**:
+
 ```typescript
 interface DocumentCatalogProps {
   /** Filtered catalog entries */
@@ -214,12 +212,14 @@ interface DocumentCatalogProps {
 ```
 
 **Keyboard Support**:
+
 - Arrow Up/Down: Navigate between rows
 - Arrow Left/Right: Collapse/expand group
 - Enter/Space: Toggle row expansion
 - Home/End: Jump to first/last row
 
 **Example**:
+
 ```tsx
 <DocumentCatalog
   entries={filtered}
@@ -236,18 +236,22 @@ interface DocumentCatalogProps {
 ### DocumentFilters Sub-components
 
 #### FilterDropdown
+
 **Purpose**: Multi-select dropdown with searchable options.
 
 **Features**:
+
 - Search/filter options by text
 - Type-to-filter capability
 - Keyboard navigation
 - Selected count badge
 
 #### FilterBadge
+
 **Purpose**: Visual chip displaying active filters with clear action.
 
 **Features**:
+
 - Shows filter key and selected value
 - Click to remove specific filter
 - Clear all option
@@ -255,18 +259,22 @@ interface DocumentCatalogProps {
 ### DocumentCatalog Sub-components
 
 #### ProjectGroupRow
+
 **Purpose**: Collapsible project group header.
 
 **Features**:
+
 - Project name and document count
 - Expand/collapse toggle
 - Smooth animations
 - Keyboard support
 
 #### DocumentRow
+
 **Purpose**: Individual document row in the table.
 
 **Features**:
+
 - Shows doc_id, title, item_count, updated_at
 - Row expansion indicator
 - Hover highlight
@@ -277,12 +285,14 @@ interface DocumentCatalogProps {
 **Purpose**: Expanded view of a single document with all its items.
 
 **Features**:
+
 - Document metadata (id, title, creation/update dates, tags)
 - Summary of items in document
 - Full ItemCard display for each item
 - Markdown rendering of item notes
 
 **Props**:
+
 ```typescript
 interface DocumentDetailProps {
   /** Full document data */
@@ -294,11 +304,9 @@ interface DocumentDetailProps {
 ```
 
 **Example**:
+
 ```tsx
-<DocumentDetail
-  document={fullDoc}
-  onClose={() => setExpandedId(null)}
-/>
+<DocumentDetail document={fullDoc} onClose={() => setExpandedId(null)} />
 ```
 
 ### ItemCard
@@ -306,6 +314,7 @@ interface DocumentDetailProps {
 **Purpose**: Display a single request-log item with all its fields.
 
 **Features**:
+
 - Item title and ID
 - Type, domain, priority, status badges
 - Tags display
@@ -314,6 +323,7 @@ interface DocumentDetailProps {
 - Metadata (created, updated dates)
 
 **Props**:
+
 ```typescript
 interface ItemCardProps {
   /** Item to display */
@@ -329,6 +339,7 @@ interface ItemCardProps {
 **Purpose**: Render markdown content safely without external libraries.
 
 **Features**:
+
 - Basic markdown parsing (bold, italic, code, links)
 - Code block highlighting
 - Lists (ordered and unordered)
@@ -337,6 +348,7 @@ interface ItemCardProps {
 - Respects prefers-reduced-motion
 
 **Props**:
+
 ```typescript
 interface MarkdownRendererProps {
   /** Markdown content to render */
@@ -348,6 +360,7 @@ interface MarkdownRendererProps {
 ```
 
 **Supported Markdown**:
+
 - `**bold**` → `<strong>bold</strong>`
 - `*italic*` → `<em>italic</em>`
 - `` `code` `` → `<code>code</code>`
@@ -358,10 +371,9 @@ interface MarkdownRendererProps {
 - `# Heading` → `<h1>Heading</h1>`
 
 **Example**:
+
 ```tsx
-<MarkdownRenderer
-  content="# Title\n\nBold **text** and *italic* content."
-/>
+<MarkdownRenderer content="# Title\n\nBold **text** and *italic* content." />
 ```
 
 ## Types
@@ -369,19 +381,21 @@ interface MarkdownRendererProps {
 All public types are re-exported from `@core/catalog` for convenience:
 
 ### FilterState
+
 ```typescript
 interface FilterState {
-  projectId?: string;           // Single project filter
-  types?: string[];             // Type filters
-  domains?: string[];           // Domain filters
-  priorities?: string[];        // Priority filters
-  statuses?: string[];          // Status filters
-  tags?: string[];              // Tag filters (any match)
-  searchText?: string;          // Full-text search
+  projectId?: string; // Single project filter
+  types?: string[]; // Type filters
+  domains?: string[]; // Domain filters
+  priorities?: string[]; // Priority filters
+  statuses?: string[]; // Status filters
+  tags?: string[]; // Tag filters (any match)
+  searchText?: string; // Full-text search
 }
 ```
 
 ### CatalogEntry
+
 ```typescript
 interface CatalogEntry {
   doc_id: string;
@@ -390,12 +404,13 @@ interface CatalogEntry {
   title: string;
   item_count: number;
   tags: string[];
-  created_at: string;           // ISO 8601
-  updated_at: string;           // ISO 8601
+  created_at: string; // ISO 8601
+  updated_at: string; // ISO 8601
 }
 ```
 
 ### FilterOptions
+
 ```typescript
 interface FilterOptions {
   projects: Array<{ id: string; name: string }>;
@@ -408,6 +423,7 @@ interface FilterOptions {
 ```
 
 ### CatalogSort
+
 ```typescript
 interface CatalogSort {
   column: 'doc_id' | 'title' | 'item_count' | 'updated_at';
@@ -416,15 +432,20 @@ interface CatalogSort {
 ```
 
 ### GroupedCatalog
+
 ```typescript
-type GroupedCatalog = Map<string, {
-  projectId: string;
-  projectName: string;
-  entries: CatalogEntry[];
-}>;
+type GroupedCatalog = Map<
+  string,
+  {
+    projectId: string;
+    projectName: string;
+    entries: CatalogEntry[];
+  }
+>;
 ```
 
 ### ViewerState
+
 ```typescript
 interface ViewerState {
   catalog: CatalogEntry[];
@@ -443,29 +464,34 @@ The Viewer module uses glass morphism design patterns defined in `viewer.css`:
 ### CSS Classes
 
 **Container**:
+
 - `.viewer-container` - Main container
 - `.viewer-header` - Header section
 - `.viewer-content` - Content area
 - `.viewer-footer` - Footer area
 
 **Filters**:
+
 - `.filter-toolbar` - Filter controls container
 - `.filter-group` - Individual filter control
 - `.filter-badges` - Active filters display
 
 **Table**:
+
 - `.catalog-table` - Main table
 - `.table-header` - Header row
 - `.table-row` - Data row
 - `.table-row.expanded` - Expanded row state
 
 **Details**:
+
 - `.document-detail` - Expanded document view
 - `.document-metadata` - Metadata section
 - `.items-list` - Items container
 - `.item-card` - Individual item
 
 **Components**:
+
 - `.dropdown-trigger` - Dropdown button
 - `.dropdown-content` - Dropdown menu
 - `.badge` - Filter badge chip
@@ -474,6 +500,7 @@ The Viewer module uses glass morphism design patterns defined in `viewer.css`:
 ### Design Tokens
 
 The module respects project design tokens:
+
 - **Colors**: Glass backgrounds with 60% opacity, borders with rgba()
 - **Transitions**: 300ms smooth transitions
 - **Typography**: System font stack
@@ -485,6 +512,7 @@ The module respects project design tokens:
 The Viewer module is built with full accessibility support:
 
 ### ARIA Attributes
+
 - `role="table"` on catalog table
 - `role="rowgroup"` on project groups
 - `role="row"` on document rows
@@ -494,24 +522,28 @@ The Viewer module is built with full accessibility support:
 - `aria-sort="ascending|descending"` on sortable columns
 
 ### Keyboard Navigation
+
 - **Tab**: Navigate through controls
 - **Arrow Keys**: Navigate table rows and dropdown options
 - **Enter/Space**: Activate buttons and toggle expansion
 - **Escape**: Close dropdowns and dialogs
 
 ### Screen Reader Support
+
 - Semantic HTML with proper headings
 - Descriptive labels for all inputs
 - Live region updates for filter results
 - Table structure for catalog data
 
 ### Visual Accessibility
+
 - WCAG AA color contrast (4.5:1 for text)
 - Focus indicators on all interactive elements
 - Respects `prefers-reduced-motion` preference
 - Clear visual feedback for interactions
 
 ### Testing Accessibility
+
 ```bash
 # Run accessibility tests
 pnpm test:a11y viewer
@@ -523,6 +555,7 @@ pnpm dev  # Then navigate with keyboard only
 ## Performance
 
 ### Optimization Strategies
+
 - **Lazy Loading**: Documents loaded on-demand on row expansion
 - **Memoization**: useMemo for filtered and grouped catalog
 - **Debouncing**: 300ms debounce on text search
@@ -530,6 +563,7 @@ pnpm dev  # Then navigate with keyboard only
 - **Virtual Scrolling**: Large datasets handled efficiently
 
 ### Performance Monitoring
+
 ```tsx
 // Monitor catalog load time
 const startTime = performance.now();
@@ -547,17 +581,21 @@ console.log(`Filtered in ${performance.now() - filterStart}ms`);
 ### Error Scenarios
 
 **Catalog Load Failure**
+
 ```tsx
 // ViewerContainer handles gracefully
-{error && (
-  <div className="error-message">
-    <p>Failed to load documents: {error}</p>
-    <button onClick={refresh}>Retry</button>
-  </div>
-)}
+{
+  error && (
+    <div className="error-message">
+      <p>Failed to load documents: {error}</p>
+      <button onClick={refresh}>Retry</button>
+    </div>
+  );
+}
 ```
 
 **Document Load Failure**
+
 ```tsx
 // DocumentCatalog handles on expansion
 try {
@@ -569,6 +607,7 @@ try {
 ```
 
 **Filter Query Errors**
+
 - Invalid filter combinations ignored silently
 - Returns all documents if filter fails
 - Error logged to console for debugging
@@ -576,37 +615,37 @@ try {
 ## Integration with Core Modules
 
 ### @core/catalog
+
 - `listAllDocuments()` - Load all documents from stores
 - `extractFilterOptions()` - Extract available filter values
 - `applyFilters()` - Apply filter criteria to catalog
 - `createGroupedCatalog()` - Group documents by project
 
 ### @core/ports
+
 - `ProjectStore` - Fetch project metadata
 - `DocStore` - List and read documents
 
 ### @core/models
+
 - `RequestLogDoc` - Full document structure
 - `Item` - Individual request-log item
 
 ## Usage Examples
 
 ### Basic Viewer
+
 ```tsx
 import { ViewerContainer } from '@ui/viewer';
 import { createProjectStore, createDocStore } from '@adapters/fs-local';
 
 function App() {
-  return (
-    <ViewerContainer
-      projectStore={createProjectStore()}
-      docStore={createDocStore()}
-    />
-  );
+  return <ViewerContainer projectStore={createProjectStore()} docStore={createDocStore()} />;
 }
 ```
 
 ### Advanced: Custom Error Boundary
+
 ```tsx
 import { ViewerContainer } from '@ui/viewer';
 import { ErrorBoundary } from '@shared/ErrorBoundary';
@@ -614,16 +653,14 @@ import { ErrorBoundary } from '@shared/ErrorBoundary';
 function App() {
   return (
     <ErrorBoundary fallback={<div>Viewer failed to load</div>}>
-      <ViewerContainer
-        projectStore={projectStore}
-        docStore={docStore}
-      />
+      <ViewerContainer projectStore={projectStore} docStore={docStore} />
     </ErrorBoundary>
   );
 }
 ```
 
 ### Testing Components
+
 ```tsx
 import { render, screen } from '@testing-library/react';
 import { DocumentFilters } from '@ui/viewer';
@@ -652,18 +689,21 @@ test('filters change on selection', () => {
 ## Best Practices
 
 ### When Using ViewerContainer
+
 1. **Error Handling**: Wrap in ErrorBoundary for graceful failures
 2. **Loading State**: Viewer handles loading UI internally
 3. **Store Configuration**: Ensure stores are properly initialized before passing
 4. **Responsive Layout**: Viewer adapts to container width
 
 ### When Testing Components
+
 1. **Mock Stores**: Use factory functions to create mock stores
 2. **Async Operations**: Handle async document loads with waitFor
 3. **Accessibility**: Test keyboard navigation in addition to clicking
 4. **Snapshot Testing**: Use for component output validation
 
 ### When Extending
+
 1. **Sub-components**: Safe to use for advanced layouts
 2. **Custom Styling**: Extend CSS classes without modifying module styles
 3. **Filter Logic**: Integrate custom filter types via FilterDropdown extension
@@ -674,6 +714,7 @@ test('filters change on selection', () => {
 **Issue**: Catalog takes long time to load
 
 **Solution**:
+
 - Check DocStore implementation for performance issues
 - Verify file system doesn't have too many large documents
 - Use manual refresh strategically
@@ -681,6 +722,7 @@ test('filters change on selection', () => {
 **Issue**: Filters not updating displayed results
 
 **Solution**:
+
 - Verify filterState is properly passed to DocumentCatalog
 - Check that applyFilters is called with updated filterState
 - Ensure cache invalidation on filter change
@@ -688,6 +730,7 @@ test('filters change on selection', () => {
 **Issue**: Keyboard navigation not working
 
 **Solution**:
+
 - Ensure focus is on the table/controls
 - Check browser for accessibility issues
 - Verify event handlers are properly attached
@@ -695,6 +738,7 @@ test('filters change on selection', () => {
 **Issue**: Markdown rendering shows raw content
 
 **Solution**:
+
 - Check content format (should be valid markdown)
 - Verify MarkdownRenderer is used for note content
 - Check CSS for overflow settings

@@ -24,6 +24,22 @@ const createMockNote = (overrides: Partial<Note> = {}): Note => ({
   ...overrides,
 });
 
+/**
+ * Helper to get the markdown editor textarea.
+ * The textarea is labeled by "Content" label via aria-labelledby.
+ */
+function getMarkdownTextarea(): HTMLTextAreaElement {
+  // Find by the label text "Content" which is connected via aria-labelledby
+  const contentLabel = screen.getByText('Content', { selector: '.field-label' });
+  const labelId = contentLabel.id;
+  // Find textarea with this aria-labelledby
+  const textarea = document.querySelector(`textarea[aria-labelledby="${labelId}"]`);
+  if (!textarea) {
+    throw new Error('Could not find markdown editor textarea');
+  }
+  return textarea as HTMLTextAreaElement;
+}
+
 describe('NoteModal', () => {
   const defaultProps = {
     isOpen: true,
@@ -99,7 +115,9 @@ describe('NoteModal', () => {
 
       // MarkdownEditor includes a toolbar and textarea
       expect(screen.getByRole('toolbar', { name: /markdown formatting/i })).toBeInTheDocument();
-      expect(screen.getByRole('textbox', { name: /markdown content/i })).toBeInTheDocument();
+      // Textarea is now labeled via aria-labelledby pointing to "Content" label
+      const textarea = getMarkdownTextarea();
+      expect(textarea).toBeInTheDocument();
     });
 
     it('renders Save and Cancel buttons', () => {
@@ -137,7 +155,7 @@ describe('NoteModal', () => {
     it('content is empty', () => {
       render(<NoteModal {...defaultProps} />);
 
-      const textarea = screen.getByRole('textbox', { name: /markdown content/i });
+      const textarea = getMarkdownTextarea();
       expect(textarea).toHaveValue('');
     });
 
@@ -166,7 +184,7 @@ describe('NoteModal', () => {
       const initialNote = createMockNote({ content: 'Existing note content' });
       render(<NoteModal {...defaultProps} initialNote={initialNote} />);
 
-      const textarea = screen.getByRole('textbox', { name: /markdown content/i });
+      const textarea = getMarkdownTextarea();
       expect(textarea).toHaveValue('Existing note content');
     });
 
@@ -220,7 +238,7 @@ describe('NoteModal', () => {
       const user = userEvent.setup({ delay: null });
       render(<NoteModal {...defaultProps} />);
 
-      const textarea = screen.getByRole('textbox', { name: /markdown content/i });
+      const textarea = getMarkdownTextarea();
       await user.type(textarea, 'New content here');
 
       expect(textarea).toHaveValue('New content here');
@@ -237,7 +255,7 @@ describe('NoteModal', () => {
       await user.selectOptions(typeSelect, NOTE_TYPES.Validation);
 
       // Enter content
-      const textarea = screen.getByRole('textbox', { name: /markdown content/i });
+      const textarea = getMarkdownTextarea();
       await user.type(textarea, 'Test note content');
 
       // Click save
@@ -349,7 +367,7 @@ describe('NoteModal', () => {
       render(<NoteModal {...defaultProps} onSave={onSave} />);
 
       // Enter only whitespace
-      const textarea = screen.getByRole('textbox', { name: /markdown content/i });
+      const textarea = getMarkdownTextarea();
       await user.type(textarea, '   ');
 
       // Try to save
@@ -375,7 +393,7 @@ describe('NoteModal', () => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
 
       // Type some content
-      const textarea = screen.getByRole('textbox', { name: /markdown content/i });
+      const textarea = getMarkdownTextarea();
       await user.type(textarea, 'Content');
 
       // Error should be cleared
@@ -531,6 +549,13 @@ describe('NoteModal', () => {
       const alert = screen.getByRole('alert');
       expect(alert).toBeInTheDocument();
     });
+
+    it('markdown editor textarea is properly labeled via aria-labelledby', () => {
+      render(<NoteModal {...defaultProps} />);
+
+      const textarea = getMarkdownTextarea();
+      expect(textarea).toHaveAttribute('aria-labelledby');
+    });
   });
 
   // ==========================================================================
@@ -547,7 +572,7 @@ describe('NoteModal', () => {
       const typeSelect = screen.getByLabelText(/type/i) as HTMLSelectElement;
       expect(typeSelect.value).toBe(NOTE_TYPES.General);
 
-      const textarea = screen.getByRole('textbox', { name: /markdown content/i });
+      const textarea = getMarkdownTextarea();
       expect(textarea).toHaveValue('');
     });
 
@@ -565,7 +590,7 @@ describe('NoteModal', () => {
       const typeSelect = screen.getByLabelText(/type/i) as HTMLSelectElement;
       expect(typeSelect.value).toBe(NOTE_TYPES.Validation);
 
-      const textarea = screen.getByRole('textbox', { name: /markdown content/i });
+      const textarea = getMarkdownTextarea();
       expect(textarea).toHaveValue('Pre-filled content');
     });
 

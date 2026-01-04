@@ -52,9 +52,7 @@ describe('EditModal', () => {
     });
 
     it('renders custom button labels', () => {
-      render(
-        <EditModal {...defaultProps} saveLabel="Submit" cancelLabel="Discard" />
-      );
+      render(<EditModal {...defaultProps} saveLabel="Submit" cancelLabel="Discard" />);
 
       expect(screen.getByRole('button', { name: 'Discard' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Submit' })).toBeInTheDocument();
@@ -256,9 +254,7 @@ describe('EditModal', () => {
 
       // Find the save button by looking at primary button
       const buttons = screen.getAllByRole('button');
-      const saveButton = buttons.find(
-        (btn) => btn.classList.contains('primary')
-      );
+      const saveButton = buttons.find((btn) => btn.classList.contains('primary'));
       expect(saveButton).toBeDisabled();
     });
 
@@ -304,9 +300,7 @@ describe('EditModal', () => {
       render(<EditModal {...defaultProps} onSave={onSave} isSaving />);
 
       const buttons = screen.getAllByRole('button');
-      const saveButton = buttons.find(
-        (btn) => btn.classList.contains('primary')
-      );
+      const saveButton = buttons.find((btn) => btn.classList.contains('primary'));
       await user.click(saveButton!);
 
       expect(onSave).not.toHaveBeenCalled();

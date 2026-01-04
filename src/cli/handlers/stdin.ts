@@ -231,12 +231,7 @@ export async function readStdin(options: ReadInputOptions = {}): Promise<string>
       // Determine appropriate error code based on error type
       const code: StdinErrorCode = isPipeBrokenError(err) ? 'PIPE_BROKEN' : 'READ_ERROR';
 
-      reject(
-        new StdinError(
-          `Failed to read from stdin: ${err.message}`,
-          code
-        )
-      );
+      reject(new StdinError(`Failed to read from stdin: ${err.message}`, code));
     };
 
     // Set up timeout
@@ -299,10 +294,7 @@ export async function readStdin(options: ReadInputOptions = {}): Promise<string>
  * const content = await readInput('-', { timeout: 60000 });
  * ```
  */
-export async function readInput(
-  filePath: string,
-  options: ReadInputOptions = {}
-): Promise<string> {
+export async function readInput(filePath: string, options: ReadInputOptions = {}): Promise<string> {
   const { encoding = DEFAULT_ENCODING } = options;
 
   if (isStdinInput(filePath)) {

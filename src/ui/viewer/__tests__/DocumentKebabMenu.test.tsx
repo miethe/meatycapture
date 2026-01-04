@@ -47,7 +47,9 @@ describe('DocumentKebabMenu', () => {
     it('has correct aria-label with doc id', () => {
       render(<DocumentKebabMenu {...defaultProps} />);
 
-      const trigger = screen.getByRole('button', { name: 'Actions for document REQ-20251231-test' });
+      const trigger = screen.getByRole('button', {
+        name: 'Actions for document REQ-20251231-test',
+      });
       expect(trigger).toBeInTheDocument();
     });
 
@@ -77,7 +79,9 @@ describe('DocumentKebabMenu', () => {
 
       await user.click(screen.getByRole('button', { name: /actions for document/i }));
 
-      expect(screen.queryByRole('menuitem', { name: 'Unarchive Document' })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('menuitem', { name: 'Unarchive Document' })
+      ).not.toBeInTheDocument();
     });
 
     it('shows Archive for non-archived document', async () => {
@@ -95,13 +99,7 @@ describe('DocumentKebabMenu', () => {
       const user = userEvent.setup({ delay: null });
       const archivedDoc = createMockDoc({ archived: true });
 
-      render(
-        <DocumentKebabMenu
-          {...defaultProps}
-          doc={archivedDoc}
-          onUnarchive={vi.fn()}
-        />
-      );
+      render(<DocumentKebabMenu {...defaultProps} doc={archivedDoc} onUnarchive={vi.fn()} />);
 
       await user.click(screen.getByRole('button', { name: /actions for document/i }));
 
@@ -113,13 +111,7 @@ describe('DocumentKebabMenu', () => {
       const user = userEvent.setup({ delay: null });
       const archivedDoc = createMockDoc({ archived: true });
 
-      render(
-        <DocumentKebabMenu
-          {...defaultProps}
-          doc={archivedDoc}
-          onUnarchive={vi.fn()}
-        />
-      );
+      render(<DocumentKebabMenu {...defaultProps} doc={archivedDoc} onUnarchive={vi.fn()} />);
 
       await user.click(screen.getByRole('button', { name: /actions for document/i }));
 
@@ -169,13 +161,7 @@ describe('DocumentKebabMenu', () => {
       const user = userEvent.setup({ delay: null });
       const archivedDoc = createMockDoc({ archived: true });
 
-      render(
-        <DocumentKebabMenu
-          {...defaultProps}
-          doc={archivedDoc}
-          onUnarchive={onUnarchive}
-        />
-      );
+      render(<DocumentKebabMenu {...defaultProps} doc={archivedDoc} onUnarchive={onUnarchive} />);
 
       await user.click(screen.getByRole('button', { name: /actions for document/i }));
       await user.click(screen.getByRole('menuitem', { name: 'Unarchive Document' }));
@@ -228,13 +214,7 @@ describe('DocumentKebabMenu', () => {
       const user = userEvent.setup({ delay: null });
       const archivedDoc = createMockDoc({ archived: true });
 
-      render(
-        <DocumentKebabMenu
-          {...defaultProps}
-          doc={archivedDoc}
-          onUnarchive={vi.fn()}
-        />
-      );
+      render(<DocumentKebabMenu {...defaultProps} doc={archivedDoc} onUnarchive={vi.fn()} />);
 
       await user.click(screen.getByRole('button', { name: /actions for document/i }));
 
@@ -322,10 +302,14 @@ describe('DocumentKebabMenu', () => {
       expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Edit Document' }));
 
       await user.keyboard('{ArrowDown}');
-      expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Archive Document' }));
+      expect(document.activeElement).toBe(
+        screen.getByRole('menuitem', { name: 'Archive Document' })
+      );
 
       await user.keyboard('{ArrowDown}');
-      expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Delete Document' }));
+      expect(document.activeElement).toBe(
+        screen.getByRole('menuitem', { name: 'Delete Document' })
+      );
     });
 
     it('closes menu on Escape', async () => {
@@ -364,17 +348,14 @@ describe('DocumentKebabMenu', () => {
       const archivedDoc = createMockDoc({ archived: true });
 
       // No onUnarchive provided - should still render without error
-      render(
-        <DocumentKebabMenu
-          {...defaultProps}
-          doc={archivedDoc}
-        />
-      );
+      render(<DocumentKebabMenu {...defaultProps} doc={archivedDoc} />);
 
       await user.click(screen.getByRole('button', { name: /actions for document/i }));
 
       // Should not show Unarchive or Archive
-      expect(screen.queryByRole('menuitem', { name: 'Unarchive Document' })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('menuitem', { name: 'Unarchive Document' })
+      ).not.toBeInTheDocument();
       expect(screen.queryByRole('menuitem', { name: 'Archive Document' })).not.toBeInTheDocument();
     });
   });
@@ -399,11 +380,7 @@ describe('DocumentKebabMenu', () => {
       const archivedDoc = createMockDoc({ archived: true });
 
       const { container } = render(
-        <DocumentKebabMenu
-          {...defaultProps}
-          doc={archivedDoc}
-          onUnarchive={vi.fn()}
-        />
+        <DocumentKebabMenu {...defaultProps} doc={archivedDoc} onUnarchive={vi.fn()} />
       );
 
       await user.click(screen.getByRole('button', { name: /actions for document/i }));

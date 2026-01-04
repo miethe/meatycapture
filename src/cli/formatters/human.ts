@@ -14,11 +14,7 @@
 import chalk, { Chalk, type ChalkInstance } from 'chalk';
 import type { RequestLogDoc, RequestLogItem, Project } from '@core/models';
 import type { DocMeta } from '@core/ports';
-import type {
-  SearchMatch,
-  FormattableData,
-  FormatOptions,
-} from './types.js';
+import type { SearchMatch, FormattableData, FormatOptions } from './types.js';
 import {
   serializeDate,
   isRequestLogDoc,
@@ -133,10 +129,7 @@ function formatTags(c: ChalkInstance, tags: string[]): string {
 /**
  * Formats a single RequestLogItem for human display.
  */
-export function formatItemAsHuman(
-  item: RequestLogItem,
-  options?: Partial<FormatOptions>
-): string {
+export function formatItemAsHuman(item: RequestLogItem, options?: Partial<FormatOptions>): string {
   const c = getChalk(options);
   const lines: string[] = [];
 
@@ -198,10 +191,7 @@ export function formatItemsAsHuman(
 /**
  * Formats a single DocMeta for human display.
  */
-export function formatDocMetaAsHuman(
-  meta: DocMeta,
-  options?: Partial<FormatOptions>
-): string {
+export function formatDocMetaAsHuman(meta: DocMeta, options?: Partial<FormatOptions>): string {
   const c = getChalk(options);
   const lines: string[] = [];
 
@@ -217,10 +207,7 @@ export function formatDocMetaAsHuman(
 /**
  * Formats an array of DocMetas for human display.
  */
-export function formatDocMetasAsHuman(
-  metas: DocMeta[],
-  options?: Partial<FormatOptions>
-): string {
+export function formatDocMetasAsHuman(metas: DocMeta[], options?: Partial<FormatOptions>): string {
   const c = getChalk(options);
 
   if (metas.length === 0) {
@@ -247,10 +234,7 @@ export function formatDocMetasAsHuman(
 /**
  * Formats a single RequestLogDoc for human display.
  */
-export function formatDocAsHuman(
-  doc: RequestLogDoc,
-  options?: Partial<FormatOptions>
-): string {
+export function formatDocAsHuman(doc: RequestLogDoc, options?: Partial<FormatOptions>): string {
   const c = getChalk(options);
   const lines: string[] = [];
 
@@ -285,10 +269,7 @@ export function formatDocAsHuman(
  * Formats an array of RequestLogDocs for human display.
  * Shows summary view without items.
  */
-export function formatDocsAsHuman(
-  docs: RequestLogDoc[],
-  options?: Partial<FormatOptions>
-): string {
+export function formatDocsAsHuman(docs: RequestLogDoc[], options?: Partial<FormatOptions>): string {
   const c = getChalk(options);
 
   if (docs.length === 0) {
@@ -396,10 +377,7 @@ function enabledColor(c: ChalkInstance, enabled: boolean): string {
 /**
  * Formats a single Project for human display.
  */
-export function formatProjectAsHuman(
-  project: Project,
-  options?: Partial<FormatOptions>
-): string {
+export function formatProjectAsHuman(project: Project, options?: Partial<FormatOptions>): string {
   const c = getChalk(options);
   const lines: string[] = [];
 

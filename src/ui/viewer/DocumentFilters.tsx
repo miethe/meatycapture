@@ -213,7 +213,11 @@ export function DocumentFilters({
         key: `type-${type}`,
         label: 'Type',
         value: type,
-        onRemove: () => onFilterChange('types', filterState.types.filter((t) => t !== type)),
+        onRemove: () =>
+          onFilterChange(
+            'types',
+            filterState.types.filter((t) => t !== type)
+          ),
       });
     });
 
@@ -222,7 +226,11 @@ export function DocumentFilters({
         key: `domain-${domain}`,
         label: 'Domain',
         value: domain,
-        onRemove: () => onFilterChange('domains', filterState.domains.filter((d) => d !== domain)),
+        onRemove: () =>
+          onFilterChange(
+            'domains',
+            filterState.domains.filter((d) => d !== domain)
+          ),
       });
     });
 
@@ -231,7 +239,11 @@ export function DocumentFilters({
         key: `priority-${priority}`,
         label: 'Priority',
         value: priority,
-        onRemove: () => onFilterChange('priorities', filterState.priorities.filter((p) => p !== priority)),
+        onRemove: () =>
+          onFilterChange(
+            'priorities',
+            filterState.priorities.filter((p) => p !== priority)
+          ),
       });
     });
 
@@ -240,7 +252,11 @@ export function DocumentFilters({
         key: `status-${status}`,
         label: 'Status',
         value: status,
-        onRemove: () => onFilterChange('statuses', filterState.statuses.filter((s) => s !== status)),
+        onRemove: () =>
+          onFilterChange(
+            'statuses',
+            filterState.statuses.filter((s) => s !== status)
+          ),
       });
     });
 
@@ -275,8 +291,14 @@ export function DocumentFilters({
       <div className="viewer-filters-row">
         {/* Project Selector (Radix UI Select) */}
         <div className="filter-control">
-          <Select.Root value={filterState.project_id ?? ALL_PROJECTS_VALUE} onValueChange={handleProjectChange}>
-            <Select.Trigger className="filter-select-trigger input-base select-base" aria-label="Project filter">
+          <Select.Root
+            value={filterState.project_id ?? ALL_PROJECTS_VALUE}
+            onValueChange={handleProjectChange}
+          >
+            <Select.Trigger
+              className="filter-select-trigger input-base select-base"
+              aria-label="Project filter"
+            >
               <span className="filter-icon" aria-hidden="true">
                 <GlobeIcon />
               </span>
@@ -462,7 +484,10 @@ export function DocumentFilters({
                         onClick={() => handleAddTag(tag)}
                         onMouseDown={(e) => e.preventDefault()} // Prevent blur
                       >
-                        <div className={`filter-dropdown-checkbox ${isSelected ? 'checked' : ''}`} aria-hidden="true">
+                        <div
+                          className={`filter-dropdown-checkbox ${isSelected ? 'checked' : ''}`}
+                          aria-hidden="true"
+                        >
                           {isSelected && '✓'}
                         </div>
                         <span>{tag}</span>

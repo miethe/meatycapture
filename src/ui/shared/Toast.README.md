@@ -247,6 +247,7 @@ The toast system is integrated into:
 - **File operations**: Backup warnings, write failures
 
 Use toasts for:
+
 - ✅ Async operation feedback
 - ✅ Validation errors
 - ✅ Success confirmations
@@ -254,6 +255,7 @@ Use toasts for:
 - ✅ Info/tips
 
 Avoid toasts for:
+
 - ❌ Critical errors requiring user action (use modals)
 - ❌ Long-form content (use dedicated UI)
 - ❌ Persistent information (use inline messages)

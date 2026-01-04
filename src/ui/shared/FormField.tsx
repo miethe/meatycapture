@@ -50,10 +50,7 @@ export function FormField({
     <div className={`form-field ${className}`}>
       {/* Label with optional tooltip */}
       <div className="form-field-label-row">
-        <label
-          className={`field-label ${required ? 'required' : ''}`}
-          htmlFor={id}
-        >
+        <label className={`field-label ${required ? 'required' : ''}`} htmlFor={id}>
           {label}
         </label>
         {tooltip && (

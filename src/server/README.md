@@ -17,12 +17,12 @@ PORT=8080 MEATYCAPTURE_DATA_DIR=/data bun run src/server/index.ts
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | HTTP listening port | `3737` |
-| `MEATYCAPTURE_DATA_DIR` | Base data directory | `~/.meatycapture` |
-| `NODE_ENV` | Environment mode | `development` |
-| `LOG_LEVEL` | Logging verbosity (debug, info, warn, error) | `info` |
+| Variable                | Description                                  | Default           |
+| ----------------------- | -------------------------------------------- | ----------------- |
+| `PORT`                  | HTTP listening port                          | `3737`            |
+| `MEATYCAPTURE_DATA_DIR` | Base data directory                          | `~/.meatycapture` |
+| `NODE_ENV`              | Environment mode                             | `development`     |
+| `LOG_LEVEL`             | Logging verbosity (debug, info, warn, error) | `info`            |
 
 ## Endpoints
 
@@ -37,6 +37,7 @@ curl http://localhost:3737/health
 ```
 
 Response:
+
 ```json
 {
   "status": "ok",
@@ -112,6 +113,7 @@ All startup errors are logged with full context and stack traces for debugging.
 ## Next Steps
 
 Future endpoints to be implemented:
+
 - `GET /api/docs/list` - List documents
 - `GET /api/docs/read` - Read document
 - `POST /api/docs/write` - Write document

@@ -159,8 +159,7 @@ export function MobileFilterSheet({
   useEffect(() => {
     if (isOpen) {
       // Store current focus or use trigger ref
-      previousFocusRef.current =
-        triggerRef?.current || (document.activeElement as HTMLElement);
+      previousFocusRef.current = triggerRef?.current || (document.activeElement as HTMLElement);
     }
   }, [isOpen, triggerRef]);
 
@@ -182,9 +181,7 @@ export function MobileFilterSheet({
       lockBodyScroll();
       // Focus first focusable element when sheet opens
       if (sheetRef.current) {
-        const firstFocusable = sheetRef.current.querySelector<HTMLElement>(
-          'button, select, input'
-        );
+        const firstFocusable = sheetRef.current.querySelector<HTMLElement>('button, select, input');
         firstFocusable?.focus();
       }
       // Reset drag state when opening
@@ -225,14 +222,11 @@ export function MobileFilterSheet({
   }, [isOpen, onClose]);
 
   // Handle keyboard navigation for focus trapping (React event backup)
-  const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent) => {
-      if (sheetRef.current) {
-        trapFocus(sheetRef.current, event.nativeEvent);
-      }
-    },
-    []
-  );
+  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+    if (sheetRef.current) {
+      trapFocus(sheetRef.current, event.nativeEvent);
+    }
+  }, []);
 
   // Handle project selection
   const handleProjectChange = useCallback(
@@ -248,7 +242,10 @@ export function MobileFilterSheet({
     (key: 'types' | 'domains' | 'priorities' | 'statuses' | 'tags', value: string) => {
       const currentValues = filterState[key];
       if (currentValues.includes(value)) {
-        onFilterChange(key, currentValues.filter((v) => v !== value));
+        onFilterChange(
+          key,
+          currentValues.filter((v) => v !== value)
+        );
       } else {
         onFilterChange(key, [...currentValues, value]);
       }
@@ -293,48 +290,51 @@ export function MobileFilterSheet({
   /**
    * Handle touch move on sheet
    */
-  const handleTouchMove = useCallback((event: React.TouchEvent) => {
-    if (!dragState.isDragging) return;
+  const handleTouchMove = useCallback(
+    (event: React.TouchEvent) => {
+      if (!dragState.isDragging) return;
 
-    const touch = event.touches[0];
-    if (!touch) return;
+      const touch = event.touches[0];
+      if (!touch) return;
 
-    const distance = calculateDragDistance(dragState.startY, touch.clientY);
+      const distance = calculateDragDistance(dragState.startY, touch.clientY);
 
-    // Check if we're still in the safe zone
-    const stillInSafeZone = Math.abs(distance) < SAFE_ZONE_PX;
+      // Check if we're still in the safe zone
+      const stillInSafeZone = Math.abs(distance) < SAFE_ZONE_PX;
 
-    // If user scrolled up first and is trying to drag down, don't allow dismiss
-    // This prevents interference with scrolling inside the sheet
-    if (dragState.scrolledUp && distance > 0) {
-      return;
-    }
+      // If user scrolled up first and is trying to drag down, don't allow dismiss
+      // This prevents interference with scrolling inside the sheet
+      if (dragState.scrolledUp && distance > 0) {
+        return;
+      }
 
-    // If dragging upward (negative), don't allow (no-op if user scrolls up first)
-    if (distance < 0) {
+      // If dragging upward (negative), don't allow (no-op if user scrolls up first)
+      if (distance < 0) {
+        setDragState((prev) => ({
+          ...prev,
+          scrolledUp: true,
+          currentY: touch.clientY,
+        }));
+        return;
+      }
+
+      // Update drag state
       setDragState((prev) => ({
         ...prev,
-        scrolledUp: true,
         currentY: touch.clientY,
+        inSafeZone: stillInSafeZone,
       }));
-      return;
-    }
 
-    // Update drag state
-    setDragState((prev) => ({
-      ...prev,
-      currentY: touch.clientY,
-      inSafeZone: stillInSafeZone,
-    }));
-
-    // Apply visual feedback with ease factor if outside safe zone
-    // For reduced motion, still track the drag but with instant visual feedback
-    if (!stillInSafeZone && distance > 0) {
-      const easedDistance = distance * DRAG_EASE_FACTOR;
-      const clampedDistance = clampDragDistance(easedDistance, DEFAULT_MAX_DRAG_DISTANCE);
-      setTranslateY(clampedDistance);
-    }
-  }, [dragState.isDragging, dragState.startY, dragState.scrolledUp]);
+      // Apply visual feedback with ease factor if outside safe zone
+      // For reduced motion, still track the drag but with instant visual feedback
+      if (!stillInSafeZone && distance > 0) {
+        const easedDistance = distance * DRAG_EASE_FACTOR;
+        const clampedDistance = clampDragDistance(easedDistance, DEFAULT_MAX_DRAG_DISTANCE);
+        setTranslateY(clampedDistance);
+      }
+    },
+    [dragState.isDragging, dragState.startY, dragState.scrolledUp]
+  );
 
   /**
    * Handle touch end on sheet
@@ -462,10 +462,7 @@ export function MobileFilterSheet({
         <div ref={contentRef} className="mobile-filter-sheet__content">
           {/* Project Filter (Single Select) */}
           <div className="mobile-filter-sheet__section">
-            <label
-              htmlFor="filter-project"
-              className="mobile-filter-sheet__label"
-            >
+            <label htmlFor="filter-project" className="mobile-filter-sheet__label">
               Project
             </label>
             <select
@@ -492,19 +489,14 @@ export function MobileFilterSheet({
               aria-label="Type filters"
             >
               {filterOptions.types.map((type) => (
-                <label
-                  key={type}
-                  className="mobile-filter-sheet__checkbox-item"
-                >
+                <label key={type} className="mobile-filter-sheet__checkbox-item">
                   <input
                     type="checkbox"
                     checked={filterState.types.includes(type)}
                     onChange={() => handleMultiSelectToggle('types', type)}
                     className="mobile-filter-sheet__checkbox"
                   />
-                  <span className="mobile-filter-sheet__checkbox-label">
-                    {type}
-                  </span>
+                  <span className="mobile-filter-sheet__checkbox-label">{type}</span>
                 </label>
               ))}
               {filterOptions.types.length === 0 && (
@@ -522,19 +514,14 @@ export function MobileFilterSheet({
               aria-label="Domain filters"
             >
               {filterOptions.domains.map((domain) => (
-                <label
-                  key={domain}
-                  className="mobile-filter-sheet__checkbox-item"
-                >
+                <label key={domain} className="mobile-filter-sheet__checkbox-item">
                   <input
                     type="checkbox"
                     checked={filterState.domains.includes(domain)}
                     onChange={() => handleMultiSelectToggle('domains', domain)}
                     className="mobile-filter-sheet__checkbox"
                   />
-                  <span className="mobile-filter-sheet__checkbox-label">
-                    {domain}
-                  </span>
+                  <span className="mobile-filter-sheet__checkbox-label">{domain}</span>
                 </label>
               ))}
               {filterOptions.domains.length === 0 && (
@@ -552,19 +539,14 @@ export function MobileFilterSheet({
               aria-label="Priority filters"
             >
               {filterOptions.priorities.map((priority) => (
-                <label
-                  key={priority}
-                  className="mobile-filter-sheet__checkbox-item"
-                >
+                <label key={priority} className="mobile-filter-sheet__checkbox-item">
                   <input
                     type="checkbox"
                     checked={filterState.priorities.includes(priority)}
                     onChange={() => handleMultiSelectToggle('priorities', priority)}
                     className="mobile-filter-sheet__checkbox"
                   />
-                  <span className="mobile-filter-sheet__checkbox-label">
-                    {priority}
-                  </span>
+                  <span className="mobile-filter-sheet__checkbox-label">{priority}</span>
                 </label>
               ))}
               {filterOptions.priorities.length === 0 && (
@@ -582,19 +564,14 @@ export function MobileFilterSheet({
               aria-label="Status filters"
             >
               {filterOptions.statuses.map((status) => (
-                <label
-                  key={status}
-                  className="mobile-filter-sheet__checkbox-item"
-                >
+                <label key={status} className="mobile-filter-sheet__checkbox-item">
                   <input
                     type="checkbox"
                     checked={filterState.statuses.includes(status)}
                     onChange={() => handleMultiSelectToggle('statuses', status)}
                     className="mobile-filter-sheet__checkbox"
                   />
-                  <span className="mobile-filter-sheet__checkbox-label">
-                    {status}
-                  </span>
+                  <span className="mobile-filter-sheet__checkbox-label">{status}</span>
                 </label>
               ))}
               {filterOptions.statuses.length === 0 && (
@@ -612,19 +589,14 @@ export function MobileFilterSheet({
               aria-label="Tag filters"
             >
               {filterOptions.tags.map((tag) => (
-                <label
-                  key={tag}
-                  className="mobile-filter-sheet__checkbox-item"
-                >
+                <label key={tag} className="mobile-filter-sheet__checkbox-item">
                   <input
                     type="checkbox"
                     checked={filterState.tags.includes(tag)}
                     onChange={() => handleMultiSelectToggle('tags', tag)}
                     className="mobile-filter-sheet__checkbox"
                   />
-                  <span className="mobile-filter-sheet__checkbox-label">
-                    {tag}
-                  </span>
+                  <span className="mobile-filter-sheet__checkbox-label">{tag}</span>
                 </label>
               ))}
               {filterOptions.tags.length === 0 && (
@@ -635,10 +607,7 @@ export function MobileFilterSheet({
 
           {/* Search Text Input */}
           <div className="mobile-filter-sheet__section">
-            <label
-              htmlFor="filter-search"
-              className="mobile-filter-sheet__label"
-            >
+            <label htmlFor="filter-search" className="mobile-filter-sheet__label">
               Search
             </label>
             <input
@@ -660,16 +629,12 @@ export function MobileFilterSheet({
             className="mobile-filter-sheet__apply-btn"
             onClick={onApply}
             aria-label={
-              activeFilterCount > 0
-                ? `Apply ${activeFilterCount} active filters`
-                : 'Apply filters'
+              activeFilterCount > 0 ? `Apply ${activeFilterCount} active filters` : 'Apply filters'
             }
           >
             <span>Apply Filters</span>
             {activeFilterCount > 0 && (
-              <span className="mobile-filter-sheet__badge">
-                {activeFilterCount}
-              </span>
+              <span className="mobile-filter-sheet__badge">{activeFilterCount}</span>
             )}
           </button>
         </div>

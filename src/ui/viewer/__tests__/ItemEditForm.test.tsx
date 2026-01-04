@@ -40,9 +40,7 @@ const defaultFieldOptions = {
 };
 
 // Create default props
-const createDefaultProps = (
-  overrides: Partial<ItemEditFormProps> = {}
-): ItemEditFormProps => ({
+const createDefaultProps = (overrides: Partial<ItemEditFormProps> = {}): ItemEditFormProps => ({
   item: createMockItem(),
   fieldOptions: defaultFieldOptions,
   onSave: vi.fn(),
@@ -352,26 +350,20 @@ describe('ItemEditForm', () => {
     it('displays helper text for type field', () => {
       render(<ItemEditForm {...createDefaultProps()} />);
 
-      expect(
-        screen.getByText(/the category of this item/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/the category of this item/i)).toBeInTheDocument();
     });
 
     it('displays helper text for domain field', () => {
       render(<ItemEditForm {...createDefaultProps()} />);
 
-      expect(
-        screen.getByText(/the area or module this item affects/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/the area or module this item affects/i)).toBeInTheDocument();
     });
 
     it('does not display notes field when notes array is empty', () => {
       render(<ItemEditForm {...createDefaultProps()} />);
 
       // Notes section only renders when notes array has items
-      expect(
-        screen.queryByText(/notes editing/i)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/notes editing/i)).not.toBeInTheDocument();
     });
   });
 
@@ -456,9 +448,7 @@ describe('ItemEditForm', () => {
     });
 
     it('matches snapshot in saving state', () => {
-      const { container } = render(
-        <ItemEditForm {...createDefaultProps({ isSaving: true })} />
-      );
+      const { container } = render(<ItemEditForm {...createDefaultProps({ isSaving: true })} />);
       expect(container).toMatchSnapshot();
     });
 
@@ -466,9 +456,7 @@ describe('ItemEditForm', () => {
       const user = userEvent.setup({ delay: null });
       const item = createMockItem({ title: '', type: '' });
 
-      const { container } = render(
-        <ItemEditForm {...createDefaultProps({ item })} />
-      );
+      const { container } = render(<ItemEditForm {...createDefaultProps({ item })} />);
 
       // Trigger validation
       const saveButton = screen.getByRole('button', { name: /save changes/i });

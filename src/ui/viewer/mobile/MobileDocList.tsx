@@ -77,7 +77,8 @@ function SkeletonCard(): React.JSX.Element {
             width: '120px',
             height: '18px',
             borderRadius: 'var(--mobile-radius-sm)',
-            background: 'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
+            background:
+              'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
             backgroundSize: '200% 100%',
             animation: 'shimmer 1.5s infinite',
           }}
@@ -87,7 +88,8 @@ function SkeletonCard(): React.JSX.Element {
             width: '60px',
             height: '18px',
             borderRadius: 'var(--mobile-radius-sm)',
-            background: 'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
+            background:
+              'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
             backgroundSize: '200% 100%',
             animation: 'shimmer 1.5s infinite',
           }}
@@ -101,7 +103,8 @@ function SkeletonCard(): React.JSX.Element {
           height: '20px',
           borderRadius: 'var(--mobile-radius-sm)',
           marginBottom: 'var(--mobile-spacing-xs)',
-          background: 'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
+          background:
+            'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
           backgroundSize: '200% 100%',
           animation: 'shimmer 1.5s infinite',
         }}
@@ -119,7 +122,8 @@ function SkeletonCard(): React.JSX.Element {
             width: '100px',
             height: '14px',
             borderRadius: 'var(--mobile-radius-sm)',
-            background: 'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
+            background:
+              'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
             backgroundSize: '200% 100%',
             animation: 'shimmer 1.5s infinite',
           }}
@@ -129,7 +133,8 @@ function SkeletonCard(): React.JSX.Element {
             width: '80px',
             height: '14px',
             borderRadius: 'var(--mobile-radius-sm)',
-            background: 'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
+            background:
+              'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
             backgroundSize: '200% 100%',
             animation: 'shimmer 1.5s infinite',
           }}
@@ -144,11 +149,7 @@ function SkeletonCard(): React.JSX.Element {
  */
 function LoadingSkeleton(): React.JSX.Element {
   return (
-    <div
-      className="mobile-doc-list__loading"
-      role="status"
-      aria-label="Loading documents"
-    >
+    <div className="mobile-doc-list__loading" role="status" aria-label="Loading documents">
       <SkeletonCard />
       <SkeletonCard />
       <SkeletonCard />

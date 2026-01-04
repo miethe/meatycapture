@@ -55,46 +55,41 @@ describe('useItemEdit', () => {
 
   describe('initial state', () => {
     it('starts with null itemToEdit', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
 
       expect(result.current.itemToEdit).toBeNull();
     });
 
     it('starts with modal closed', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
 
       expect(result.current.isModalOpen).toBe(false);
     });
 
     it('starts with isSaving false', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
 
       expect(result.current.isSaving).toBe(false);
     });
 
     it('modalProps.isOpen is false initially', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
 
       expect(result.current.modalProps.isOpen).toBe(false);
     });
 
     it('formProps is null initially', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
 
       expect(result.current.formProps).toBeNull();
     });
@@ -102,10 +97,9 @@ describe('useItemEdit', () => {
 
   describe('requestEdit', () => {
     it('sets itemToEdit when called', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -116,10 +110,9 @@ describe('useItemEdit', () => {
     });
 
     it('opens the modal', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -131,10 +124,9 @@ describe('useItemEdit', () => {
     });
 
     it('updates modalProps.title with item title', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem({ title: 'My Custom Title' });
 
       act(() => {
@@ -145,10 +137,9 @@ describe('useItemEdit', () => {
     });
 
     it('populates formProps with item data', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -163,10 +154,9 @@ describe('useItemEdit', () => {
 
   describe('cancelEdit', () => {
     it('clears itemToEdit', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -183,10 +173,9 @@ describe('useItemEdit', () => {
     });
 
     it('closes the modal', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -201,10 +190,9 @@ describe('useItemEdit', () => {
     });
 
     it('sets formProps back to null', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -221,10 +209,9 @@ describe('useItemEdit', () => {
     });
 
     it('does not call onItemUpdated', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -241,10 +228,9 @@ describe('useItemEdit', () => {
 
   describe('saveItem', () => {
     it('calls onItemUpdated with updated item', async () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
       const updatedItem = { ...item, title: 'Updated Title' };
 
@@ -266,10 +252,9 @@ describe('useItemEdit', () => {
     });
 
     it('sets modified_at to current timestamp', async () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -294,10 +279,9 @@ describe('useItemEdit', () => {
       });
       mockOnItemUpdated.mockReturnValue(slowSave);
 
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -324,10 +308,9 @@ describe('useItemEdit', () => {
     });
 
     it('closes modal on successful save', async () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -349,10 +332,9 @@ describe('useItemEdit', () => {
       // Suppress console.error for this test
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -376,10 +358,9 @@ describe('useItemEdit', () => {
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -401,10 +382,9 @@ describe('useItemEdit', () => {
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -427,10 +407,9 @@ describe('useItemEdit', () => {
       });
       mockOnItemUpdated.mockReturnValue(slowSave);
 
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -463,10 +442,9 @@ describe('useItemEdit', () => {
 
   describe('formProps.onSave', () => {
     it('triggers saveItem when called', async () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
       const updatedItem = { ...item, title: 'Form Updated Title' };
 
@@ -488,10 +466,9 @@ describe('useItemEdit', () => {
     });
 
     it('closes modal on success via formProps.onSave', async () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -508,10 +485,9 @@ describe('useItemEdit', () => {
 
   describe('formProps.onCancel', () => {
     it('calls cancelEdit when called', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -530,19 +506,17 @@ describe('useItemEdit', () => {
 
   describe('modalProps', () => {
     it('has correct default title when no item', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
 
       expect(result.current.modalProps.title).toBe('Edit Item');
     });
 
     it('onClose calls cancelEdit', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -559,10 +533,9 @@ describe('useItemEdit', () => {
     });
 
     it('saveDisabled is true (form has its own save button)', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -579,10 +552,9 @@ describe('useItemEdit', () => {
       });
       mockOnItemUpdated.mockReturnValue(slowSave);
 
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       // Initially not saving
@@ -616,10 +588,9 @@ describe('useItemEdit', () => {
       });
       mockOnItemUpdated.mockReturnValue(slowSave);
 
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
 
       act(() => {
@@ -652,10 +623,9 @@ describe('useItemEdit', () => {
 
   describe('multiple items', () => {
     it('can edit different items sequentially', async () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item1 = createMockItem({ id: 'REQ-20251231-first-01', title: 'First' });
       const item2 = createMockItem({ id: 'REQ-20251231-second-02', title: 'Second' });
 
@@ -689,10 +659,9 @@ describe('useItemEdit', () => {
     });
 
     it('updates title when switching items', () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item1 = createMockItem({ title: 'First Item' });
       const item2 = createMockItem({ title: 'Second Item' });
 
@@ -716,10 +685,9 @@ describe('useItemEdit', () => {
 
   describe('modified_at timestamp', () => {
     it('overwrites existing modified_at with current time', async () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem({
         modified_at: new Date('2025-01-01T00:00:00Z'), // Old timestamp
       });
@@ -741,10 +709,9 @@ describe('useItemEdit', () => {
     });
 
     it('adds modified_at when not present', async () => {
-      const { result } = renderHook(
-        () => useItemEdit(mockOnItemUpdated, mockFieldOptions),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useItemEdit(mockOnItemUpdated, mockFieldOptions), {
+        wrapper,
+      });
       const item = createMockItem();
       // Ensure no modified_at
       delete (item as Partial<RequestLogItem>).modified_at;

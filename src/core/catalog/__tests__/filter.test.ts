@@ -78,10 +78,7 @@ describe('filterByProject', () => {
 
     expect(result).toHaveLength(2);
     expect(result.every((entry) => entry.project_id === 'app')).toBe(true);
-    expect(result.map((e) => e.doc_id)).toEqual([
-      'REQ-20251216-app',
-      'REQ-20251215-app',
-    ]);
+    expect(result.map((e) => e.doc_id)).toEqual(['REQ-20251216-app', 'REQ-20251215-app']);
   });
 
   it('should return empty array when no matches found', () => {
@@ -337,8 +334,7 @@ describe('filterByText', () => {
     expect(result.length).toBeGreaterThan(0);
     expect(
       result.every(
-        (e) =>
-          e.doc_id.toLowerCase().includes('api') || e.title.toLowerCase().includes('api')
+        (e) => e.doc_id.toLowerCase().includes('api') || e.title.toLowerCase().includes('api')
       )
     ).toBe(true);
   });

@@ -115,9 +115,7 @@ export function useItemDelete(
     () => ({
       isOpen: isDialogOpen,
       title: 'Delete Item',
-      message: itemToDelete
-        ? `Delete item ${itemToDelete.id}? This action cannot be undone.`
-        : '',
+      message: itemToDelete ? `Delete item ${itemToDelete.id}? This action cannot be undone.` : '',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       onConfirm: confirmDelete,

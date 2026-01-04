@@ -5,6 +5,7 @@ This directory contains platform-aware filesystem implementations for MeatyCaptu
 ## Adapters
 
 ### FsDocStore (`index.ts`)
+
 Node.js filesystem implementation using `node:fs`.
 
 **Use case:** CLI and server-side environments
@@ -17,6 +18,7 @@ const docs = await store.list('/Users/you/projects/app');
 ```
 
 ### TauriDocStore (`tauri-fs-adapter.ts`)
+
 Tauri desktop implementation using `@tauri-apps/plugin-fs`.
 
 **Use case:** Desktop application (macOS, Windows, Linux)
@@ -29,6 +31,7 @@ const docs = await store.list('~/meatycapture/projects/app');
 ```
 
 ### Platform Factory (`platform-factory.ts`)
+
 Automatic adapter selection based on runtime environment.
 
 **Use case:** Shared code that runs in multiple environments
@@ -45,14 +48,14 @@ const store = createDocStore();
 
 ## Feature Comparison
 
-| Feature | FsDocStore | TauriDocStore | Web Browser |
-|---------|-----------|---------------|-------------|
-| Read files | ✅ Yes | ✅ Yes | ❌ No |
-| Write files | ✅ Yes | ✅ Yes | ❌ No |
-| Full FS access | ✅ Yes | ✅ Yes (scoped) | ❌ No |
-| Path expansion | ❌ No | ⚠️ Partial | ❌ No |
-| Async operations | ✅ Yes | ✅ Yes | - |
-| Environment | Node.js | Tauri | Browser |
+| Feature          | FsDocStore | TauriDocStore   | Web Browser |
+| ---------------- | ---------- | --------------- | ----------- |
+| Read files       | ✅ Yes     | ✅ Yes          | ❌ No       |
+| Write files      | ✅ Yes     | ✅ Yes          | ❌ No       |
+| Full FS access   | ✅ Yes     | ✅ Yes (scoped) | ❌ No       |
+| Path expansion   | ❌ No      | ⚠️ Partial      | ❌ No       |
+| Async operations | ✅ Yes     | ✅ Yes          | -           |
+| Environment      | Node.js    | Tauri           | Browser     |
 
 ## Usage in Components
 
@@ -113,10 +116,12 @@ Tauri enforces file system access restrictions via `tauri.conf.json`:
 ```
 
 **Current configuration:**
+
 - ✅ Allow: Entire home directory and subdirectories
 - ❌ Deny: None (intentionally permissive for MeatyCapture's use case)
 
 **Production apps should:**
+
 1. Use more restrictive scoping (e.g., `$HOME/meatycapture/**`)
 2. Deny sensitive directories (`$HOME/.ssh/**`, `$HOME/.aws/**`)
 3. Use file picker dialogs instead of arbitrary path access
@@ -157,6 +162,7 @@ vi.mock('@tauri-apps/plugin-fs', () => ({
 ## Future Enhancements
 
 ### IndexedDB Adapter (Browser)
+
 For web-based usage without file system access:
 
 ```typescript
@@ -167,6 +173,7 @@ class IndexedDbDocStore implements DocStore {
 ```
 
 ### Remote Adapter (API)
+
 For cloud storage integration:
 
 ```typescript
@@ -177,6 +184,7 @@ class RemoteDocStore implements DocStore {
 ```
 
 ### Hybrid Adapter (Online/Offline)
+
 Combines local and remote storage:
 
 ```typescript

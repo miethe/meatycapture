@@ -73,8 +73,18 @@ function createMockItem(overrides: Partial<RequestLogItem> = {}): RequestLogItem
 function createMockDocument(overrides: Partial<RequestLogDoc> = {}): RequestLogDoc {
   const items = overrides.items || [
     createMockItem({ id: 'REQ-20251231-test-01', title: 'First Item' }),
-    createMockItem({ id: 'REQ-20251231-test-02', title: 'Second Item', type: 'bug', priority: 'high' }),
-    createMockItem({ id: 'REQ-20251231-test-03', title: 'Third Item', type: 'idea', status: 'backlog' }),
+    createMockItem({
+      id: 'REQ-20251231-test-02',
+      title: 'Second Item',
+      type: 'bug',
+      priority: 'high',
+    }),
+    createMockItem({
+      id: 'REQ-20251231-test-03',
+      title: 'Third Item',
+      type: 'idea',
+      status: 'backlog',
+    }),
   ];
 
   return {
@@ -82,8 +92,8 @@ function createMockDocument(overrides: Partial<RequestLogDoc> = {}): RequestLogD
     title: 'Test Document',
     project_id: 'test-project',
     items,
-    items_index: items.map(i => ({ id: i.id, type: i.type, title: i.title })),
-    tags: [...new Set(items.flatMap(i => i.tags))].sort(),
+    items_index: items.map((i) => ({ id: i.id, type: i.type, title: i.title })),
+    tags: [...new Set(items.flatMap((i) => i.tags))].sort(),
     item_count: items.length,
     created_at: new Date('2025-12-31T09:00:00Z'),
     updated_at: new Date('2025-12-31T12:00:00Z'),
@@ -127,7 +137,7 @@ function ToastRenderer(): React.JSX.Element {
   const { toasts, dismissToast } = useToast();
   return (
     <div data-testid="toast-container">
-      {toasts.map(toast => (
+      {toasts.map((toast) => (
         <Toast key={toast.id} toast={toast} onDismiss={dismissToast} />
       ))}
     </div>
@@ -166,12 +176,10 @@ function ItemCRUDTestHarness({
       await docStore.updateItem(documentPath, updatedItem);
 
       // Update local document state
-      setDocument(prev => ({
+      setDocument((prev) => ({
         ...prev,
-        items: prev.items.map(item =>
-          item.id === updatedItem.id ? updatedItem : item
-        ),
-        items_index: prev.items_index.map(entry =>
+        items: prev.items.map((item) => (item.id === updatedItem.id ? updatedItem : item)),
+        items_index: prev.items_index.map((entry) =>
           entry.id === updatedItem.id
             ? { id: updatedItem.id, type: updatedItem.type, title: updatedItem.title }
             : entry
@@ -189,14 +197,14 @@ function ItemCRUDTestHarness({
       await docStore.deleteItem(documentPath, itemId);
 
       // Update local document state
-      setDocument(prev => {
-        const newItems = prev.items.filter(item => item.id !== itemId);
+      setDocument((prev) => {
+        const newItems = prev.items.filter((item) => item.id !== itemId);
         return {
           ...prev,
           items: newItems,
-          items_index: prev.items_index.filter(entry => entry.id !== itemId),
+          items_index: prev.items_index.filter((entry) => entry.id !== itemId),
           item_count: newItems.length,
-          tags: [...new Set(newItems.flatMap(i => i.tags))].sort(),
+          tags: [...new Set(newItems.flatMap((i) => i.tags))].sort(),
           updated_at: new Date(),
         };
       });
@@ -205,16 +213,12 @@ function ItemCRUDTestHarness({
   );
 
   // Use edit and delete hooks
-  const {
-    requestEdit,
-    modalProps,
-    formProps,
-  } = useItemEdit(handleItemUpdated, defaultFieldOptions);
+  const { requestEdit, modalProps, formProps } = useItemEdit(
+    handleItemUpdated,
+    defaultFieldOptions
+  );
 
-  const {
-    requestDelete,
-    dialogProps,
-  } = useItemDelete(handleItemDeleted);
+  const { requestDelete, dialogProps } = useItemDelete(handleItemDeleted);
 
   // Handler for copy ID
   const handleCopyId = useCallback((id: string) => {
@@ -232,7 +236,7 @@ function ItemCRUDTestHarness({
 
       {/* Item list */}
       <div data-testid="item-list" role="list">
-        {document.items.map(item => (
+        {document.items.map((item) => (
           <div key={item.id} role="listitem" data-testid={`item-${item.id}`}>
             <ItemCard
               item={item}
@@ -621,7 +625,8 @@ describe('ItemCRUD Integration Tests', () => {
       await user.type(titleInput, 'Changed Title');
 
       // Click cancel in form
-      const cancelButtons = screen.getAllByRole('button', { name: /cancel/i }); const cancelButton = cancelButtons[0]!;
+      const cancelButtons = screen.getAllByRole('button', { name: /cancel/i });
+      const cancelButton = cancelButtons[0]!;
       await user.click(cancelButton);
 
       // Modal should close
@@ -696,7 +701,9 @@ describe('ItemCRUD Integration Tests', () => {
       );
 
       // Click delete on first item
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-01/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-01/i,
+      });
       await user.click(deleteButton);
 
       // Confirmation dialog should be open
@@ -706,7 +713,8 @@ describe('ItemCRUD Integration Tests', () => {
       });
 
       // Dialog should mention the item ID
-      const dialog = screen.getByRole('dialog'); expect(within(dialog).getByText(/REQ-20251231-test-01/i)).toBeInTheDocument();
+      const dialog = screen.getByRole('dialog');
+      expect(within(dialog).getByText(/REQ-20251231-test-01/i)).toBeInTheDocument();
     });
 
     it('confirms deletion and removes item', async () => {
@@ -724,7 +732,9 @@ describe('ItemCRUD Integration Tests', () => {
       );
 
       // Click delete on first item
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-01/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-01/i,
+      });
       await user.click(deleteButton);
 
       await waitFor(() => {
@@ -760,7 +770,9 @@ describe('ItemCRUD Integration Tests', () => {
       );
 
       // Delete first item
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-01/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-01/i,
+      });
       await user.click(deleteButton);
 
       await waitFor(() => {
@@ -791,7 +803,9 @@ describe('ItemCRUD Integration Tests', () => {
       );
 
       // Delete first item
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-01/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-01/i,
+      });
       await user.click(deleteButton);
 
       await waitFor(() => {
@@ -827,7 +841,9 @@ describe('ItemCRUD Integration Tests', () => {
       expect(screen.getByTestId('item-REQ-20251231-test-01')).toBeInTheDocument();
 
       // Delete first item
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-01/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-01/i,
+      });
       await user.click(deleteButton);
 
       await waitFor(() => {
@@ -866,7 +882,9 @@ describe('ItemCRUD Integration Tests', () => {
       );
 
       // Click delete
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-01/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-01/i,
+      });
       await user.click(deleteButton);
 
       await waitFor(() => {
@@ -874,7 +892,8 @@ describe('ItemCRUD Integration Tests', () => {
       });
 
       // Click cancel
-      const cancelButtons = screen.getAllByRole('button', { name: /cancel/i }); const cancelButton = cancelButtons[0]!;
+      const cancelButtons = screen.getAllByRole('button', { name: /cancel/i });
+      const cancelButton = cancelButtons[0]!;
       await user.click(cancelButton);
 
       // Dialog should close
@@ -963,7 +982,9 @@ describe('ItemCRUD Integration Tests', () => {
       );
 
       // Delete second item
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-02/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-02/i,
+      });
       await user.click(deleteButton);
 
       await waitFor(() => {
@@ -1096,7 +1117,9 @@ describe('ItemCRUD Integration Tests', () => {
       );
 
       // Delete item
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-01/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-01/i,
+      });
       await user.click(deleteButton);
 
       await waitFor(() => {
@@ -1233,7 +1256,9 @@ describe('ItemCRUD Integration Tests', () => {
       );
 
       // Open delete dialog
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-01/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-01/i,
+      });
       await user.click(deleteButton);
 
       await waitFor(() => {
@@ -1284,7 +1309,9 @@ describe('ItemCRUD Integration Tests', () => {
       });
 
       // Now test delete button with Space key
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-01/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-01/i,
+      });
       deleteButton.focus();
       await user.keyboard(' ');
 
@@ -1474,7 +1501,9 @@ describe('ItemCRUD Integration Tests', () => {
       });
 
       // Delete second item
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-02/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-02/i,
+      });
       await user.click(deleteButton);
 
       await waitFor(() => {

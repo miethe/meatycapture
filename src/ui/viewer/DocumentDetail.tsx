@@ -37,10 +37,7 @@ export interface DocumentDetailProps {
  * @param props - DocumentDetailProps
  * @returns DocumentDetail component
  */
-export function DocumentDetail({
-  document,
-  isLoading,
-}: DocumentDetailProps): React.JSX.Element {
+export function DocumentDetail({ document, isLoading }: DocumentDetailProps): React.JSX.Element {
   const [showItemsIndex, setShowItemsIndex] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 

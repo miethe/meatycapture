@@ -159,7 +159,7 @@ When responding to Claude Code questions:
 
 **For configuration:** Load `references/configuration.md`
 
-**For enterprise deployment:** Load `references/enterprise-features.md`
+**For enterprise deployment:** Load `references/enterprise-features.md` 
 
 **For IDE integration:** Load `references/ide-integration.md`
 

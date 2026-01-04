@@ -27,9 +27,17 @@ export interface FilterBadgeProps {
  *
  * @param props - FilterBadgeProps
  */
-export const FilterBadge = React.memo(function FilterBadge({ label, value, onRemove }: FilterBadgeProps): React.JSX.Element {
+export const FilterBadge = React.memo(function FilterBadge({
+  label,
+  value,
+  onRemove,
+}: FilterBadgeProps): React.JSX.Element {
   return (
-    <div className="chip viewer-filter-badge" role="status" aria-label={`Active filter: ${label} is ${value}`}>
+    <div
+      className="chip viewer-filter-badge"
+      role="status"
+      aria-label={`Active filter: ${label} is ${value}`}
+    >
       <span className="viewer-filter-badge-label">{label}:</span>
       <span className="viewer-filter-badge-value">{value}</span>
       <button

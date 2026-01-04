@@ -28,11 +28,9 @@ import { registerImportCommand } from './import.js';
  * - 3.4: import command implemented
  */
 export function createFieldCommand(): Command {
-  const field = new Command('field')
-    .description('Manage field catalogs')
-    .addHelpText(
-      'after',
-      `
+  const field = new Command('field').description('Manage field catalogs').addHelpText(
+    'after',
+    `
 Available Subcommands:
   list                  List field options (global or project-specific)
   add <field> <value>   Add new option to a field catalog (type, domain, etc.)
@@ -55,7 +53,7 @@ Examples:
   meatycapture field add type spike          # Add new type option
   meatycapture field remove type-spike-123   # Remove a field option
 `
-    );
+  );
 
   // Register implemented subcommands
   registerListCommand(field);

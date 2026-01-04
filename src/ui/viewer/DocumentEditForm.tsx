@@ -96,10 +96,8 @@ export function DocumentEditForm({
       }
 
       // Destructure to exclude any existing description from the spread
-      const {
-        description: _existingDescription,
-        ...docWithoutDescription
-      } = doc as RequestLogDoc & { description?: string };
+      const { description: _existingDescription, ...docWithoutDescription } =
+        doc as RequestLogDoc & { description?: string };
 
       // Create updated document with new timestamp
       const updatedDoc: RequestLogDoc & { description?: string } = {
@@ -167,9 +165,7 @@ export function DocumentEditForm({
           aria-required="true"
           aria-invalid={!!errors.title}
           aria-describedby={
-            errors.title
-              ? `${formId}-title-error ${formId}-title-helper`
-              : `${formId}-title-helper`
+            errors.title ? `${formId}-title-error ${formId}-title-helper` : `${formId}-title-helper`
           }
         />
         {errors.title && (
@@ -203,12 +199,7 @@ export function DocumentEditForm({
 
       {/* Form Actions */}
       <div className="document-edit-form-actions">
-        <button
-          type="button"
-          className="button secondary"
-          onClick={onCancel}
-          disabled={isSaving}
-        >
+        <button type="button" className="button secondary" onClick={onCancel} disabled={isSaving}>
           Cancel
         </button>
         <button

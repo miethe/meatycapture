@@ -40,12 +40,7 @@ import {
 } from '@cli/handlers/errors';
 import { ExitCodes } from '@cli/handlers/exitCodes';
 import { formatOutput, type OutputFormat } from '@cli/formatters';
-import {
-  selectProject,
-  promptItemDraft,
-  confirm,
-  prompt,
-} from '@cli/interactive';
+import { selectProject, promptItemDraft, confirm, prompt } from '@cli/interactive';
 
 /**
  * CLI input JSON structure for creating documents.
@@ -442,7 +437,10 @@ export function registerCreateCommand(program: Command): void {
   program
     .command('create')
     .description('Create a new request-log document from JSON input or interactively')
-    .argument('[json-file]', 'Path to JSON input file, or "-" for stdin (not required with --interactive)')
+    .argument(
+      '[json-file]',
+      'Path to JSON input file, or "-" for stdin (not required with --interactive)'
+    )
     .option('-i, --interactive', 'Interactive guided prompts')
     .option('-o, --output <path>', 'Output path for the document (default: auto-generated)')
     .option('--json', 'Output as JSON')

@@ -339,7 +339,7 @@ function matchComponent(
       }
 
       // Then search in notes (convert Note[] to searchable string)
-      const notesText = item.notes?.map(n => n.content).join('\n') || '';
+      const notesText = item.notes?.map((n) => n.content).join('\n') || '';
       if (notesText && matchString(notesText, component.value, mode)) {
         const pos = findMatchPosition(notesText, component.value);
         const result: MatchedField = {
@@ -458,8 +458,7 @@ export function searchDocuments(
 
   for (const { doc, path } of docs) {
     // Adjust limit per document based on remaining slots
-    const remainingLimit =
-      options.limit > 0 ? options.limit - allMatches.length : 0;
+    const remainingLimit = options.limit > 0 ? options.limit - allMatches.length : 0;
 
     if (options.limit > 0 && remainingLimit <= 0) {
       break;

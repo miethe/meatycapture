@@ -125,9 +125,7 @@ describe('Logger', () => {
 
       logger.info('test message', { foo: 'bar' });
 
-      expect(consoleSpy.info).toHaveBeenCalledWith(
-        expect.stringContaining('"level":"info"')
-      );
+      expect(consoleSpy.info).toHaveBeenCalledWith(expect.stringContaining('"level":"info"'));
       expect(consoleSpy.info).toHaveBeenCalledWith(
         expect.stringContaining('"message":"test message"')
       );

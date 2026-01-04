@@ -143,7 +143,8 @@ function MobileLoadingSkeleton(): React.JSX.Element {
                 width: '120px',
                 height: '16px',
                 borderRadius: 'var(--mobile-radius-sm)',
-                background: 'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
+                background:
+                  'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
                 backgroundSize: '200% 100%',
                 animation: 'shimmer 1.5s infinite',
               }}
@@ -153,7 +154,8 @@ function MobileLoadingSkeleton(): React.JSX.Element {
                 width: '60px',
                 height: '16px',
                 borderRadius: 'var(--mobile-radius-sm)',
-                background: 'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
+                background:
+                  'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
                 backgroundSize: '200% 100%',
                 animation: 'shimmer 1.5s infinite',
               }}
@@ -167,7 +169,8 @@ function MobileLoadingSkeleton(): React.JSX.Element {
               height: '20px',
               borderRadius: 'var(--mobile-radius-sm)',
               marginBottom: 'var(--mobile-spacing-sm)',
-              background: 'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
+              background:
+                'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
               backgroundSize: '200% 100%',
               animation: 'shimmer 1.5s infinite',
             }}
@@ -185,7 +188,8 @@ function MobileLoadingSkeleton(): React.JSX.Element {
                 width: '100px',
                 height: '14px',
                 borderRadius: 'var(--mobile-radius-sm)',
-                background: 'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
+                background:
+                  'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
                 backgroundSize: '200% 100%',
                 animation: 'shimmer 1.5s infinite',
               }}
@@ -195,7 +199,8 @@ function MobileLoadingSkeleton(): React.JSX.Element {
                 width: '80px',
                 height: '14px',
                 borderRadius: 'var(--mobile-radius-sm)',
-                background: 'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
+                background:
+                  'linear-gradient(90deg, var(--mobile-surface-secondary) 25%, var(--mobile-glass-border) 50%, var(--mobile-surface-secondary) 75%)',
                 backgroundSize: '200% 100%',
                 animation: 'shimmer 1.5s infinite',
               }}
@@ -361,10 +366,7 @@ export function MobileViewerContainer({
 
   // Safe area insets (use prop override or hook fallback)
   const hookSafeArea = useSafeArea();
-  const safeArea = useMemo(
-    () => safeAreaInsets ?? hookSafeArea,
-    [safeAreaInsets, hookSafeArea]
-  );
+  const safeArea = useMemo(() => safeAreaInsets ?? hookSafeArea, [safeAreaInsets, hookSafeArea]);
 
   /**
    * Handle search input change

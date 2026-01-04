@@ -46,11 +46,7 @@ export function MarkdownRenderer({
     return parseMarkdown(content);
   }, [content]);
 
-  return (
-    <div className={`viewer-markdown ${className}`.trim()}>
-      {renderedContent}
-    </div>
-  );
+  return <div className={`viewer-markdown ${className}`.trim()}>{renderedContent}</div>;
 }
 
 /**

@@ -116,11 +116,7 @@ export function serializeDate(date: Date): string {
 export function isRequestLogDoc(data: unknown): data is RequestLogDoc {
   if (!data || typeof data !== 'object') return false;
   const d = data as Partial<RequestLogDoc>;
-  return (
-    typeof d.doc_id === 'string' &&
-    typeof d.title === 'string' &&
-    Array.isArray(d.items)
-  );
+  return typeof d.doc_id === 'string' && typeof d.title === 'string' && Array.isArray(d.items);
 }
 
 /**

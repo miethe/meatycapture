@@ -54,9 +54,7 @@ function createMockElement(
 /**
  * Create a container with multiple focusable elements
  */
-function createContainerWithElements(
-  elements: HTMLElement[]
-): HTMLElement {
+function createContainerWithElements(elements: HTMLElement[]): HTMLElement {
   const container = document.createElement('div');
   elements.forEach((el) => container.appendChild(el));
   return container;
@@ -65,10 +63,7 @@ function createContainerWithElements(
 /**
  * Create a mock KeyboardEvent
  */
-function createKeyboardEvent(
-  key: string,
-  shiftKey: boolean = false
-): KeyboardEvent {
+function createKeyboardEvent(key: string, shiftKey: boolean = false): KeyboardEvent {
   return new KeyboardEvent('keydown', {
     key,
     shiftKey,

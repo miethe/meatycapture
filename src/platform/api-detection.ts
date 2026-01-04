@@ -124,7 +124,7 @@ export async function pingApiHealth(baseUrl: string): Promise<boolean> {
     const response = await fetch(healthUrl, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
       signal: controller.signal,
     });
@@ -132,7 +132,9 @@ export async function pingApiHealth(baseUrl: string): Promise<boolean> {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      console.warn(`[API Detection] Health check failed with status ${response.status}: ${healthUrl}`);
+      console.warn(
+        `[API Detection] Health check failed with status ${response.status}: ${healthUrl}`
+      );
       return false;
     }
 
@@ -219,16 +221,18 @@ export function detectAdapterMode(options?: {
   if (options?.verifyHealth && detectedMode === 'api' && apiUrl) {
     // Note: This returns immediately, health check happens async
     // Caller should await pingApiHealth() separately if synchronous verification needed
-    pingApiHealth(apiUrl).then((healthy) => {
-      if (!healthy) {
-        console.warn(
-          `[API Detection] API mode detected but health check failed. ` +
-          `Server may be unreachable: ${apiUrl}`
-        );
-      }
-    }).catch((error) => {
-      console.error(`[API Detection] Health check error:`, error);
-    });
+    pingApiHealth(apiUrl)
+      .then((healthy) => {
+        if (!healthy) {
+          console.warn(
+            `[API Detection] API mode detected but health check failed. ` +
+              `Server may be unreachable: ${apiUrl}`
+          );
+        }
+      })
+      .catch((error) => {
+        console.error(`[API Detection] Health check error:`, error);
+      });
   }
 
   return detectedMode;

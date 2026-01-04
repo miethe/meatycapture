@@ -1,20 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as apiDetection from '../api-detection';
 
-const {
-  detectAdapterMode,
-  pingApiHealth,
-  clearDetectionCache,
-  getCachedMode,
-  isTauriEnvironment,
-} = apiDetection;
+const { detectAdapterMode, pingApiHealth, clearDetectionCache, getCachedMode, isTauriEnvironment } =
+  apiDetection;
 
 describe('API Detection Module', () => {
   const ORIGINAL_ENV = { ...process.env };
 
   beforeEach(() => {
     // Reset environment before each test
-    Object.keys(process.env).forEach(key => {
+    Object.keys(process.env).forEach((key) => {
       delete process.env[key];
     });
     Object.assign(process.env, ORIGINAL_ENV);
@@ -27,7 +22,7 @@ describe('API Detection Module', () => {
 
   afterEach(() => {
     // Restore original environment
-    Object.keys(process.env).forEach(key => {
+    Object.keys(process.env).forEach((key) => {
       delete process.env[key];
     });
     Object.assign(process.env, ORIGINAL_ENV);
@@ -169,7 +164,7 @@ describe('API Detection Module', () => {
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
-            'Accept': 'application/json',
+            Accept: 'application/json',
           }),
         })
       );
@@ -243,7 +238,7 @@ describe('API Detection Module', () => {
     it('should export AdapterMode type with correct values', () => {
       const validModes: apiDetection.AdapterMode[] = ['api', 'local', 'browser'];
 
-      validModes.forEach(mode => {
+      validModes.forEach((mode) => {
         expect(['api', 'local', 'browser']).toContain(mode);
       });
     });

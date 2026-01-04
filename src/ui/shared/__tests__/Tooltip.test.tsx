@@ -36,9 +36,12 @@ describe('Tooltip', () => {
     await user.hover(button);
 
     // Wait for tooltip to appear after delay
-    await waitFor(() => {
-      expect(screen.getByText('Help text')).toBeInTheDocument();
-    }, { timeout: 200 });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Help text')).toBeInTheDocument();
+      },
+      { timeout: 200 }
+    );
   });
 
   it('hides tooltip on mouse leave', async () => {

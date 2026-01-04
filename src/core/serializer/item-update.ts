@@ -1,60 +1,34 @@
 /**
  * Item-Level Update Operations
  *
- * Provides targeted update utilities for modifying specific item properties
- * without full document rewrites. Designed for efficient viewer operations
- * where only notes or other item fields need updating.
+ * Provides pure functions for modifying specific item properties within a
+ * RequestLogDoc in memory. File I/O should be handled by callers using
+ * the DocStore adapter pattern (per MeatyCapture's layered architecture).
  *
- * Key Features:
- * - Atomic item-level updates with backup support
- * - Automatic timestamp and index synchronization
- * - Document-level tag aggregation after changes
+ * This module contains:
+ * - Pure transformation functions for item updates
+ * - Error types for item operations
+ * - Utilities for regenerating document-level aggregates
  *
  * @example
  * ```typescript
- * import { updateItemNotes } from '@core/serializer/item-update';
+ * import { applyNoteUpdate } from '@core/serializer/item-update';
  *
- * // Update notes for a specific item
- * const updatedDoc = await updateItemNotes(
- *   '/path/to/doc.md',
- *   'REQ-20260101-project-01',
- *   [newNote],
- *   { createBackup: true }
- * );
+ * // Get doc from DocStore
+ * const doc = await docStore.read(path);
+ *
+ * // Apply in-memory transformation
+ * const { updatedDoc, changed } = applyNoteUpdate(doc, itemId, newNotes);
+ *
+ * // Save via DocStore
+ * if (changed) {
+ *   await docStore.write(path, updatedDoc);
+ * }
  * ```
  */
 
-import { readFile, writeFile, copyFile } from 'fs/promises';
-import { parse, serialize, aggregateTags, updateItemsIndex } from './index';
-import type { RequestLogDoc, Note } from '@core/models';
-
-/**
- * Options for item update operations.
- */
-export interface UpdateItemNotesOptions {
-  /**
-   * Whether to create a backup file before writing.
-   * Backup is saved as `${docPath}.bak`.
-   * @default true
-   */
-  createBackup?: boolean;
-}
-
-/**
- * Error thrown when a document file is not found.
- */
-export class DocumentNotFoundError extends Error {
-  readonly code = 'DOCUMENT_NOT_FOUND';
-
-  constructor(
-    readonly docPath: string,
-    cause?: Error
-  ) {
-    super(`Document not found: ${docPath}`);
-    this.name = 'DocumentNotFoundError';
-    this.cause = cause;
-  }
-}
+import { aggregateTags, updateItemsIndex } from './index';
+import type { RequestLogDoc, RequestLogItem, Note } from '@core/models';
 
 /**
  * Error thrown when an item is not found within a document.
@@ -63,73 +37,46 @@ export class ItemNotFoundError extends Error {
   readonly code = 'ITEM_NOT_FOUND';
 
   constructor(
-    readonly docPath: string,
+    readonly docId: string,
     readonly itemId: string
   ) {
-    super(`Item not found: ${itemId} in document ${docPath}`);
+    super(`Item not found: ${itemId} in document ${docId}`);
     this.name = 'ItemNotFoundError';
   }
 }
 
 /**
- * Error thrown when document parsing fails.
+ * Result of an item update operation.
  */
-export class DocumentParseError extends Error {
-  readonly code = 'DOCUMENT_PARSE_ERROR';
-
-  constructor(
-    readonly docPath: string,
-    cause?: Error
-  ) {
-    super(`Failed to parse document: ${docPath}. ${cause?.message ?? ''}`);
-    this.name = 'DocumentParseError';
-    this.cause = cause;
-  }
+export interface ItemUpdateResult {
+  /** The updated document with all aggregates recalculated */
+  updatedDoc: RequestLogDoc;
+  /** Whether any actual changes were made */
+  changed: boolean;
 }
 
 /**
- * Error thrown when file write operations fail.
- */
-export class FileWriteError extends Error {
-  readonly code = 'FILE_WRITE_ERROR';
-
-  constructor(
-    readonly docPath: string,
-    cause?: Error
-  ) {
-    super(`Failed to write document: ${docPath}. ${cause?.message ?? ''}`);
-    this.name = 'FileWriteError';
-    this.cause = cause;
-  }
-}
-
-/**
- * Updates the notes array for a specific item within a document.
+ * Applies a notes update to a specific item within a document.
  *
- * This function provides targeted note updates without requiring manual
- * document manipulation. It handles:
- * - Reading and parsing the existing document
+ * This is a pure function that transforms the document in memory without
+ * any file I/O. Use with DocStore.read() and DocStore.write() for persistence.
+ *
+ * The function handles:
  * - Locating the target item by ID
  * - Replacing the item's notes array
  * - Updating modified_at timestamp on the item
  * - Regenerating document-level aggregates (tags, items_index, item_count)
- * - Creating a backup before writing (configurable)
- * - Serializing and writing the updated document
  *
- * @param docPath - Absolute path to the request-log markdown file
+ * @param doc - The RequestLogDoc to update
  * @param itemId - The ID of the item to update (e.g., 'REQ-20260101-project-01')
  * @param notes - The new notes array to set on the item (replaces existing notes)
- * @param options - Configuration options for the update operation
- * @returns The updated RequestLogDoc after successful write
+ * @returns Object containing the updated document and whether changes were made
  *
- * @throws {DocumentNotFoundError} When the document file doesn't exist
  * @throws {ItemNotFoundError} When the specified item ID isn't found in the document
- * @throws {DocumentParseError} When the document content is malformed
- * @throws {FileWriteError} When backup creation or file write fails
  *
  * @example
  * ```typescript
- * // Add notes to an item with no existing notes
+ * // Add notes to an item
  * const newNote: Note = {
  *   id: 'NOTE-20260104-project-01-01',
  *   type: 'General',
@@ -138,68 +85,50 @@ export class FileWriteError extends Error {
  *   updated_at: new Date(),
  * };
  *
- * const doc = await updateItemNotes(
- *   '/docs/REQ-20260104-project.md',
- *   'REQ-20260104-project-01',
- *   [newNote]
- * );
+ * const { updatedDoc, changed } = applyNoteUpdate(doc, 'REQ-20260104-project-01', [newNote]);
  *
  * // Remove all notes from an item
- * const doc = await updateItemNotes(
- *   '/docs/REQ-20260104-project.md',
- *   'REQ-20260104-project-01',
- *   []
- * );
+ * const { updatedDoc } = applyNoteUpdate(doc, 'REQ-20260104-project-01', []);
  * ```
  */
-export async function updateItemNotes(
-  docPath: string,
+export function applyNoteUpdate(
+  doc: RequestLogDoc,
   itemId: string,
-  notes: Note[],
-  options: UpdateItemNotesOptions = {}
-): Promise<RequestLogDoc> {
-  const { createBackup = true } = options;
-
-  // Step 1: Read the existing file
-  let content: string;
-  try {
-    content = await readFile(docPath, 'utf-8');
-  } catch (error) {
-    if (isNodeError(error) && error.code === 'ENOENT') {
-      throw new DocumentNotFoundError(docPath, error);
-    }
-    // Re-throw permission or other errors with context
-    throw new DocumentNotFoundError(
-      docPath,
-      error instanceof Error ? error : new Error(String(error))
-    );
-  }
-
-  // Step 2: Parse the document
-  let doc: RequestLogDoc;
-  try {
-    doc = parse(content);
-  } catch (error) {
-    throw new DocumentParseError(docPath, error instanceof Error ? error : new Error(String(error)));
-  }
-
-  // Step 3: Find the target item
+  notes: Note[]
+): ItemUpdateResult {
+  // Step 1: Find the target item
   const itemIndex = doc.items.findIndex((item) => item.id === itemId);
   if (itemIndex === -1) {
-    throw new ItemNotFoundError(docPath, itemId);
+    throw new ItemNotFoundError(doc.doc_id, itemId);
   }
 
-  // Step 4: Update the item's notes and modified_at timestamp
   const targetItem = doc.items[itemIndex];
   if (!targetItem) {
     // Type guard - shouldn't happen given findIndex check
-    throw new ItemNotFoundError(docPath, itemId);
+    throw new ItemNotFoundError(doc.doc_id, itemId);
   }
 
+  // Step 2: Check if there are actual changes
+  const existingNotes = targetItem.notes ?? [];
+  const notesAreSame =
+    existingNotes.length === notes.length &&
+    existingNotes.every(
+      (existingNote, i) =>
+        notes[i] &&
+        existingNote.id === notes[i].id &&
+        existingNote.type === notes[i].type &&
+        existingNote.content === notes[i].content
+    );
+
+  if (notesAreSame) {
+    return { updatedDoc: doc, changed: false };
+  }
+
+  // Step 3: Update the item's notes and modified_at timestamp
   const now = new Date();
 
   // Build updated item - only include notes if non-empty (exactOptionalPropertyTypes compliance)
-  const updatedItem: typeof targetItem = {
+  const updatedItem: RequestLogItem = {
     ...targetItem,
     modified_at: now,
   };
@@ -208,21 +137,19 @@ export async function updateItemNotes(
   if (notes.length > 0) {
     updatedItem.notes = notes;
   } else {
-    // Remove notes property when empty (delete is safe here)
+    // Remove notes property when empty
     delete updatedItem.notes;
   }
 
-  // Create a new items array with the updated item
+  // Step 4: Create a new items array with the updated item
   const updatedItems = [...doc.items];
   updatedItems[itemIndex] = updatedItem;
 
   // Step 5: Regenerate document-level aggregates
-  // Notes don't contribute to document tags, but we still need to regenerate
-  // from item tags in case this is part of a broader operation
   const aggregatedTags = aggregateTags(updatedItems);
   const updatedItemsIndex = updateItemsIndex(updatedItems);
 
-  // Step 6: Build the updated document
+  // Step 6: Build and return the updated document
   const updatedDoc: RequestLogDoc = {
     ...doc,
     items: updatedItems,
@@ -231,42 +158,28 @@ export async function updateItemNotes(
     updated_at: now,
   };
 
-  // Step 7: Serialize the document
-  const serialized = serialize(updatedDoc);
-
-  // Step 8: Create backup if requested
-  if (createBackup) {
-    try {
-      await copyFile(docPath, `${docPath}.bak`);
-    } catch (error) {
-      // If the original file doesn't exist (edge case), we can't backup
-      if (isNodeError(error) && error.code === 'ENOENT') {
-        // Original already doesn't exist, which shouldn't happen at this point
-        // since we read it successfully. Skip backup.
-      } else {
-        throw new FileWriteError(
-          docPath,
-          error instanceof Error
-            ? new Error(`Backup creation failed: ${error.message}`)
-            : new Error('Backup creation failed')
-        );
-      }
-    }
-  }
-
-  // Step 9: Write the updated document
-  try {
-    await writeFile(docPath, serialized, 'utf-8');
-  } catch (error) {
-    throw new FileWriteError(docPath, error instanceof Error ? error : new Error(String(error)));
-  }
-
-  return updatedDoc;
+  return { updatedDoc, changed: true };
 }
 
 /**
- * Type guard for Node.js system errors with code property.
+ * Finds an item within a document by ID.
+ *
+ * @param doc - The document to search
+ * @param itemId - The item ID to find
+ * @returns The item if found, undefined otherwise
  */
-function isNodeError(error: unknown): error is Error & { code?: string } {
-  return error instanceof Error && 'code' in error;
+export function findItem(doc: RequestLogDoc, itemId: string): RequestLogItem | undefined {
+  return doc.items.find((item) => item.id === itemId);
+}
+
+/**
+ * Gets the notes array for a specific item, with empty array fallback.
+ *
+ * @param doc - The document containing the item
+ * @param itemId - The item ID
+ * @returns The item's notes array, or empty array if item not found
+ */
+export function getItemNotes(doc: RequestLogDoc, itemId: string): Note[] {
+  const item = findItem(doc, itemId);
+  return item?.notes ?? [];
 }

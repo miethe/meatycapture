@@ -20,12 +20,7 @@
 import type { Command } from 'commander';
 import { createConfigStore, createAdapters } from '@adapters/factory';
 import type { ConfigKey } from '@core/models';
-import {
-  withErrorHandling,
-  setQuietMode,
-  isQuietMode,
-  createError,
-} from '@cli/handlers/errors.js';
+import { withErrorHandling, setQuietMode, isQuietMode, createError } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 
 /**
@@ -111,11 +106,7 @@ async function validateValue(key: ConfigKey, value: string): Promise<void> {
  * - 1: Validation error (invalid key)
  * - 4: Resource not found (project doesn't exist)
  */
-export async function setAction(
-  key: string,
-  value: string,
-  options: SetOptions
-): Promise<void> {
+export async function setAction(key: string, value: string, options: SetOptions): Promise<void> {
   // Set quiet mode globally for formatters
   if (options.quiet) {
     setQuietMode(true);

@@ -14,7 +14,10 @@ import { WizardFlow } from './ui/wizard';
 import type { CaptureContext } from './ui/wizard';
 import { AdminContainer } from './ui/admin';
 import { ViewerContainer } from './ui/viewer';
-import { createProjectStore, createFieldCatalogStore } from './adapters/config-local/platform-factory';
+import {
+  createProjectStore,
+  createFieldCatalogStore,
+} from './adapters/config-local/platform-factory';
 import { createDocStore } from './adapters/fs-local/platform-factory';
 import { realClock } from './adapters/clock';
 import { detectAdapterMode } from './platform/api-detection';
@@ -121,9 +124,7 @@ function AppContent() {
             <div className="error-panel" role="alert" aria-live="polite">
               <h2>Initialization Error</h2>
               <p className="error-message">{initError || 'Unable to initialize storage.'}</p>
-              <p>
-                Please check the browser console for more details, or try refreshing the page.
-              </p>
+              <p>Please check the browser console for more details, or try refreshing the page.</p>
             </div>
           </main>
         </div>
@@ -152,8 +153,18 @@ function AppContent() {
                 letterSpacing: '0.05em',
                 marginTop: '4px',
                 display: 'inline-block',
-                color: adapterMode === 'api' ? '#22c55e' : adapterMode === 'local' ? '#3b82f6' : '#f59e0b',
-                backgroundColor: adapterMode === 'api' ? 'rgba(34, 197, 94, 0.1)' : adapterMode === 'local' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                color:
+                  adapterMode === 'api'
+                    ? '#22c55e'
+                    : adapterMode === 'local'
+                      ? '#3b82f6'
+                      : '#f59e0b',
+                backgroundColor:
+                  adapterMode === 'api'
+                    ? 'rgba(34, 197, 94, 0.1)'
+                    : adapterMode === 'local'
+                      ? 'rgba(59, 130, 246, 0.1)'
+                      : 'rgba(245, 158, 11, 0.1)',
               }}
             >
               {adapterMode === 'api' ? 'API' : adapterMode === 'local' ? 'Local' : 'Browser'}

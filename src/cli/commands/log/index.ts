@@ -28,11 +28,9 @@ import { registerSearchCommand } from './search';
  * Registers all log subcommands (create, append, list).
  */
 export function createLogCommand(): Command {
-  const log = new Command('log')
-    .description('Manage request-log documents')
-    .addHelpText(
-      'after',
-      `
+  const log = new Command('log').description('Manage request-log documents').addHelpText(
+    'after',
+    `
 Examples:
   meatycapture log create input.json           Create document from JSON
   meatycapture log create input.json -o out.md Create with custom output path
@@ -49,7 +47,7 @@ Examples:
   meatycapture log search "tag:ux"             Search by tag
   meatycapture log search "type:enhancement"   Search by type
 `
-    );
+  );
 
   // Register all log subcommands
   registerCreateCommand(log);

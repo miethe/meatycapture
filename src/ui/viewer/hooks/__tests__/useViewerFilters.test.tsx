@@ -88,10 +88,7 @@ describe('useViewerFilters', () => {
         text: '',
         archiveStatus: 'active',
       };
-      mockSessionStorage.setItem(
-        'meatycapture-viewer-filters',
-        JSON.stringify(savedState)
-      );
+      mockSessionStorage.setItem('meatycapture-viewer-filters', JSON.stringify(savedState));
 
       const { result } = renderHook(() => useViewerFilters());
 
@@ -101,10 +98,7 @@ describe('useViewerFilters', () => {
     });
 
     it('uses empty filter if sessionStorage contains invalid data', () => {
-      mockSessionStorage.setItem(
-        'meatycapture-viewer-filters',
-        '{"invalid": "data"}'
-      );
+      mockSessionStorage.setItem('meatycapture-viewer-filters', '{"invalid": "data"}');
 
       const { result } = renderHook(() => useViewerFilters());
 

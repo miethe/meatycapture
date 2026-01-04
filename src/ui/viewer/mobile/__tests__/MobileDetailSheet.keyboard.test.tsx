@@ -40,16 +40,18 @@ function createMockEntry(overrides?: Partial<CatalogEntry>): CatalogEntry {
 /**
  * Default props for MobileDetailSheet tests
  */
-function createDefaultProps(overrides?: Partial<{
-  isOpen: boolean;
-  isExpanded: boolean;
-  entry: CatalogEntry | null;
-  onClose: ReturnType<typeof vi.fn>;
-  onExpand: ReturnType<typeof vi.fn>;
-  onCollapse: ReturnType<typeof vi.fn>;
-  onViewFull: ReturnType<typeof vi.fn>;
-  triggerRef: React.RefObject<HTMLElement | null>;
-}>) {
+function createDefaultProps(
+  overrides?: Partial<{
+    isOpen: boolean;
+    isExpanded: boolean;
+    entry: CatalogEntry | null;
+    onClose: ReturnType<typeof vi.fn>;
+    onExpand: ReturnType<typeof vi.fn>;
+    onCollapse: ReturnType<typeof vi.fn>;
+    onViewFull: ReturnType<typeof vi.fn>;
+    triggerRef: React.RefObject<HTMLElement | null>;
+  }>
+) {
   return {
     isOpen: true,
     isExpanded: false,
@@ -241,9 +243,12 @@ describe('MobileDetailSheet Keyboard Navigation', () => {
       rerender(<MobileDetailSheet {...props} isOpen={false} />);
 
       // Wait for focus restoration timeout
-      await waitFor(() => {
-        expect(document.activeElement).toBe(triggerButton);
-      }, { timeout: 200 });
+      await waitFor(
+        () => {
+          expect(document.activeElement).toBe(triggerButton);
+        },
+        { timeout: 200 }
+      );
     });
   });
 
@@ -357,7 +362,11 @@ describe('MobileDetailSheet Accessibility', () => {
 
     render(<MobileDetailSheet {...props} />);
 
-    expect(screen.getByRole('button', { name: 'Collapse sheet to half height' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Expand sheet to full height' })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Collapse sheet to half height' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Expand sheet to full height' })
+    ).not.toBeInTheDocument();
   });
 });

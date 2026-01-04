@@ -17,16 +17,8 @@
 
 import type { Command } from 'commander';
 import { createAdapters } from '@adapters/factory';
-import {
-  formatOutput,
-  type OutputFormat,
-  type FormatOptions,
-} from '@cli/formatters';
-import {
-  withErrorHandling,
-  setQuietMode,
-  isQuietMode,
-} from '@cli/handlers/errors.js';
+import { formatOutput, type OutputFormat, type FormatOptions } from '@cli/formatters';
+import { withErrorHandling, setQuietMode, isQuietMode } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 
 /**
@@ -61,10 +53,7 @@ function resolveOutputFormat(options: DisableOptions): OutputFormat {
  * @param id - Project identifier (slug format)
  * @param options - Command options
  */
-export async function disableAction(
-  id: string,
-  options: DisableOptions
-): Promise<void> {
+export async function disableAction(id: string, options: DisableOptions): Promise<void> {
   // Set quiet mode globally for formatters
   if (options.quiet) {
     setQuietMode(true);

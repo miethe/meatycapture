@@ -77,10 +77,7 @@ async function findOptionById(id: string): Promise<FieldOption | null> {
  * @returns True if user confirmed, false otherwise
  * @throws UserInterruptError if user presses Ctrl+C
  */
-async function confirmRemoval(
-  option: FieldOption | null,
-  optionId: string
-): Promise<boolean> {
+async function confirmRemoval(option: FieldOption | null, optionId: string): Promise<boolean> {
   const rl = readline.createInterface({ input: stdin, output: stdout });
 
   // Handle Ctrl+C during readline
@@ -138,10 +135,7 @@ function output(message: string): void {
  * @param optionId - ID of the field option to remove
  * @param options - Command options
  */
-export async function removeAction(
-  optionId: string,
-  options: RemoveOptions
-): Promise<void> {
+export async function removeAction(optionId: string, options: RemoveOptions): Promise<void> {
   // Set quiet mode if requested
   if (options.quiet) {
     setQuietMode(true);

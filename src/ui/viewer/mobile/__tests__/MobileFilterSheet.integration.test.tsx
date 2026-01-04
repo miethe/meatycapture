@@ -50,15 +50,17 @@ function createMockFilterOptions(): FilterOptions {
 /**
  * Default props for MobileFilterSheet tests
  */
-function createDefaultProps(overrides?: Partial<{
-  filterState: FilterState;
-  filterOptions: FilterOptions;
-  onFilterChange: ReturnType<typeof vi.fn>;
-  onClearAll: ReturnType<typeof vi.fn>;
-  onApply: ReturnType<typeof vi.fn>;
-  onClose: ReturnType<typeof vi.fn>;
-  activeFilterCount: number;
-}>) {
+function createDefaultProps(
+  overrides?: Partial<{
+    filterState: FilterState;
+    filterOptions: FilterOptions;
+    onFilterChange: ReturnType<typeof vi.fn>;
+    onClearAll: ReturnType<typeof vi.fn>;
+    onApply: ReturnType<typeof vi.fn>;
+    onClose: ReturnType<typeof vi.fn>;
+    activeFilterCount: number;
+  }>
+) {
   const filterState = overrides?.filterState ?? createEmptyFilter();
   return {
     isOpen: true,
@@ -102,7 +104,9 @@ describe('MobileFilterSheet Integration', () => {
 
       const typesGroup = screen.getByRole('group', { name: 'Type filters' });
       const bugCheckbox = within(typesGroup).getByRole('checkbox', { name: /bug/i });
-      const enhancementCheckbox = within(typesGroup).getByRole('checkbox', { name: /enhancement/i });
+      const enhancementCheckbox = within(typesGroup).getByRole('checkbox', {
+        name: /enhancement/i,
+      });
       const ideaCheckbox = within(typesGroup).getByRole('checkbox', { name: /idea/i });
 
       expect(bugCheckbox).toBeChecked();

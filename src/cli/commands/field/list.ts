@@ -18,12 +18,7 @@
 import type { Command } from 'commander';
 import { createAdapters } from '@adapters/factory';
 import type { FieldOption, FieldName } from '@core/models';
-import {
-  withErrorHandling,
-  setQuietMode,
-  isQuietMode,
-  createError,
-} from '@cli/handlers/errors.js';
+import { withErrorHandling, setQuietMode, isQuietMode, createError } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 import YAML from 'yaml';
 
@@ -135,9 +130,7 @@ function formatAsHuman(grouped: GroupedOptions, projectId?: string): string {
 
     for (const option of options) {
       const scopeLabel =
-        option.scope === 'global'
-          ? '[global]'
-          : `[project: ${option.project_id || 'unknown'}]`;
+        option.scope === 'global' ? '[global]' : `[project: ${option.project_id || 'unknown'}]`;
 
       lines.push(`  ${option.value} (${option.id}) ${scopeLabel}`);
     }
@@ -245,16 +238,10 @@ function formatAsTable(options: FieldOption[]): string {
 
   // Calculate column widths
   const headers = ['FIELD', 'VALUE', 'SCOPE', 'PROJECT_ID', 'ID'];
-  const rows = sorted.map((opt) => [
-    opt.field,
-    opt.value,
-    opt.scope,
-    opt.project_id || '',
-    opt.id,
-  ]);
+  const rows = sorted.map((opt) => [opt.field, opt.value, opt.scope, opt.project_id || '', opt.id]);
 
   const colWidths = headers.map((header, i) => {
-    const maxDataWidth = Math.max(...rows.map((row) => (row[i]?.length || 0)));
+    const maxDataWidth = Math.max(...rows.map((row) => row[i]?.length || 0));
     return Math.max(header.length, maxDataWidth);
   });
 
@@ -413,10 +400,7 @@ export function registerListCommand(program: Command): void {
     .option('--csv', 'Output as CSV (flat list)')
     .option('--table', 'Output as ASCII table')
     .option('-q, --quiet', 'Suppress non-error output')
-    .option(
-      '--field <name>',
-      `Filter by field name (${VALID_FIELD_NAMES.join('|')})`
-    )
+    .option('--field <name>', `Filter by field name (${VALID_FIELD_NAMES.join('|')})`)
     .option('--project <id>', 'Show effective options for project (global + project-specific)')
     .option('--global-only', 'Show only global options')
     .action(withErrorHandling(listAction));

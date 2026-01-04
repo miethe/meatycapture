@@ -24,23 +24,14 @@ import type { Command } from 'commander';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { createAdapters } from '@adapters/factory';
-import {
-  formatOutput,
-  type OutputFormat,
-  type SearchMatch,
-} from '@cli/formatters';
+import { formatOutput, type OutputFormat, type SearchMatch } from '@cli/formatters';
 import {
   searchDocuments,
   parseMatchMode,
   type SearchOptions,
   type MatchMode,
 } from '@cli/handlers/search.js';
-import {
-  handleError,
-  CliError,
-  setQuietMode,
-  isQuietMode,
-} from '@cli/handlers/errors.js';
+import { handleError, CliError, setQuietMode, isQuietMode } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 
 /**
@@ -159,7 +150,10 @@ export async function searchAction(
     }
 
     // Read all documents for searching
-    const docsWithPaths: Array<{ doc: ReturnType<typeof docStore.read> extends Promise<infer T> ? T : never; path: string }> = [];
+    const docsWithPaths: Array<{
+      doc: ReturnType<typeof docStore.read> extends Promise<infer T> ? T : never;
+      path: string;
+    }> = [];
 
     for (const meta of docMetas) {
       try {
@@ -198,10 +192,7 @@ export async function searchAction(
 /**
  * Outputs search results in the configured format.
  */
-function outputResults(
-  matches: SearchMatch[],
-  options: SearchCommandOptions
-): void {
+function outputResults(matches: SearchMatch[], options: SearchCommandOptions): void {
   // In quiet mode, suppress output
   if (isQuietMode()) {
     return;
@@ -250,10 +241,7 @@ export function registerSearchCommand(program: Command): void {
     .option('--yaml', 'Output as YAML')
     .option('--csv', 'Output as CSV')
     .option('--table', 'Output as table')
-    .option(
-      '--match <mode>',
-      'Match mode: full|starts|contains (default: contains)'
-    )
+    .option('--match <mode>', 'Match mode: full|starts|contains (default: contains)')
     .option('--limit <n>', 'Limit number of results')
     .option('-q, --quiet', 'Suppress output')
     .addHelpText(

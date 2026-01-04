@@ -151,10 +151,7 @@ import { formatAsHuman } from './human.js';
  * const human = formatOutput(items, { format: 'human', color: true });
  * ```
  */
-export function formatOutput<T extends FormattableData>(
-  data: T,
-  options: FormatOptions
-): string {
+export function formatOutput<T extends FormattableData>(data: T, options: FormatOptions): string {
   // In quiet mode, suppress non-error output
   if (options.quiet) {
     return '';

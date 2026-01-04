@@ -206,10 +206,7 @@ function createFormatOptions(options: AppendOptions): FormatOptions {
  * @param input - Validated append input with items
  * @returns Updated document after append
  */
-async function appendWithoutBackup(
-  docPath: string,
-  input: AppendCliInput
-): Promise<RequestLogDoc> {
+async function appendWithoutBackup(docPath: string, input: AppendCliInput): Promise<RequestLogDoc> {
   // Read existing document
   let content: string;
   try {
@@ -276,10 +273,7 @@ async function appendWithoutBackup(
  * @param input - Validated append input with items
  * @returns Updated document after append
  */
-async function appendWithBackup(
-  docPath: string,
-  input: AppendCliInput
-): Promise<RequestLogDoc> {
+async function appendWithBackup(docPath: string, input: AppendCliInput): Promise<RequestLogDoc> {
   const { docStore } = await createAdapters();
   let updatedDoc: RequestLogDoc | null = null;
 
@@ -301,7 +295,10 @@ async function appendWithBackup(
   }
 
   if (!updatedDoc) {
-    throw new ValidationError('No items were appended', 'Provide at least one item in the items array');
+    throw new ValidationError(
+      'No items were appended',
+      'Provide at least one item in the items array'
+    );
   }
 
   return updatedDoc;

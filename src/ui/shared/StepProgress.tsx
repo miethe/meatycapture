@@ -49,9 +49,7 @@ export function StepProgress({
               {/* Connecting Line (before each step except the first) */}
               {index > 0 && (
                 <div
-                  className={`step-progress-line ${
-                    isPast || isCompleted ? 'completed' : ''
-                  }`}
+                  className={`step-progress-line ${isPast || isCompleted ? 'completed' : ''}`}
                   aria-hidden="true"
                 />
               )}
@@ -61,9 +59,7 @@ export function StepProgress({
                 <div
                   className={`step-progress-dot ${
                     isActive ? 'active' : ''
-                  } ${isCompleted ? 'completed' : ''} ${
-                    isFuture ? 'future' : ''
-                  }`}
+                  } ${isCompleted ? 'completed' : ''} ${isFuture ? 'future' : ''}`}
                   aria-current={isActive ? 'step' : undefined}
                   aria-label={`Step ${index + 1}: ${label}${
                     isCompleted ? ' (completed)' : ''

@@ -10,11 +10,7 @@ import type { ToastData, ToastType } from './Toast';
 
 interface ToastContextValue {
   toasts: ToastData[];
-  addToast: (options: {
-    type: ToastType;
-    message: string;
-    duration?: number;
-  }) => string;
+  addToast: (options: { type: ToastType; message: string; duration?: number }) => string;
   dismissToast: (id: string) => void;
   clearAll: () => void;
 }

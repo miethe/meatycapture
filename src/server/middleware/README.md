@@ -40,6 +40,7 @@ unset MEATYCAPTURE_AUTH_TOKEN
 ```
 
 **Security Notes:**
+
 - Use a strong, randomly generated token (minimum 32 characters)
 - Never commit tokens to version control
 - Rotate tokens regularly in production
@@ -66,9 +67,11 @@ unset MEATYCAPTURE_AUTH_TOKEN
 Primary authentication function.
 
 **Parameters:**
+
 - `req` - Incoming HTTP request
 
 **Returns:** `AuthResult`
+
 ```typescript
 interface AuthResult {
   authenticated: boolean;
@@ -78,6 +81,7 @@ interface AuthResult {
 ```
 
 **Example:**
+
 ```typescript
 const result = checkAuth(request);
 if (!result.authenticated) {
@@ -96,7 +100,7 @@ User authentication context attached to successful auth:
 ```typescript
 interface UserContext {
   authenticated: boolean; // true if token validated, false if auth skipped
-  token?: string;         // The validated bearer token (if auth enabled)
+  token?: string; // The validated bearer token (if auth enabled)
 }
 ```
 
@@ -112,10 +116,12 @@ All authentication errors return a standardized 401 response:
 ```
 
 **Headers:**
+
 - `Content-Type: application/json`
 - `WWW-Authenticate: Bearer`
 
 **Common error messages:**
+
 - `"Missing Authorization header"` - No Authorization header provided
 - `"Invalid Authorization header format. Expected: Bearer {token}"` - Header format incorrect
 - `"Invalid bearer token"` - Token doesn't match configured value
@@ -147,6 +153,7 @@ bun test src/server/middleware/__tests__/auth.test.ts
 ```
 
 **Test coverage includes:**
+
 - Valid token authentication
 - Missing Authorization header
 - Invalid token format
@@ -160,17 +167,20 @@ bun test src/server/middleware/__tests__/auth.test.ts
 This stub can be extended with:
 
 1. **JWT Support**: Replace bearer tokens with signed JWTs
+
    ```typescript
    import { verify } from 'jsonwebtoken';
    const payload = verify(token, secret);
    ```
 
 2. **OAuth Integration**: Add OAuth2/OIDC flows
+
    ```typescript
    const tokenInfo = await validateOAuthToken(token);
    ```
 
 3. **Role-Based Access Control**: Add user roles and permissions
+
    ```typescript
    interface UserContext {
      authenticated: boolean;
@@ -247,7 +257,7 @@ Bun.serve({
   port: 3001,
   fetch(req) {
     return cors(req, () => handleRequest(req));
-  }
+  },
 });
 ```
 
@@ -277,7 +287,7 @@ const cors = corsMiddleware({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header'],
   allowCredentials: true,
   maxAge: 86400, // 24 hours
-  debug: process.env.NODE_ENV !== 'production'
+  debug: process.env.NODE_ENV !== 'production',
 });
 ```
 
@@ -288,11 +298,11 @@ const cors = corsMiddleware({
 - **Credential Support**: Enables cookies and authorization headers
 - **Flexible Configuration**: Environment-based or programmatic configuration
 - **Debug Logging**: Optional logging for rejected origins and preflight requests
-- **Wildcard Support**: Use '*' for development (echoes specific origin for credentials)
+- **Wildcard Support**: Use '\*' for development (echoes specific origin for credentials)
 
 ### Security Considerations
 
-1. **Never use wildcard ('*') in production** - Always specify exact origins
+1. **Never use wildcard ('\*') in production** - Always specify exact origins
 2. **Use HTTPS origins in production** - HTTP origins are insecure
 3. **Minimize allowed methods** - Only include methods your API actually uses
 4. **Restrict allowed headers** - Only include headers your API requires
@@ -307,14 +317,14 @@ const cors = corsMiddleware({
 const cors = corsMiddleware({
   allowedOrigins: ['http://localhost:5173'],
   allowCredentials: true,
-  debug: true
+  debug: true,
 });
 
 // Production: Allow production domain
 const cors = corsMiddleware({
   allowedOrigins: ['https://app.example.com'],
   allowCredentials: true,
-  debug: false
+  debug: false,
 });
 ```
 
@@ -323,12 +333,12 @@ const cors = corsMiddleware({
 ```typescript
 const cors = corsMiddleware({
   allowedOrigins: [
-    'http://localhost:5173',   // Vite dev
-    'http://localhost:4173',   // Vite preview
+    'http://localhost:5173', // Vite dev
+    'http://localhost:4173', // Vite preview
     'https://staging.example.com',
-    'https://app.example.com'
+    'https://app.example.com',
   ],
-  allowCredentials: true
+  allowCredentials: true,
 });
 ```
 
@@ -338,13 +348,13 @@ const cors = corsMiddleware({
 // Public API - allow all origins
 const publicCors = corsMiddleware({
   allowedOrigins: ['*'],
-  allowCredentials: false
+  allowCredentials: false,
 });
 
 // Authenticated API - restrict origins
 const authCors = corsMiddleware({
   allowedOrigins: ['https://app.example.com'],
-  allowCredentials: true
+  allowCredentials: true,
 });
 
 Bun.serve({
@@ -361,7 +371,7 @@ Bun.serve({
     }
 
     return new Response('Not Found', { status: 404 });
-  }
+  },
 });
 ```
 
@@ -374,6 +384,7 @@ pnpm test src/server/middleware/cors.test.ts
 ```
 
 **Test coverage includes:**
+
 - Origin validation (allowed/rejected)
 - Preflight OPTIONS handling
 - CORS header generation
@@ -391,6 +402,7 @@ pnpm test src/server/middleware/cors.test.ts
 Creates a CORS middleware function.
 
 **Parameters:**
+
 - `config.allowedOrigins`: Array of allowed origins (default: from `CORS_ORIGINS` env var or `['*']`)
 - `config.allowedMethods`: Array of allowed HTTP methods (default: `['GET', 'POST', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']`)
 - `config.allowedHeaders`: Array of allowed headers (default: `['Content-Type', 'Authorization', 'X-Requested-With']`)
@@ -401,15 +413,16 @@ Creates a CORS middleware function.
 **Returns:** Middleware function `(req: Request, next: () => Response | Promise<Response>) => Response | Promise<Response>`
 
 **Example:**
+
 ```typescript
 const cors = corsMiddleware({
   allowedOrigins: ['http://localhost:5173'],
-  debug: true
+  debug: true,
 });
 
 const response = await cors(req, () => {
   return new Response(JSON.stringify({ data }), {
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 'Content-Type': 'application/json' },
   });
 });
 ```
@@ -421,6 +434,7 @@ Creates CORS middleware with defaults from environment.
 **Returns:** Configured middleware function
 
 **Example:**
+
 ```typescript
 const cors = createDefaultCorsMiddleware();
 ```
@@ -432,6 +446,7 @@ Parses `CORS_ORIGINS` environment variable into array of allowed origins.
 **Returns:** Array of allowed origins
 
 **Example:**
+
 ```typescript
 // CORS_ORIGINS="http://localhost:5173,http://localhost:4173"
 const origins = parseAllowedOrigins();
@@ -443,12 +458,14 @@ const origins = parseAllowedOrigins();
 Validates if a request origin is allowed based on CORS configuration.
 
 **Parameters:**
+
 - `origin`: Origin header from request (null for same-origin)
 - `allowedOrigins`: List of allowed origins
 
 **Returns:** `true` if allowed, `false` otherwise
 
 **Example:**
+
 ```typescript
 const allowed = isOriginAllowed('http://localhost:5173', ['http://localhost:5173']);
 // Returns: true
@@ -459,6 +476,7 @@ const allowed = isOriginAllowed('http://localhost:5173', ['http://localhost:5173
 Generates CORS headers for a given request origin.
 
 **Parameters:**
+
 - `origin`: Origin header from request
 - `allowedOrigins`: List of allowed origins
 - `config`: CORS configuration object
@@ -466,6 +484,7 @@ Generates CORS headers for a given request origin.
 **Returns:** Headers object with appropriate CORS headers
 
 **Example:**
+
 ```typescript
 const headers = getCorsHeaders('http://localhost:5173', ['http://localhost:5173'], config);
 // Returns: { 'Access-Control-Allow-Origin': 'http://localhost:5173', ... }
@@ -484,6 +503,7 @@ Headers: { "Content-Type": "text/plain" }
 ```
 
 Debug logging will show:
+
 ```
 [CORS] Rejected request from unauthorized origin: http://malicious.com
 [CORS] Allowed origins: ['http://localhost:5173']
@@ -527,16 +547,16 @@ Bun.serve({
       // Both CORS and auth passed
       return handleRequest(req, authResult.user!);
     });
-  }
+  },
 });
 ```
 
 ### Environment Variables Reference
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `CORS_ORIGINS` | string | `*` | Comma-separated list of allowed origins |
-| `NODE_ENV` | string | - | Controls debug logging (disabled in production) |
+| Variable       | Type   | Default | Description                                     |
+| -------------- | ------ | ------- | ----------------------------------------------- |
+| `CORS_ORIGINS` | string | `*`     | Comma-separated list of allowed origins         |
+| `NODE_ENV`     | string | -       | Controls debug logging (disabled in production) |
 
 ### Performance Considerations
 
@@ -544,6 +564,6 @@ Bun.serve({
 
 2. **Origin List Size**: Origin validation is O(n) where n is the number of allowed origins. Keep the list small for best performance.
 
-3. **Wildcard Performance**: Using '*' is fastest as it bypasses origin validation, but should only be used in development.
+3. **Wildcard Performance**: Using '\*' is fastest as it bypasses origin validation, but should only be used in development.
 
 4. **Header Overhead**: CORS headers add ~200-300 bytes to each response. This is negligible for most applications.

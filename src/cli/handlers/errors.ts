@@ -380,11 +380,7 @@ interface NodeError extends Error {
 }
 
 function isNodeError(error: unknown): error is NodeError {
-  return (
-    error instanceof Error &&
-    'code' in error &&
-    typeof (error as NodeError).code === 'string'
-  );
+  return error instanceof Error && 'code' in error && typeof (error as NodeError).code === 'string';
 }
 
 // ============================================================================
@@ -535,11 +531,7 @@ export const createError = {
   /**
    * Create a permission error
    */
-  permission(
-    path: string,
-    operation: 'read' | 'write',
-    suggestion?: string
-  ): PermissionError {
+  permission(path: string, operation: 'read' | 'write', suggestion?: string): PermissionError {
     return new PermissionError(path, operation, suggestion);
   },
 

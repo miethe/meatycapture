@@ -193,39 +193,36 @@ export function MobileSortDropdown({
     [handleToggle, isOpen]
   );
 
-  const handleMenuKeyDown = useCallback(
-    (event: React.KeyboardEvent) => {
-      switch (event.key) {
-        case 'ArrowDown':
-          event.preventDefault();
-          setFocusedIndex((prev) => {
-            const nextIndex = prev < SORT_OPTIONS.length - 1 ? prev + 1 : 0;
-            optionRefs.current[nextIndex]?.focus();
-            return nextIndex;
-          });
-          break;
-        case 'ArrowUp':
-          event.preventDefault();
-          setFocusedIndex((prev) => {
-            const nextIndex = prev > 0 ? prev - 1 : SORT_OPTIONS.length - 1;
-            optionRefs.current[nextIndex]?.focus();
-            return nextIndex;
-          });
-          break;
-        case 'Home':
-          event.preventDefault();
-          setFocusedIndex(0);
-          optionRefs.current[0]?.focus();
-          break;
-        case 'End':
-          event.preventDefault();
-          setFocusedIndex(SORT_OPTIONS.length - 1);
-          optionRefs.current[SORT_OPTIONS.length - 1]?.focus();
-          break;
-      }
-    },
-    []
-  );
+  const handleMenuKeyDown = useCallback((event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        setFocusedIndex((prev) => {
+          const nextIndex = prev < SORT_OPTIONS.length - 1 ? prev + 1 : 0;
+          optionRefs.current[nextIndex]?.focus();
+          return nextIndex;
+        });
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        setFocusedIndex((prev) => {
+          const nextIndex = prev > 0 ? prev - 1 : SORT_OPTIONS.length - 1;
+          optionRefs.current[nextIndex]?.focus();
+          return nextIndex;
+        });
+        break;
+      case 'Home':
+        event.preventDefault();
+        setFocusedIndex(0);
+        optionRefs.current[0]?.focus();
+        break;
+      case 'End':
+        event.preventDefault();
+        setFocusedIndex(SORT_OPTIONS.length - 1);
+        optionRefs.current[SORT_OPTIONS.length - 1]?.focus();
+        break;
+    }
+  }, []);
 
   const handleOptionKeyDown = useCallback(
     (event: React.KeyboardEvent, field: SortField) => {

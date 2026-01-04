@@ -83,10 +83,7 @@ export async function prompt(question: string): Promise<string> {
  * const path = await promptWithDefault('Path', './docs');
  * // Displays: Path [./docs]:
  */
-export async function promptWithDefault(
-  question: string,
-  defaultValue: string
-): Promise<string> {
+export async function promptWithDefault(question: string, defaultValue: string): Promise<string> {
   const displayQuestion = `${question} [${defaultValue}]: `;
   const answer = await prompt(displayQuestion);
 
@@ -108,10 +105,7 @@ export async function promptWithDefault(
  * const denied = await confirm('Delete?', false);
  * // Displays: Delete? [y/N]:
  */
-export async function confirm(
-  message: string,
-  defaultYes = false
-): Promise<boolean> {
+export async function confirm(message: string, defaultYes = false): Promise<boolean> {
   const suffix = defaultYes ? '[Y/n]' : '[y/N]';
   const displayQuestion = `${message} ${suffix}: `;
 

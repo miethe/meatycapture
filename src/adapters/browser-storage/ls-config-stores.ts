@@ -316,7 +316,9 @@ export class BrowserFieldCatalogStore implements FieldCatalogStore {
       const data = localStorage.getItem(FIELDS_KEY);
       if (!data) {
         if (import.meta.env.DEV) {
-          console.warn('[BrowserFieldCatalogStore] No fields found in localStorage, initializing with defaults');
+          console.warn(
+            '[BrowserFieldCatalogStore] No fields found in localStorage, initializing with defaults'
+          );
         }
         // No data exists - initialize with defaults
         return this.initializeDefaults();

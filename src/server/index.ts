@@ -111,9 +111,11 @@ function getServerConfig(): ServerConfig {
  * while CONFIG_DIR points to where projects.json and fields.json are stored.
  */
 function getConfigDir(): string {
-  return process.env.MEATYCAPTURE_CONFIG_DIR ||
-         process.env.MEATYCAPTURE_DATA_DIR ||
-         join(homedir(), '.meatycapture');
+  return (
+    process.env.MEATYCAPTURE_CONFIG_DIR ||
+    process.env.MEATYCAPTURE_DATA_DIR ||
+    join(homedir(), '.meatycapture')
+  );
 }
 
 /**
@@ -209,149 +211,149 @@ async function main(): Promise<void> {
        */
       async fetch(req: Request): Promise<Response> {
         return cors(req, async () => {
-        const url = new URL(req.url);
-        const method = req.method;
-        const path = url.pathname;
+          const url = new URL(req.url);
+          const method = req.method;
+          const path = url.pathname;
 
-        // Log incoming request (debug level to avoid spam in production)
-        logger.debug('Incoming request', {
-          method,
-          path,
-          query: Object.fromEntries(url.searchParams),
-        });
+          // Log incoming request (debug level to avoid spam in production)
+          logger.debug('Incoming request', {
+            method,
+            path,
+            query: Object.fromEntries(url.searchParams),
+          });
 
-        // Health check endpoint
-        if (method === 'GET' && path === '/health') {
-          const uptime = Date.now() - startTime;
+          // Health check endpoint
+          if (method === 'GET' && path === '/health') {
+            const uptime = Date.now() - startTime;
 
-          const response: HealthCheckResponse = {
-            status: 'ok',
-            timestamp: new Date().toISOString(),
-            environment: config.environment,
-            uptime,
-            dataDir: expandedDataDir,
+            const response: HealthCheckResponse = {
+              status: 'ok',
+              timestamp: new Date().toISOString(),
+              environment: config.environment,
+              uptime,
+              dataDir: expandedDataDir,
+            };
+
+            logger.debug('Health check', { uptime });
+
+            return new Response(JSON.stringify(response), {
+              status: 200,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            });
+          }
+
+          // DocStore routes
+          if (path.startsWith('/api/docs')) {
+            // GET /api/docs - List documents
+            if (method === 'GET' && path === '/api/docs') {
+              return await docsRouter.list(req);
+            }
+
+            // GET /api/docs/:doc_id - Read document
+            if (method === 'GET' && /^\/api\/docs\/[^/]+$/.test(path)) {
+              return await docsRouter.read(req);
+            }
+
+            // POST /api/docs/:doc_id - Write document
+            if (method === 'POST' && /^\/api\/docs\/[^/]+$/.test(path)) {
+              return await docsRouter.write(req);
+            }
+
+            // PATCH /api/docs/:doc_id/items - Append item
+            if (method === 'PATCH' && /^\/api\/docs\/[^/]+\/items$/.test(path)) {
+              return await docsRouter.appendItem(req);
+            }
+
+            // POST /api/docs/:doc_id/backup - Create backup
+            if (method === 'POST' && /^\/api\/docs\/[^/]+\/backup$/.test(path)) {
+              return await docsRouter.backup(req);
+            }
+
+            // HEAD /api/docs/:doc_id - Check writability
+            if (method === 'HEAD' && /^\/api\/docs\/[^/]+$/.test(path)) {
+              return await docsRouter.checkWritable(req);
+            }
+          }
+
+          // ProjectStore routes
+          if (path.startsWith('/api/projects')) {
+            // GET /api/projects - List all projects
+            if (method === 'GET' && path === '/api/projects') {
+              return await projectsRouter.list(req);
+            }
+
+            // GET /api/projects/:id - Get project by ID
+            if (method === 'GET' && /^\/api\/projects\/[^/]+$/.test(path)) {
+              const id = path.split('/').pop() || '';
+              return await projectsRouter.get(req, id);
+            }
+
+            // POST /api/projects - Create new project
+            if (method === 'POST' && path === '/api/projects') {
+              return await projectsRouter.create(req);
+            }
+
+            // PATCH /api/projects/:id - Update project
+            if (method === 'PATCH' && /^\/api\/projects\/[^/]+$/.test(path)) {
+              const id = path.split('/').pop() || '';
+              return await projectsRouter.update(req, id);
+            }
+
+            // DELETE /api/projects/:id - Delete project
+            if (method === 'DELETE' && /^\/api\/projects\/[^/]+$/.test(path)) {
+              const id = path.split('/').pop() || '';
+              return await projectsRouter.delete(req, id);
+            }
+          }
+
+          // FieldCatalogStore routes
+          if (path.startsWith('/api/fields')) {
+            // GET /api/fields/global - Get all global field options
+            if (method === 'GET' && path === '/api/fields/global') {
+              return await fieldsRouter.getGlobal();
+            }
+
+            // GET /api/fields/project/:id - Get effective options for project
+            if (method === 'GET' && /^\/api\/fields\/project\/[^/]+$/.test(path)) {
+              const id = path.split('/').pop() || '';
+              return await fieldsRouter.getForProject(id);
+            }
+
+            // GET /api/fields/by-field/:field - Get options by field name
+            if (method === 'GET' && /^\/api\/fields\/by-field\/[^/]+$/.test(path)) {
+              const field = path.split('/').pop() || '';
+              return await fieldsRouter.getByField(req, field);
+            }
+
+            // POST /api/fields - Add field option
+            if (method === 'POST' && path === '/api/fields') {
+              return await fieldsRouter.addOption(req);
+            }
+
+            // DELETE /api/fields/:id - Remove field option
+            if (method === 'DELETE' && /^\/api\/fields\/[^/]+$/.test(path)) {
+              const id = path.split('/').pop() || '';
+              return await fieldsRouter.removeOption(id);
+            }
+          }
+
+          // 404 for unmatched routes
+          const errorResponse = {
+            error: 'Not Found',
+            path,
+            method,
           };
 
-          logger.debug('Health check', { uptime });
+          logger.debug('Route not found', { method, path });
 
-          return new Response(JSON.stringify(response), {
-            status: 200,
+          return new Response(JSON.stringify(errorResponse), {
+            status: 404,
             headers: {
               'Content-Type': 'application/json',
             },
           });
-        }
-
-        // DocStore routes
-        if (path.startsWith('/api/docs')) {
-          // GET /api/docs - List documents
-          if (method === 'GET' && path === '/api/docs') {
-            return await docsRouter.list(req);
-          }
-
-          // GET /api/docs/:doc_id - Read document
-          if (method === 'GET' && /^\/api\/docs\/[^/]+$/.test(path)) {
-            return await docsRouter.read(req);
-          }
-
-          // POST /api/docs/:doc_id - Write document
-          if (method === 'POST' && /^\/api\/docs\/[^/]+$/.test(path)) {
-            return await docsRouter.write(req);
-          }
-
-          // PATCH /api/docs/:doc_id/items - Append item
-          if (method === 'PATCH' && /^\/api\/docs\/[^/]+\/items$/.test(path)) {
-            return await docsRouter.appendItem(req);
-          }
-
-          // POST /api/docs/:doc_id/backup - Create backup
-          if (method === 'POST' && /^\/api\/docs\/[^/]+\/backup$/.test(path)) {
-            return await docsRouter.backup(req);
-          }
-
-          // HEAD /api/docs/:doc_id - Check writability
-          if (method === 'HEAD' && /^\/api\/docs\/[^/]+$/.test(path)) {
-            return await docsRouter.checkWritable(req);
-          }
-        }
-
-        // ProjectStore routes
-        if (path.startsWith('/api/projects')) {
-          // GET /api/projects - List all projects
-          if (method === 'GET' && path === '/api/projects') {
-            return await projectsRouter.list(req);
-          }
-
-          // GET /api/projects/:id - Get project by ID
-          if (method === 'GET' && /^\/api\/projects\/[^/]+$/.test(path)) {
-            const id = path.split('/').pop() || '';
-            return await projectsRouter.get(req, id);
-          }
-
-          // POST /api/projects - Create new project
-          if (method === 'POST' && path === '/api/projects') {
-            return await projectsRouter.create(req);
-          }
-
-          // PATCH /api/projects/:id - Update project
-          if (method === 'PATCH' && /^\/api\/projects\/[^/]+$/.test(path)) {
-            const id = path.split('/').pop() || '';
-            return await projectsRouter.update(req, id);
-          }
-
-          // DELETE /api/projects/:id - Delete project
-          if (method === 'DELETE' && /^\/api\/projects\/[^/]+$/.test(path)) {
-            const id = path.split('/').pop() || '';
-            return await projectsRouter.delete(req, id);
-          }
-        }
-
-        // FieldCatalogStore routes
-        if (path.startsWith('/api/fields')) {
-          // GET /api/fields/global - Get all global field options
-          if (method === 'GET' && path === '/api/fields/global') {
-            return await fieldsRouter.getGlobal();
-          }
-
-          // GET /api/fields/project/:id - Get effective options for project
-          if (method === 'GET' && /^\/api\/fields\/project\/[^/]+$/.test(path)) {
-            const id = path.split('/').pop() || '';
-            return await fieldsRouter.getForProject(id);
-          }
-
-          // GET /api/fields/by-field/:field - Get options by field name
-          if (method === 'GET' && /^\/api\/fields\/by-field\/[^/]+$/.test(path)) {
-            const field = path.split('/').pop() || '';
-            return await fieldsRouter.getByField(req, field);
-          }
-
-          // POST /api/fields - Add field option
-          if (method === 'POST' && path === '/api/fields') {
-            return await fieldsRouter.addOption(req);
-          }
-
-          // DELETE /api/fields/:id - Remove field option
-          if (method === 'DELETE' && /^\/api\/fields\/[^/]+$/.test(path)) {
-            const id = path.split('/').pop() || '';
-            return await fieldsRouter.removeOption(id);
-          }
-        }
-
-        // 404 for unmatched routes
-        const errorResponse = {
-          error: 'Not Found',
-          path,
-          method,
-        };
-
-        logger.debug('Route not found', { method, path });
-
-        return new Response(JSON.stringify(errorResponse), {
-          status: 404,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
         });
       },
     });

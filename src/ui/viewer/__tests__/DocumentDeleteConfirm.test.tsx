@@ -36,12 +36,7 @@ describe('DocumentDeleteConfirm', () => {
 
   describe('rendering', () => {
     it('renders nothing when isOpen is false', () => {
-      render(
-        <DocumentDeleteConfirm
-          {...defaultProps}
-          isOpen={false}
-        />
-      );
+      render(<DocumentDeleteConfirm {...defaultProps} isOpen={false} />);
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
@@ -103,7 +98,9 @@ describe('DocumentDeleteConfirm', () => {
       render(<DocumentDeleteConfirm {...defaultProps} doc={doc} />);
 
       expect(
-        screen.getByText('Delete document REQ-20251231-large with 100 items? This cannot be undone.')
+        screen.getByText(
+          'Delete document REQ-20251231-large with 100 items? This cannot be undone.'
+        )
       ).toBeInTheDocument();
     });
   });

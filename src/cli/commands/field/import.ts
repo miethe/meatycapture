@@ -306,11 +306,7 @@ export async function importAction(filePath: string, options: ImportOptions): Pr
         existingSet.add(key);
       } catch (error) {
         // If somehow we still get a duplicate, skip it in merge mode
-        if (
-          options.merge &&
-          error instanceof Error &&
-          error.message.includes('already exists')
-        ) {
+        if (options.merge && error instanceof Error && error.message.includes('already exists')) {
           summary.skipped++;
           summary.fields[field]!.skipped++;
         } else {

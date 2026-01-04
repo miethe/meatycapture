@@ -185,9 +185,7 @@ describe('ToastContainer', () => {
   });
 
   it('has correct ARIA attributes', () => {
-    const toasts: ToastData[] = [
-      { id: '1', type: 'success', message: 'Test toast' },
-    ];
+    const toasts: ToastData[] = [{ id: '1', type: 'success', message: 'Test toast' }];
     const onDismiss = vi.fn();
 
     render(<ToastContainer toasts={toasts} onDismiss={onDismiss} />);

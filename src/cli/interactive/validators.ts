@@ -200,11 +200,7 @@ export function validateYesNo(value: string): string | null {
  * @param max - Maximum value (inclusive)
  * @returns Error message or null
  */
-export function validateNumber(
-  value: string,
-  min?: number,
-  max?: number
-): string | null {
+export function validateNumber(value: string, min?: number, max?: number): string | null {
   if (!value.trim()) {
     return 'Please enter a number';
   }

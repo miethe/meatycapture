@@ -5,16 +5,17 @@
  * Provides add, edit, and delete operations for notes attached to items,
  * handling ID generation, timestamps, and file system updates.
  *
- * The hook coordinates with updateItemNotes from the serializer to persist
- * changes to the request-log markdown file while providing toast feedback
- * for operation status.
+ * The hook uses the DocStore adapter pattern for file operations, applying
+ * in-memory transformations from `applyNoteUpdate` then persisting via
+ * DocStore.write().
  *
  * Usage:
  * ```tsx
  * const { addNote, editNote, deleteNote, isOperating } = useNoteOperations(
+ *   docStore,
  *   docPath,
+ *   doc,
  *   itemId,
- *   docId,
  *   (notes) => setItemNotes(notes)
  * );
  *
@@ -28,8 +29,9 @@
  */
 
 import { useState, useCallback } from 'react';
-import type { Note } from '@core/models';
-import { updateItemNotes } from '@core/serializer/item-update';
+import type { Note, RequestLogDoc } from '@core/models';
+import type { DocStore } from '@core/ports';
+import { applyNoteUpdate } from '@core/serializer/item-update';
 import { useToast } from '@ui/shared/useToast';
 
 /**
@@ -170,17 +172,19 @@ function generateNoteId(docId: string, itemId: string, noteNumber: number, date:
 /**
  * Hook for managing note CRUD operations with file persistence.
  *
+ * @param docStore - DocStore adapter for file operations
  * @param docPath - Absolute path to the request-log markdown file
+ * @param currentDoc - Current document state (for applying updates)
  * @param itemId - ID of the item the notes belong to
- * @param docId - Document ID for note ID generation
  * @param onNotesChanged - Callback when notes array changes (for UI updates)
  * @param options - Additional options including currentNotes and optional clock
  * @returns Note operation functions and loading state
  */
 export function useNoteOperations(
+  docStore: DocStore,
   docPath: string,
+  currentDoc: RequestLogDoc,
   itemId: string,
-  docId: string,
   onNotesChanged: (notes: Note[]) => void,
   options: UseNoteOperationsOptions
 ): UseNoteOperationsResult {
@@ -200,7 +204,7 @@ export function useNoteOperations(
       try {
         const now = clock();
         const nextNumber = getNextNoteNumber(currentNotes);
-        const noteId = generateNoteId(docId, itemId, nextNumber, now);
+        const noteId = generateNoteId(currentDoc.doc_id, itemId, nextNumber, now);
 
         const newNote: Note = {
           id: noteId,
@@ -212,8 +216,13 @@ export function useNoteOperations(
 
         const updatedNotes = [...currentNotes, newNote];
 
-        // Persist to file
-        await updateItemNotes(docPath, itemId, updatedNotes);
+        // Apply in-memory transformation
+        const { updatedDoc, changed } = applyNoteUpdate(currentDoc, itemId, updatedNotes);
+
+        // Persist to file via DocStore
+        if (changed) {
+          await docStore.write(docPath, updatedDoc);
+        }
 
         // Update UI state
         onNotesChanged(updatedNotes);
@@ -233,7 +242,7 @@ export function useNoteOperations(
         setIsOperating(false);
       }
     },
-    [isOperating, clock, currentNotes, docId, itemId, docPath, onNotesChanged, addToast]
+    [isOperating, clock, currentNotes, currentDoc, itemId, docPath, docStore, onNotesChanged, addToast]
   );
 
   /**
@@ -257,8 +266,13 @@ export function useNoteOperations(
         // Replace the note in the array
         const updatedNotes = currentNotes.map((n) => (n.id === note.id ? updatedNote : n));
 
-        // Persist to file
-        await updateItemNotes(docPath, itemId, updatedNotes);
+        // Apply in-memory transformation
+        const { updatedDoc, changed } = applyNoteUpdate(currentDoc, itemId, updatedNotes);
+
+        // Persist to file via DocStore
+        if (changed) {
+          await docStore.write(docPath, updatedDoc);
+        }
 
         // Update UI state
         onNotesChanged(updatedNotes);
@@ -278,7 +292,7 @@ export function useNoteOperations(
         setIsOperating(false);
       }
     },
-    [isOperating, clock, currentNotes, docPath, itemId, onNotesChanged, addToast]
+    [isOperating, clock, currentNotes, currentDoc, itemId, docPath, docStore, onNotesChanged, addToast]
   );
 
   /**
@@ -294,8 +308,13 @@ export function useNoteOperations(
         // Remove the note from the array
         const updatedNotes = currentNotes.filter((n) => n.id !== noteId);
 
-        // Persist to file
-        await updateItemNotes(docPath, itemId, updatedNotes);
+        // Apply in-memory transformation
+        const { updatedDoc, changed } = applyNoteUpdate(currentDoc, itemId, updatedNotes);
+
+        // Persist to file via DocStore
+        if (changed) {
+          await docStore.write(docPath, updatedDoc);
+        }
 
         // Update UI state
         onNotesChanged(updatedNotes);
@@ -315,7 +334,7 @@ export function useNoteOperations(
         setIsOperating(false);
       }
     },
-    [isOperating, currentNotes, docPath, itemId, onNotesChanged, addToast]
+    [isOperating, currentNotes, currentDoc, itemId, docPath, docStore, onNotesChanged, addToast]
   );
 
   return {

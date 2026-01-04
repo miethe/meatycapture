@@ -111,9 +111,7 @@ describe('useReducedMotion', () => {
 
       renderHook(() => useReducedMotion());
 
-      expect(window.matchMedia).toHaveBeenCalledWith(
-        '(prefers-reduced-motion: reduce)'
-      );
+      expect(window.matchMedia).toHaveBeenCalledWith('(prefers-reduced-motion: reduce)');
     });
   });
 
@@ -179,10 +177,7 @@ describe('useReducedMotion', () => {
 
       renderHook(() => useReducedMotion());
 
-      expect(mockMql.addEventListener).toHaveBeenCalledWith(
-        'change',
-        expect.any(Function)
-      );
+      expect(mockMql.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
     });
   });
 
@@ -195,10 +190,7 @@ describe('useReducedMotion', () => {
 
       unmount();
 
-      expect(mockMql.removeEventListener).toHaveBeenCalledWith(
-        'change',
-        expect.any(Function)
-      );
+      expect(mockMql.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function));
     });
 
     it('does not trigger state updates after unmount', () => {
@@ -312,9 +304,7 @@ describe('useReducedMotion', () => {
 
       // The object reference may change on rerender due to how React works,
       // but the boolean value should remain stable
-      expect(firstResult.prefersReducedMotion).toBe(
-        secondResult.prefersReducedMotion
-      );
+      expect(firstResult.prefersReducedMotion).toBe(secondResult.prefersReducedMotion);
     });
   });
 });

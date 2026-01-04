@@ -22,11 +22,7 @@ import type { Command } from 'commander';
 import { join } from 'node:path';
 import { createAdapters } from '@adapters/factory';
 import type { Project } from '@core/models';
-import {
-  formatOutput,
-  type OutputFormat,
-  type FormatOptions,
-} from '@cli/formatters';
+import { formatOutput, type OutputFormat, type FormatOptions } from '@cli/formatters';
 import {
   withErrorHandling,
   setQuietMode,
@@ -82,23 +78,16 @@ async function interactiveProjectAdd(): Promise<{
 }> {
   console.log('--- Add New Project ---\n');
 
-  const name = await promptWithValidation(
-    'Project name',
-    (v) => validateNonEmpty(v, 'Project name')
+  const name = await promptWithValidation('Project name', (v) =>
+    validateNonEmpty(v, 'Project name')
   );
 
   // Resolve default path: env var takes precedence, then fallback to ./docs/
   const envPath = process.env['MEATYCAPTURE_DEFAULT_PROJECT_PATH'];
   const projectSlug = generateProjectIdFromName(name);
-  const defaultPath = envPath
-    ? join(envPath, projectSlug)
-    : `./docs/${projectSlug}`;
+  const defaultPath = envPath ? join(envPath, projectSlug) : `./docs/${projectSlug}`;
 
-  const path = await promptWithValidation(
-    'Default path',
-    validatePath,
-    defaultPath
-  );
+  const path = await promptWithValidation('Default path', validatePath, defaultPath);
 
   const useCustomId = await confirm('Use custom project ID?', false);
   let customId: string | undefined;
@@ -166,10 +155,7 @@ export async function addAction(
 
   // Validate required arguments
   if (!name || name.trim() === '') {
-    throw createError.validation(
-      'Project name is required',
-      'Provide a non-empty project name'
-    );
+    throw createError.validation('Project name is required', 'Provide a non-empty project name');
   }
 
   if (!path || path.trim() === '') {
@@ -241,9 +227,7 @@ export async function addAction(
 
     // For human format, add success message
     if (format === 'human') {
-      console.log(
-        `\nProject "${name}" created successfully with ID: ${projectId}`
-      );
+      console.log(`\nProject "${name}" created successfully with ID: ${projectId}`);
       console.log(`Documents will be stored in: ${path}`);
       if (repoUrl) {
         console.log(`Repository: ${repoUrl}`);

@@ -291,9 +291,7 @@ describe('parseJsonBody', () => {
       body: JSON.stringify({ name: 'test' }),
     });
 
-    await expect(
-      parseJsonBody(req, (body) => body)
-    ).rejects.toThrow(ValidationError);
+    await expect(parseJsonBody(req, (body) => body)).rejects.toThrow(ValidationError);
   });
 
   it('should throw for invalid JSON', async () => {
@@ -303,9 +301,7 @@ describe('parseJsonBody', () => {
       body: 'invalid json',
     });
 
-    await expect(
-      parseJsonBody(req, (body) => body)
-    ).rejects.toThrow(ValidationError);
+    await expect(parseJsonBody(req, (body) => body)).rejects.toThrow(ValidationError);
   });
 
   it('should throw if validator fails', async () => {

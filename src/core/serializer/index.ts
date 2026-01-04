@@ -15,12 +15,11 @@ import { NOTE_TYPE_LABELS, isNoteType } from '@core/models';
 
 // Re-export item update utilities
 export {
-  updateItemNotes,
-  type UpdateItemNotesOptions,
-  DocumentNotFoundError,
+  applyNoteUpdate,
+  findItem,
+  getItemNotes,
   ItemNotFoundError,
-  DocumentParseError,
-  FileWriteError,
+  type ItemUpdateResult,
 } from './item-update';
 
 /**

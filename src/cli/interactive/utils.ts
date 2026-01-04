@@ -22,16 +22,10 @@ export async function selectProject(): Promise<Project> {
   const enabledProjects = projects.filter((p) => p.enabled);
 
   if (enabledProjects.length === 0) {
-    throw new Error(
-      'No projects available. Create a project first with: meatycapture project add'
-    );
+    throw new Error('No projects available. Create a project first with: meatycapture project add');
   }
 
-  return selectFromList(
-    enabledProjects,
-    (p) => `${p.name} (${p.id})`,
-    'Select project:'
-  );
+  return selectFromList(enabledProjects, (p) => `${p.name} (${p.id})`, 'Select project:');
 }
 
 /**
@@ -71,9 +65,7 @@ export async function promptFieldValue(
   }
 
   // Prompt for value
-  const validator = required
-    ? (v: string) => validateNonEmpty(v, fieldName)
-    : () => null;
+  const validator = required ? (v: string) => validateNonEmpty(v, fieldName) : () => null;
 
   return promptWithValidation(fieldName, validator);
 }
@@ -118,10 +110,7 @@ export async function promptTags(projectId?: string): Promise<string[]> {
 export async function promptItemDraft(projectId: string): Promise<ItemDraft> {
   console.log('\n--- Item Details ---\n');
 
-  const title = await promptWithValidation(
-    'Item title',
-    (v) => validateNonEmpty(v, 'Title')
-  );
+  const title = await promptWithValidation('Item title', (v) => validateNonEmpty(v, 'Title'));
 
   const type = await promptFieldValue('type', projectId);
   const domainValue = await promptFieldValue('domain', projectId, false);

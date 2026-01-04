@@ -72,37 +72,34 @@ export function ConfirmationDialog({
   );
 
   // Focus trap implementation
-  const handleTabKey = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.key !== 'Tab' || !dialogRef.current) return;
+  const handleTabKey = useCallback((event: KeyboardEvent) => {
+    if (event.key !== 'Tab' || !dialogRef.current) return;
 
-      const focusableElements = dialogRef.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      );
+    const focusableElements = dialogRef.current.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
 
-      if (focusableElements.length === 0) return;
+    if (focusableElements.length === 0) return;
 
-      const firstElement = focusableElements[0] as HTMLElement | undefined;
-      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement | undefined;
+    const firstElement = focusableElements[0] as HTMLElement | undefined;
+    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement | undefined;
 
-      if (!firstElement || !lastElement) return;
+    if (!firstElement || !lastElement) return;
 
-      if (event.shiftKey) {
-        // Shift + Tab
-        if (document.activeElement === firstElement) {
-          event.preventDefault();
-          lastElement.focus();
-        }
-      } else {
-        // Tab
-        if (document.activeElement === lastElement) {
-          event.preventDefault();
-          firstElement.focus();
-        }
+    if (event.shiftKey) {
+      // Shift + Tab
+      if (document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
       }
-    },
-    []
-  );
+    } else {
+      // Tab
+      if (document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    }
+  }, []);
 
   // Set up event listeners and initial focus
   useEffect(() => {

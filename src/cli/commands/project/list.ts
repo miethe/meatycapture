@@ -17,16 +17,8 @@
 import type { Command } from 'commander';
 import { createAdapters } from '@adapters/factory';
 import type { Project } from '@core/models';
-import {
-  formatOutput,
-  type OutputFormat,
-  type FormatOptions,
-} from '@cli/formatters';
-import {
-  withErrorHandling,
-  setQuietMode,
-  isQuietMode,
-} from '@cli/handlers/errors.js';
+import { formatOutput, type OutputFormat, type FormatOptions } from '@cli/formatters';
+import { withErrorHandling, setQuietMode, isQuietMode } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 
 /**
@@ -153,11 +145,7 @@ export async function listAction(options: ListOptions): Promise<void> {
   let projects = await projectStore.list();
 
   // Apply filtering
-  projects = filterProjects(
-    projects,
-    options.enabledOnly ?? false,
-    options.disabledOnly ?? false
-  );
+  projects = filterProjects(projects, options.enabledOnly ?? false, options.disabledOnly ?? false);
 
   // Apply sorting
   projects = sortProjects(projects, sortField);
@@ -175,12 +163,11 @@ export async function listAction(options: ListOptions): Promise<void> {
         console.log('id,name,default_path,repo_url,enabled,created_at,updated_at');
       } else {
         // Table/human format - show informative message
-        const filterMsg =
-          options.enabledOnly
-            ? ' (enabled)'
-            : options.disabledOnly
-              ? ' (disabled)'
-              : '';
+        const filterMsg = options.enabledOnly
+          ? ' (enabled)'
+          : options.disabledOnly
+            ? ' (disabled)'
+            : '';
         console.log(`No projects found${filterMsg}.`);
         console.log("Run 'meatycapture project add <name>' to create one.");
       }
@@ -210,11 +197,7 @@ export function registerListCommand(program: Command): void {
     .option('--csv', 'Output as CSV')
     .option('--table', 'Output as ASCII table')
     .option('-q, --quiet', 'Suppress non-error output')
-    .option(
-      '--sort <field>',
-      'Sort by: id|name|created (default: name)',
-      'name'
-    )
+    .option('--sort <field>', 'Sort by: id|name|created (default: name)', 'name')
     .option('--enabled-only', 'Show only enabled projects')
     .option('--disabled-only', 'Show only disabled projects')
     .action(withErrorHandling(listAction));

@@ -5,6 +5,7 @@ Headless catalog utilities for the Request Log Viewer feature.
 ## Overview
 
 This module provides pure TypeScript functions for:
+
 - Filtering catalog documents by multiple criteria
 - Grouping and sorting documents by project
 - Aggregating documents from all projects
@@ -58,23 +59,25 @@ Multi-faceted filter state for catalog browsing:
 
 ```typescript
 interface FilterState {
-  project_id?: string;        // Single project (undefined = all)
-  types: string[];            // OR logic: match any type
-  domains: string[];          // OR logic: match any domain
-  priorities: string[];       // OR logic: match any priority
-  statuses: string[];         // OR logic: match any status
-  tags: string[];             // AND logic: must have ALL tags
-  text: string;               // Case-insensitive search on title/doc_id
+  project_id?: string; // Single project (undefined = all)
+  types: string[]; // OR logic: match any type
+  domains: string[]; // OR logic: match any domain
+  priorities: string[]; // OR logic: match any priority
+  statuses: string[]; // OR logic: match any status
+  tags: string[]; // AND logic: must have ALL tags
+  text: string; // Case-insensitive search on title/doc_id
 }
 ```
 
 **Filter Logic**:
+
 - **Single-select**: `project_id` (undefined = no filter applied)
 - **Multi-select OR**: `types`, `domains`, `priorities`, `statuses` (match any)
 - **Multi-select AND**: `tags` (document must have all - intersection logic)
 - **Text search**: Case-insensitive match on `title` or `doc_id`
 
 Example:
+
 ```typescript
 // Filter to capture-app project, search for "auth", must have both "api" AND "bug" tags
 const filter: FilterState = {
@@ -83,8 +86,8 @@ const filter: FilterState = {
   domains: [],
   priorities: [],
   statuses: [],
-  tags: ['api', 'bug'],        // Document must have BOTH tags
-  text: 'auth'
+  tags: ['api', 'bug'], // Document must have BOTH tags
+  text: 'auth',
 };
 ```
 
@@ -94,13 +97,13 @@ A single request-log document with project context:
 
 ```typescript
 interface CatalogEntry {
-  path: string;               // Filesystem path
-  doc_id: string;             // Document ID (e.g., 'REQ-20251203-capture-app')
-  title: string;              // Document title
-  item_count: number;         // Total items in document
-  updated_at: Date;           // Last modification timestamp
-  project_id: string;         // Associated project ID
-  project_name: string;       // Human-readable project name
+  path: string; // Filesystem path
+  doc_id: string; // Document ID (e.g., 'REQ-20251203-capture-app')
+  title: string; // Document title
+  item_count: number; // Total items in document
+  updated_at: Date; // Last modification timestamp
+  project_id: string; // Associated project ID
+  project_name: string; // Human-readable project name
 }
 ```
 
@@ -110,18 +113,22 @@ Hierarchical structure for project-organized views:
 
 ```typescript
 interface GroupedCatalog {
-  groups: Map<string, {
-    project: ProjectInfo;     // Project metadata
-    entries: CatalogEntry[];  // Documents in this project
-  }>;
+  groups: Map<
+    string,
+    {
+      project: ProjectInfo; // Project metadata
+      entries: CatalogEntry[]; // Documents in this project
+    }
+  >;
 }
 ```
 
 Iterate through grouped catalog:
+
 ```typescript
 for (const [projectId, { project, entries }] of catalog.groups) {
   console.log(`Project: ${project.name} (${entries.length} documents)`);
-  entries.forEach(entry => {
+  entries.forEach((entry) => {
     console.log(`  - ${entry.doc_id}: ${entry.title}`);
   });
 }
@@ -133,12 +140,12 @@ Available filter values extracted from catalog data:
 
 ```typescript
 interface FilterOptions {
-  projects: ProjectInfo[];    // Available projects
-  types: string[];            // Available item types
-  domains: string[];          // Available domains
-  priorities: string[];       // Available priorities
-  statuses: string[];         // Available statuses
-  tags: string[];             // Available tags
+  projects: ProjectInfo[]; // Available projects
+  types: string[]; // Available item types
+  domains: string[]; // Available domains
+  priorities: string[]; // Available priorities
+  statuses: string[]; // Available statuses
+  tags: string[]; // Available tags
 }
 ```
 
@@ -153,14 +160,16 @@ interface FilterOptions {
 Scan all enabled projects and aggregate their documents into a unified catalog.
 
 **Signature**:
+
 ```typescript
 async function listAllDocuments(
   projectStore: ProjectStore,
   docStore: DocStore
-): Promise<CatalogEntry[]>
+): Promise<CatalogEntry[]>;
 ```
 
 **Behavior**:
+
 1. Fetches all projects from ProjectStore
 2. Filters to only enabled projects (skips disabled ones)
 3. Scans each project's `default_path` directory for documents
@@ -171,6 +180,7 @@ async function listAllDocuments(
 **Error Handling**: Never throws. If a project directory is inaccessible, logs warning and continues with other projects. Returns empty array only if ProjectStore.list() fails.
 
 **Example**:
+
 ```typescript
 const entries = await listAllDocuments(projectStore, docStore);
 // Returns: [
@@ -184,11 +194,9 @@ const entries = await listAllDocuments(projectStore, docStore);
 Build available filter values for populating filter UI dropdowns.
 
 **Signature**:
+
 ```typescript
-function extractFilterOptions(
-  entries: CatalogEntry[],
-  projects: Project[]
-): FilterOptions
+function extractFilterOptions(entries: CatalogEntry[], projects: Project[]): FilterOptions;
 ```
 
 **Current Behavior**: Populates only `projects` array from the projects parameter (sorted by name). Other fields return empty arrays due to metadata limitations.
@@ -196,6 +204,7 @@ function extractFilterOptions(
 **Future Enhancement**: Will populate `types`, `domains`, `priorities`, `statuses`, `tags` when DocMeta includes aggregated item metadata.
 
 **Example**:
+
 ```typescript
 const options = extractFilterOptions(entries, projects);
 // {
@@ -211,14 +220,13 @@ const options = extractFilterOptions(entries, projects);
 Convert DocMeta array to CatalogEntry array by adding project context.
 
 **Signature**:
+
 ```typescript
-function enrichWithProjectInfo(
-  docMetas: DocMeta[],
-  project: Project
-): CatalogEntry[]
+function enrichWithProjectInfo(docMetas: DocMeta[], project: Project): CatalogEntry[];
 ```
 
 **Example**:
+
 ```typescript
 const entries = enrichWithProjectInfo(docMetas, project);
 // Adds: project_id, project_name to each docMeta
@@ -233,16 +241,14 @@ All filter functions are pure, immutable, and composable.
 Single-select project filter.
 
 ```typescript
-function filterByProject(
-  entries: CatalogEntry[],
-  projectId?: string
-): CatalogEntry[]
+function filterByProject(entries: CatalogEntry[], projectId?: string): CatalogEntry[];
 ```
 
 - `projectId` undefined → returns all entries (no filter)
 - `projectId` 'capture-app' → returns only entries from that project
 
 **Example**:
+
 ```typescript
 const filtered = filterByProject(entries, 'capture-app');
 // Returns only documents from 'capture-app' project
@@ -253,10 +259,11 @@ const filtered = filterByProject(entries, 'capture-app');
 Multi-select OR logic filters (currently pass-through due to metadata limitations).
 
 ```typescript
-function filterByType(entries: CatalogEntry[], types: string[]): CatalogEntry[]
+function filterByType(entries: CatalogEntry[], types: string[]): CatalogEntry[];
 ```
 
 **Status**: Currently return all entries (no-op filters) because `CatalogEntry` doesn't include item-level metadata. To enable these filters:
+
 1. Extend DocMeta with item type/domain/priority/status summary, OR
 2. Load full RequestLogDoc for each entry
 
@@ -267,16 +274,18 @@ function filterByType(entries: CatalogEntry[], types: string[]): CatalogEntry[]
 Multi-select AND logic filter (currently pass-through due to metadata limitations).
 
 ```typescript
-function filterByTags(entries: CatalogEntry[], tags: string[]): CatalogEntry[]
+function filterByTags(entries: CatalogEntry[], tags: string[]): CatalogEntry[];
 ```
 
 **Status**: Currently returns all entries because tags are in full RequestLogDoc, not in DocMeta. To enable:
+
 1. Extend DocMeta with aggregated `tags: string[]`, OR
 2. Load full RequestLogDoc for each entry
 
 **Future Behavior**: Will return only entries containing ALL specified tags (intersection logic).
 
 Example (future):
+
 ```typescript
 // With metadata available:
 filterByTags(entries, ['api', 'bug']);
@@ -288,12 +297,13 @@ filterByTags(entries, ['api', 'bug']);
 Case-insensitive search on title and doc_id fields.
 
 ```typescript
-function filterByText(entries: CatalogEntry[], text: string): CatalogEntry[]
+function filterByText(entries: CatalogEntry[], text: string): CatalogEntry[];
 ```
 
 **Logic**: Match if search text appears in EITHER `title` OR `doc_id`
 
 **Example**:
+
 ```typescript
 filterByText(entries, 'auth');
 // Returns entries matching 'auth' in title or doc_id
@@ -307,10 +317,11 @@ filterByText(entries, 'REQ-2025');
 Apply all filters in optimized sequence using AND logic.
 
 ```typescript
-function applyFilters(entries: CatalogEntry[], filter: FilterState): CatalogEntry[]
+function applyFilters(entries: CatalogEntry[], filter: FilterState): CatalogEntry[];
 ```
 
 **Application Order** (optimized for performance):
+
 1. Project filter (typically most selective)
 2. Text search (works on metadata, fast)
 3. Type/domain/priority/status/tags (currently pass-through)
@@ -318,6 +329,7 @@ function applyFilters(entries: CatalogEntry[], filter: FilterState): CatalogEntr
 **Short-Circuit Optimization**: If any filter produces empty result, subsequent filters are skipped.
 
 **Example**:
+
 ```typescript
 const filter: FilterState = {
   project_id: 'capture-app',
@@ -326,7 +338,7 @@ const filter: FilterState = {
   priorities: [],
   statuses: [],
   tags: ['api'],
-  text: 'auth'
+  text: 'auth',
 };
 
 const filtered = applyFilters(entries, filter);
@@ -341,10 +353,11 @@ const filtered = applyFilters(entries, filter);
 Group catalog entries by project ID.
 
 ```typescript
-function groupByProject(entries: CatalogEntry[]): Map<string, CatalogEntry[]>
+function groupByProject(entries: CatalogEntry[]): Map<string, CatalogEntry[]>;
 ```
 
 **Example**:
+
 ```typescript
 const grouped = groupByProject(entries);
 // Map {
@@ -358,19 +371,18 @@ const grouped = groupByProject(entries);
 Sort entries by specified field and order.
 
 ```typescript
-function sortDocuments(
-  entries: CatalogEntry[],
-  sort: CatalogSort
-): CatalogEntry[]
+function sortDocuments(entries: CatalogEntry[], sort: CatalogSort): CatalogEntry[];
 ```
 
 **Sortable Fields**:
+
 - `updated_at` - Date (descending = newest first)
 - `item_count` - Number (descending = highest first)
 - `doc_id` - String (alphabetical)
 - `title` - String (alphabetical)
 
 **Example**:
+
 ```typescript
 // Most recent documents first
 const sorted = sortDocuments(entries, { field: 'updated_at', order: 'desc' });
@@ -391,15 +403,17 @@ function sortProjects(
   projectIds: string[],
   entries: CatalogEntry[],
   sortBy: 'name' | 'count' | 'updated'
-): string[]
+): string[];
 ```
 
 **Sorting Modes**:
+
 - `'name'` - Alphabetically by project name (case-insensitive)
 - `'count'` - By number of documents (descending - most first)
 - `'updated'` - By most recent document update (descending - newest first)
 
 **Example**:
+
 ```typescript
 // Sort projects alphabetically
 const sorted = sortProjects(projectIds, entries, 'name');
@@ -419,27 +433,29 @@ function createGroupedCatalog(
   entries: CatalogEntry[],
   docSort: CatalogSort,
   projectSort?: 'name' | 'count' | 'updated'
-): GroupedCatalog
+): GroupedCatalog;
 ```
 
 **Process**:
+
 1. Groups entries by project
 2. Sorts documents within each group
 3. Sorts projects themselves
 4. Returns hierarchical structure ready for rendering
 
 **Example**:
+
 ```typescript
 const catalog = createGroupedCatalog(
   entries,
-  { field: 'updated_at', order: 'desc' },  // Recent documents first
-  'count'                                    // Projects by document count
+  { field: 'updated_at', order: 'desc' }, // Recent documents first
+  'count' // Projects by document count
 );
 
 // Iterate grouped structure
 for (const [projectId, { project, entries }] of catalog.groups) {
   console.log(`${project.name} (${entries.length} docs)`);
-  entries.forEach(e => console.log(`  - ${e.title}`));
+  entries.forEach((e) => console.log(`  - ${e.title}`));
 }
 ```
 
@@ -450,10 +466,11 @@ for (const [projectId, { project, entries }] of catalog.groups) {
 Create a filter state with all facets cleared.
 
 ```typescript
-function createEmptyFilter(): FilterState
+function createEmptyFilter(): FilterState;
 ```
 
 Returns:
+
 ```typescript
 {
   project_id: undefined,
@@ -471,7 +488,7 @@ Returns:
 Create default sort configuration (most recent first).
 
 ```typescript
-function createDefaultSort(): CatalogSort
+function createDefaultSort(): CatalogSort;
 ```
 
 Returns: `{ field: 'updated_at', order: 'desc' }`
@@ -481,7 +498,7 @@ Returns: `{ field: 'updated_at', order: 'desc' }`
 Create empty filter options structure.
 
 ```typescript
-function createEmptyFilterOptions(): FilterOptions
+function createEmptyFilterOptions(): FilterOptions;
 ```
 
 All arrays empty - useful for initialization before populating from data.
@@ -491,7 +508,7 @@ All arrays empty - useful for initialization before populating from data.
 Create empty grouped catalog structure.
 
 ```typescript
-function createEmptyGroupedCatalog(): GroupedCatalog
+function createEmptyGroupedCatalog(): GroupedCatalog;
 ```
 
 Returns: `{ groups: new Map() }`
@@ -501,11 +518,7 @@ Returns: `{ groups: new Map() }`
 Create CatalogEntry from DocMeta and project info.
 
 ```typescript
-function createCatalogEntry(
-  docMeta: DocMeta,
-  projectId: string,
-  projectName: string
-): CatalogEntry
+function createCatalogEntry(docMeta: DocMeta, projectId: string, projectName: string): CatalogEntry;
 ```
 
 ## Type Guards
@@ -524,6 +537,7 @@ All type guards are available for runtime validation:
 ### Pure Functions
 
 All functions are pure (no side effects except logging):
+
 - Immutable operations (return new arrays, never mutate input)
 - Composable filters that can be applied in sequence
 - Deterministic results with consistent sorting
@@ -537,10 +551,12 @@ All functions are pure (no side effects except logging):
 ### Metadata Limitations
 
 CatalogEntry contains only document-level metadata from DocMeta:
+
 - ✓ Can filter by: project, text search
 - ✗ Cannot filter by: type, domain, priority, status, tags
 
 These require either:
+
 1. **Extend DocMeta** with aggregated item metadata (types, domains, etc.), OR
 2. **Load full RequestLogDoc** for complete item-level data
 
@@ -565,14 +581,15 @@ Current workaround: Filter by project/text first, then load full docs for detail
 ### Phase 2: Extended Metadata
 
 Extend DocMeta to include:
+
 ```typescript
 interface DocMeta {
   // ... existing fields
-  tags: string[];                    // Aggregated tags
-  types: string[];                   // Item types present
-  domains: string[];                 // Domains present
-  priorities: string[];              // Priorities present
-  statuses: string[];                // Statuses present
+  tags: string[]; // Aggregated tags
+  types: string[]; // Item types present
+  domains: string[]; // Domains present
+  priorities: string[]; // Priorities present
+  statuses: string[]; // Statuses present
 }
 ```
 
@@ -581,6 +598,7 @@ Then filter functions become fully functional.
 ### Phase 3: Full-Document Filtering
 
 Load full RequestLogDoc for selected entries to enable:
+
 - Advanced filtering on item-level properties
 - Full-text search within item content
 - Complex filtering combinations
@@ -594,11 +612,7 @@ Load full RequestLogDoc for selected entries to enable:
 const entries = await listAllDocuments(projectStore, docStore);
 
 // Create grouped catalog sorted by project name, recent docs first
-const catalog = createGroupedCatalog(
-  entries,
-  { field: 'updated_at', order: 'desc' },
-  'name'
-);
+const catalog = createGroupedCatalog(entries, { field: 'updated_at', order: 'desc' }, 'name');
 
 // Render in UI
 renderCatalog(catalog);
@@ -615,7 +629,7 @@ const filter: FilterState = {
   priorities: [],
   statuses: [],
   tags: [],
-  text: 'authentication'
+  text: 'authentication',
 };
 
 const filtered = applyFilters(entries, filter);
@@ -628,7 +642,7 @@ const catalog = createGroupedCatalog(filtered, createDefaultSort());
 // Find all "api" + "security" documents (when metadata available)
 const filter: FilterState = {
   ...createEmptyFilter(),
-  tags: ['api', 'security'],  // AND logic
+  tags: ['api', 'security'], // AND logic
 };
 
 const filtered = applyFilters(entries, filter);
@@ -641,7 +655,7 @@ const filtered = applyFilters(entries, filter);
 const sorted = createGroupedCatalog(
   entries,
   { field: 'updated_at', order: 'desc' },
-  'count'  // Projects with most documents first
+  'count' // Projects with most documents first
 );
 ```
 
@@ -657,6 +671,7 @@ Key areas for test coverage:
 - **Factories**: Verify default values and structure
 
 Example test structure:
+
 ```typescript
 describe('Catalog Module', () => {
   describe('filterByProject', () => {

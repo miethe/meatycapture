@@ -21,11 +21,7 @@ import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { createAdapters } from '@adapters/factory';
 import type { DocMeta } from '@core/ports';
-import {
-  formatOutput,
-  type OutputFormat,
-  type FormatOptions,
-} from '@cli/formatters';
+import { formatOutput, type OutputFormat, type FormatOptions } from '@cli/formatters';
 import {
   withErrorHandling,
   ResourceNotFoundError,
@@ -119,11 +115,7 @@ const sortComparators: Record<SortField, (a: DocMeta, b: DocMeta) => number> = {
  *
  * The --reverse flag inverts the default order.
  */
-function sortDocuments(
-  docs: DocMeta[],
-  sortField: SortField,
-  reverse: boolean
-): DocMeta[] {
+function sortDocuments(docs: DocMeta[], sortField: SortField, reverse: boolean): DocMeta[] {
   const comparator = sortComparators[sortField];
 
   // Default sort direction: date descending, others ascending
@@ -298,11 +290,7 @@ export function registerListCommand(program: Command): void {
     .option('--csv', 'Output as CSV (path, doc_id, title, item_count, updated_at)')
     .option('--table', 'Output as ASCII table (default)')
     .option('-q, --quiet', 'Suppress non-error output')
-    .option(
-      '--sort <field>',
-      'Sort by: name|date|items (default: date)',
-      'date'
-    )
+    .option('--sort <field>', 'Sort by: name|date|items (default: date)', 'date')
     .option('--reverse', 'Reverse sort order')
     .option('--limit <n>', 'Limit number of results')
     .action(withErrorHandling(listAction));

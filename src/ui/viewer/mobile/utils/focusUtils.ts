@@ -47,9 +47,7 @@ let previousBodyOverflow: string | null = null;
  * ```
  */
 export function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  const elements = Array.from(
-    container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
-  );
+  const elements = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
 
   return elements.filter((el) => {
     // Filter out invisible elements
@@ -141,9 +139,7 @@ export function trapFocus(container: HTMLElement, event: KeyboardEvent): void {
  * returnFocusToTrigger(openButton);
  * ```
  */
-export function returnFocusToTrigger(
-  triggerElement: HTMLElement | null
-): void {
+export function returnFocusToTrigger(triggerElement: HTMLElement | null): void {
   if (triggerElement && typeof triggerElement.focus === 'function') {
     // Use requestAnimationFrame to ensure DOM is ready after modal unmount
     requestAnimationFrame(() => {

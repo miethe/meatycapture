@@ -88,33 +88,22 @@ function resolveOutputFormat(options: ViewOptions): OutputFormat | 'markdown' {
  * @param options - Filter criteria from command options
  * @returns Filtered array of items
  */
-function filterItems(
-  items: RequestLogItem[],
-  options: ViewOptions
-): RequestLogItem[] {
+function filterItems(items: RequestLogItem[], options: ViewOptions): RequestLogItem[] {
   return items.filter((item) => {
     // Type filter (case-insensitive)
-    if (
-      options.filterType &&
-      item.type.toLowerCase() !== options.filterType.toLowerCase()
-    ) {
+    if (options.filterType && item.type.toLowerCase() !== options.filterType.toLowerCase()) {
       return false;
     }
 
     // Status filter (case-insensitive)
-    if (
-      options.filterStatus &&
-      item.status.toLowerCase() !== options.filterStatus.toLowerCase()
-    ) {
+    if (options.filterStatus && item.status.toLowerCase() !== options.filterStatus.toLowerCase()) {
       return false;
     }
 
     // Tag filter (case-insensitive, must contain the tag)
     if (options.filterTag) {
       const normalizedFilterTag = options.filterTag.toLowerCase();
-      const hasTag = item.tags.some(
-        (tag) => tag.toLowerCase() === normalizedFilterTag
-      );
+      const hasTag = item.tags.some((tag) => tag.toLowerCase() === normalizedFilterTag);
       if (!hasTag) {
         return false;
       }
@@ -209,10 +198,7 @@ function formatDocOutput(
  * @param docPath - Path to the request-log document
  * @param options - Command options for format and filtering
  */
-export async function viewAction(
-  docPath: string,
-  options: ViewOptions
-): Promise<void> {
+export async function viewAction(docPath: string, options: ViewOptions): Promise<void> {
   // Set quiet mode if requested (affects all output)
   if (options.quiet) {
     setQuietMode(true);

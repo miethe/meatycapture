@@ -131,7 +131,11 @@ export function FilterDropdown({
         aria-haspopup="listbox"
         aria-label={`${label} filter`}
       >
-        {icon && <span className="filter-icon" aria-hidden="true">{icon}</span>}
+        {icon && (
+          <span className="filter-icon" aria-hidden="true">
+            {icon}
+          </span>
+        )}
         <span className="filter-dropdown-label">{label}:</span>
         <span className="filter-dropdown-text">{getButtonText()}</span>
         {selected.length > 0 && <span className="filter-dropdown-badge">{selected.length}</span>}
@@ -160,7 +164,10 @@ export function FilterDropdown({
                   tabIndex={0}
                   aria-label={`${option}${isSelected ? ', selected' : ''}`}
                 >
-                  <div className={`filter-dropdown-checkbox ${isSelected ? 'checked' : ''}`} aria-hidden="true">
+                  <div
+                    className={`filter-dropdown-checkbox ${isSelected ? 'checked' : ''}`}
+                    aria-hidden="true"
+                  >
                     {isSelected && '✓'}
                   </div>
                   <span>{option}</span>

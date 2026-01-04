@@ -167,11 +167,7 @@ export function MobileDocCard({
             {entry.doc_id}
           </code>
           {entry.archived && (
-            <span
-              className="mobile-doc-card__archived-badge"
-              role="status"
-              aria-label="Archived"
-            >
+            <span className="mobile-doc-card__archived-badge" role="status" aria-label="Archived">
               Archived
             </span>
           )}

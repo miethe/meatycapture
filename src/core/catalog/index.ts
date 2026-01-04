@@ -67,9 +67,4 @@ export {
   applyFilters,
 } from './filter';
 
-export {
-  groupByProject,
-  sortDocuments,
-  sortProjects,
-  createGroupedCatalog,
-} from './group';
+export { groupByProject, sortDocuments, sortProjects, createGroupedCatalog } from './group';

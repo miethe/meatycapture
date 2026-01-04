@@ -120,7 +120,10 @@ export function DropdownWithAdd({
     <div className="field-container">
       {/* Label with optional tooltip */}
       <div className="form-field-label-row">
-        <label className={`field-label ${required ? 'required' : ''}`} htmlFor={`dropdown-${label}`}>
+        <label
+          className={`field-label ${required ? 'required' : ''}`}
+          htmlFor={`dropdown-${label}`}
+        >
           {label}
         </label>
         {tooltip && (

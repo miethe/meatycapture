@@ -28,11 +28,9 @@ import { registerSetDefaultCommand } from './set-default.js';
  * Additional subcommands (remove) coming in later phases.
  */
 export function createProjectCommand(): Command {
-  const project = new Command('project')
-    .description('Manage project configurations')
-    .addHelpText(
-      'after',
-      `
+  const project = new Command('project').description('Manage project configurations').addHelpText(
+    'after',
+    `
 Available Subcommands:
   list                List all registered projects
   add <name> <path>   Create a new project in the registry
@@ -55,7 +53,7 @@ Examples:
   meatycapture project update my-project --name "New Name"
   meatycapture project update my-project --path /new/path
 `
-    );
+  );
 
   // Register implemented subcommands
   registerListCommand(project);

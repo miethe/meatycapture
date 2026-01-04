@@ -63,10 +63,7 @@ const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
  * @returns true if window and matchMedia are available
  */
 function canUseMatchMedia(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function'
-  );
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function';
 }
 
 /**

@@ -132,9 +132,6 @@ export function getSwipeVelocity(distance: number, timeMs: number): number {
  * clampDragDistance(0, 100);    // returns 0
  * ```
  */
-export function clampDragDistance(
-  distance: number,
-  maxDistance: number
-): number {
+export function clampDragDistance(distance: number, maxDistance: number): number {
   return Math.max(0, Math.min(distance, maxDistance));
 }

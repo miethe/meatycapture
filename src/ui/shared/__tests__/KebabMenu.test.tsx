@@ -473,13 +473,21 @@ describe('KebabMenu', () => {
         {
           label: 'Edit',
           onClick: vi.fn(),
-          icon: <svg data-testid="icon"><circle cx="8" cy="8" r="4" /></svg>,
+          icon: (
+            <svg data-testid="icon">
+              <circle cx="8" cy="8" r="4" />
+            </svg>
+          ),
         },
         {
           label: 'Delete',
           onClick: vi.fn(),
           isDangerous: true,
-          icon: <svg data-testid="icon"><path d="M0 0" /></svg>,
+          icon: (
+            <svg data-testid="icon">
+              <path d="M0 0" />
+            </svg>
+          ),
         },
       ];
       const user = userEvent.setup({ delay: null });
@@ -493,11 +501,7 @@ describe('KebabMenu', () => {
     it('matches snapshot with custom trigger', async () => {
       const user = userEvent.setup({ delay: null });
       const { container } = render(
-        <KebabMenu
-          items={defaultItems}
-          trigger={<span>Actions</span>}
-          ariaLabel="Custom actions"
-        />
+        <KebabMenu items={defaultItems} trigger={<span>Actions</span>} ariaLabel="Custom actions" />
       );
 
       await user.click(screen.getByRole('button', { name: 'Custom actions' }));

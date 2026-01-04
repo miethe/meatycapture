@@ -96,10 +96,7 @@ async function interactiveFieldAdd(): Promise<{
     validateFieldName
   );
 
-  const value = await promptWithValidation(
-    'Field value',
-    (v) => validateNonEmpty(v, 'Value')
-  );
+  const value = await promptWithValidation('Field value', (v) => validateNonEmpty(v, 'Value'));
 
   const isProjectScoped = await confirm('Add as project-specific option?', false);
   let projectId: string | undefined;
@@ -236,12 +233,8 @@ export async function addAction(
       } else {
         // Human format: concise, informative output
         const scopeInfo =
-          newOption.scope === 'project'
-            ? `project: ${newOption.project_id}`
-            : 'global';
-        console.log(
-          `Added option: ${newOption.value} to ${newOption.field} [${scopeInfo}]`
-        );
+          newOption.scope === 'project' ? `project: ${newOption.project_id}` : 'global';
+        console.log(`Added option: ${newOption.value} to ${newOption.field} [${scopeInfo}]`);
         console.log(`  ID: ${newOption.id}`);
       }
     }

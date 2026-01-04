@@ -20,11 +20,7 @@ import type { Command } from 'commander';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import type { OutputFormat } from '@cli/formatters';
-import {
-  withErrorHandling,
-  setQuietMode,
-  isQuietMode,
-} from '@cli/handlers/errors.js';
+import { withErrorHandling, setQuietMode, isQuietMode } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 import { createConfigStore, createAdapters } from '@adapters/factory';
 
@@ -183,10 +179,18 @@ function formatHumanOutput(config: ConfigDisplay): string {
   lines.push(`  Adapter Mode:     ${config.adapter_mode}`);
   lines.push('');
   lines.push('Environment Variables:');
-  lines.push(`  MEATYCAPTURE_CONFIG_DIR:            ${config.environment.MEATYCAPTURE_CONFIG_DIR || '(not set)'}`);
-  lines.push(`  MEATYCAPTURE_DEFAULT_PROJECT:       ${config.environment.MEATYCAPTURE_DEFAULT_PROJECT || '(not set)'}`);
-  lines.push(`  MEATYCAPTURE_DEFAULT_PROJECT_PATH:  ${config.environment.MEATYCAPTURE_DEFAULT_PROJECT_PATH || '(not set)'}`);
-  lines.push(`  MEATYCAPTURE_API_URL:               ${config.environment.MEATYCAPTURE_API_URL || '(not set)'}`);
+  lines.push(
+    `  MEATYCAPTURE_CONFIG_DIR:            ${config.environment.MEATYCAPTURE_CONFIG_DIR || '(not set)'}`
+  );
+  lines.push(
+    `  MEATYCAPTURE_DEFAULT_PROJECT:       ${config.environment.MEATYCAPTURE_DEFAULT_PROJECT || '(not set)'}`
+  );
+  lines.push(
+    `  MEATYCAPTURE_DEFAULT_PROJECT_PATH:  ${config.environment.MEATYCAPTURE_DEFAULT_PROJECT_PATH || '(not set)'}`
+  );
+  lines.push(
+    `  MEATYCAPTURE_API_URL:               ${config.environment.MEATYCAPTURE_API_URL || '(not set)'}`
+  );
 
   return lines.join('\n');
 }
@@ -204,9 +208,16 @@ function formatYamlOutput(config: ConfigDisplay): string {
   lines.push('api_url: ' + (config.api_url || 'null'));
   lines.push('adapter_mode: ' + config.adapter_mode);
   lines.push('environment:');
-  lines.push('  MEATYCAPTURE_CONFIG_DIR: ' + (config.environment.MEATYCAPTURE_CONFIG_DIR || 'null'));
-  lines.push('  MEATYCAPTURE_DEFAULT_PROJECT: ' + (config.environment.MEATYCAPTURE_DEFAULT_PROJECT || 'null'));
-  lines.push('  MEATYCAPTURE_DEFAULT_PROJECT_PATH: ' + (config.environment.MEATYCAPTURE_DEFAULT_PROJECT_PATH || 'null'));
+  lines.push(
+    '  MEATYCAPTURE_CONFIG_DIR: ' + (config.environment.MEATYCAPTURE_CONFIG_DIR || 'null')
+  );
+  lines.push(
+    '  MEATYCAPTURE_DEFAULT_PROJECT: ' + (config.environment.MEATYCAPTURE_DEFAULT_PROJECT || 'null')
+  );
+  lines.push(
+    '  MEATYCAPTURE_DEFAULT_PROJECT_PATH: ' +
+      (config.environment.MEATYCAPTURE_DEFAULT_PROJECT_PATH || 'null')
+  );
   lines.push('  MEATYCAPTURE_API_URL: ' + (config.environment.MEATYCAPTURE_API_URL || 'null'));
 
   return lines.join('\n');

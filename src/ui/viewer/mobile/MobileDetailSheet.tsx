@@ -257,8 +257,7 @@ export function MobileDetailSheet({
   useEffect(() => {
     if (isOpen) {
       // Store current focus or use trigger ref
-      previousFocusRef.current =
-        triggerRef?.current || (document.activeElement as HTMLElement);
+      previousFocusRef.current = triggerRef?.current || (document.activeElement as HTMLElement);
     }
   }, [isOpen, triggerRef]);
 
@@ -344,14 +343,15 @@ export function MobileDetailSheet({
   }
 
   // Calculate transform for visual feedback during drag
-  const dragTransform = isDragging && dragDistance > 0 ? calculateTransform(dragDistance, MAX_DRAG_DISTANCE) : 'none';
+  const dragTransform =
+    isDragging && dragDistance > 0 ? calculateTransform(dragDistance, MAX_DRAG_DISTANCE) : 'none';
 
   // Calculate opacity for visual feedback (fade as dragged down)
   // For reduced motion, keep opacity constant to avoid visual distraction
   const dragOpacity = prefersReducedMotion
     ? 1
     : isDragging && dragDistance > 0
-      ? Math.max(0.5, 1 - dragDistance / MAX_DRAG_DISTANCE * 0.5)
+      ? Math.max(0.5, 1 - (dragDistance / MAX_DRAG_DISTANCE) * 0.5)
       : 1;
 
   // Build transition style - no transitions for reduced motion

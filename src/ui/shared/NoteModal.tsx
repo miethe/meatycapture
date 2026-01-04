@@ -13,6 +13,15 @@
  * - Inline validation errors
  * - Edit mode with pre-filled data
  * - Respects prefers-reduced-motion
+ *
+ * Accessibility:
+ * - Modal has role="dialog" with aria-modal="true"
+ * - Focus trap prevents focus from escaping
+ * - Focus restored to trigger element on close
+ * - Escape key closes modal
+ * - All form fields properly labeled
+ * - Validation errors announced via role="alert"
+ * - Character count announced via aria-live
  */
 
 import React, { useState, useCallback, useEffect, useId, useRef } from 'react';
@@ -52,6 +61,7 @@ export function NoteModal({
 }: NoteModalProps): React.JSX.Element | null {
   const titleId = useId();
   const descriptionId = useId();
+  const contentLabelId = useId();
   const modalRef = useFocusTrap<HTMLDivElement>(isOpen);
   const previousActiveElement = useRef<Element | null>(null);
 
@@ -243,7 +253,7 @@ export function NoteModal({
           {/* Content Editor */}
           <div className="field-container">
             <div className="note-modal-content-label-row">
-              <label className="field-label required" id="note-content-label">
+              <label className="field-label required" id={contentLabelId}>
                 Content
               </label>
               <span
@@ -261,6 +271,7 @@ export function NoteModal({
               maxLength={NOTE_MAX_CONTENT_LENGTH}
               disabled={false}
               className={validationError || isOverLimit ? 'note-modal-editor-error' : ''}
+              labelId={contentLabelId}
             />
           </div>
 
@@ -282,6 +293,7 @@ export function NoteModal({
             className="button primary"
             onClick={handleSave}
             disabled={isOverLimit}
+            aria-disabled={isOverLimit}
           >
             Save
           </button>

@@ -19,7 +19,10 @@ import type { ProjectStore, FieldCatalogStore } from '@core/ports';
 import { detectAdapterMode } from '@platform';
 import { HttpClient, ApiProjectStore, ApiFieldCatalogStore } from '@adapters/api-client';
 import { createTauriProjectStore, createTauriFieldCatalogStore } from './tauri-config-adapter';
-import { createBrowserProjectStore, createBrowserFieldCatalogStore } from '@adapters/browser-storage';
+import {
+  createBrowserProjectStore,
+  createBrowserFieldCatalogStore,
+} from '@adapters/browser-storage';
 
 /**
  * Creates a platform-appropriate ProjectStore instance.

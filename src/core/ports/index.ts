@@ -11,7 +11,15 @@
  * Implementations live in adapters/ (fs-local, config-local)
  */
 
-import type { AppConfig, ConfigKey, Project, FieldOption, FieldName, ItemDraft, RequestLogDoc } from '@core/models';
+import type {
+  AppConfig,
+  ConfigKey,
+  Project,
+  FieldOption,
+  FieldName,
+  ItemDraft,
+  RequestLogDoc,
+} from '@core/models';
 
 /**
  * Clock abstraction for time-dependent operations

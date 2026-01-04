@@ -45,7 +45,8 @@ describe('parseAllowedOrigins', () => {
   });
 
   test('parses multiple comma-separated origins', () => {
-    process.env.CORS_ORIGINS = 'http://localhost:5173,http://localhost:4173,https://app.example.com';
+    process.env.CORS_ORIGINS =
+      'http://localhost:5173,http://localhost:4173,https://app.example.com';
     expect(parseAllowedOrigins()).toEqual([
       'http://localhost:5173',
       'http://localhost:4173',
@@ -55,18 +56,12 @@ describe('parseAllowedOrigins', () => {
 
   test('trims whitespace from origins', () => {
     process.env.CORS_ORIGINS = ' http://localhost:5173 , http://localhost:4173 ';
-    expect(parseAllowedOrigins()).toEqual([
-      'http://localhost:5173',
-      'http://localhost:4173',
-    ]);
+    expect(parseAllowedOrigins()).toEqual(['http://localhost:5173', 'http://localhost:4173']);
   });
 
   test('filters out empty origins', () => {
     process.env.CORS_ORIGINS = 'http://localhost:5173,,http://localhost:4173';
-    expect(parseAllowedOrigins()).toEqual([
-      'http://localhost:5173',
-      'http://localhost:4173',
-    ]);
+    expect(parseAllowedOrigins()).toEqual(['http://localhost:5173', 'http://localhost:4173']);
   });
 });
 
@@ -109,11 +104,7 @@ describe('getCorsHeaders', () => {
       debug: false,
     };
 
-    const headers = getCorsHeaders(
-      'http://localhost:5173',
-      ['http://localhost:5173'],
-      config
-    );
+    const headers = getCorsHeaders('http://localhost:5173', ['http://localhost:5173'], config);
 
     expect(headers['Access-Control-Allow-Origin']).toBe('http://localhost:5173');
     expect(headers['Access-Control-Allow-Methods']).toBe('GET, POST, OPTIONS');
@@ -131,11 +122,7 @@ describe('getCorsHeaders', () => {
       debug: false,
     };
 
-    const headers = getCorsHeaders(
-      'http://any-origin.com',
-      ['*'],
-      config
-    );
+    const headers = getCorsHeaders('http://any-origin.com', ['*'], config);
 
     expect(headers['Access-Control-Allow-Origin']).toBe('http://any-origin.com');
   });
@@ -149,11 +136,7 @@ describe('getCorsHeaders', () => {
       debug: false,
     };
 
-    const headers = getCorsHeaders(
-      'http://localhost:5173',
-      ['http://localhost:5173'],
-      config
-    );
+    const headers = getCorsHeaders('http://localhost:5173', ['http://localhost:5173'], config);
 
     expect(headers['Access-Control-Allow-Credentials']).toBeUndefined();
   });
@@ -167,11 +150,7 @@ describe('getCorsHeaders', () => {
       debug: false,
     };
 
-    const headers = getCorsHeaders(
-      null,
-      ['http://localhost:5173'],
-      config
-    );
+    const headers = getCorsHeaders(null, ['http://localhost:5173'], config);
 
     // Should still include CORS headers for consistency
     expect(headers['Access-Control-Allow-Methods']).toBeDefined();
@@ -268,7 +247,7 @@ describe('corsMiddleware', () => {
 
     const response = await cors(req, async () => {
       // Simulate async operation
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       return new Response(JSON.stringify({ async: true }), {
         headers: { 'Content-Type': 'application/json' },
       });
@@ -385,7 +364,9 @@ describe('corsMiddleware', () => {
       throw new Error('Should not reach handler');
     });
 
-    expect(response.headers.get('Access-Control-Allow-Headers')).toBe('Content-Type, X-Custom-Header');
+    expect(response.headers.get('Access-Control-Allow-Headers')).toBe(
+      'Content-Type, X-Custom-Header'
+    );
   });
 });
 

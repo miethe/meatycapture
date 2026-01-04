@@ -242,10 +242,7 @@ describe('useBottomSheet', () => {
 
       unmount();
 
-      expect(removeEventListenerSpy).toHaveBeenCalledWith(
-        'keydown',
-        expect.any(Function)
-      );
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
 
       removeEventListenerSpy.mockRestore();
     });
@@ -270,10 +267,7 @@ describe('useBottomSheet', () => {
         result.current.close();
       });
 
-      expect(removeEventListenerSpy).toHaveBeenCalledWith(
-        'keydown',
-        expect.any(Function)
-      );
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
 
       removeEventListenerSpy.mockRestore();
     });

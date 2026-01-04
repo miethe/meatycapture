@@ -17,15 +17,8 @@
 
 import type { Command } from 'commander';
 import yaml from 'yaml';
-import {
-  setDefaultProject,
-  getConfig,
-} from '@cli/handlers/project.js';
-import {
-  withErrorHandling,
-  setQuietMode,
-  isQuietMode,
-} from '@cli/handlers/errors.js';
+import { setDefaultProject, getConfig } from '@cli/handlers/project.js';
+import { withErrorHandling, setQuietMode, isQuietMode } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 
 /**
@@ -57,10 +50,7 @@ function resolveOutputFormat(options: SetDefaultOptions): 'human' | 'json' | 'ya
  * - 0: Success (default project set)
  * - 3: Resource not found (project doesn't exist)
  */
-export async function setDefaultAction(
-  id: string,
-  options: SetDefaultOptions
-): Promise<void> {
+export async function setDefaultAction(id: string, options: SetDefaultOptions): Promise<void> {
   // Set quiet mode globally
   if (options.quiet) {
     setQuietMode(true);

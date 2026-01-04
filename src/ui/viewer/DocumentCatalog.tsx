@@ -302,9 +302,7 @@ export function DocumentCatalog({
             <tr className="viewer-catalog-header" role="row">
               {table.getHeaderGroups().map((headerGroup) =>
                 headerGroup.headers.map((header) => {
-                  const isSortable = ['doc_id', 'title'].includes(
-                    header.id
-                  );
+                  const isSortable = ['doc_id', 'title'].includes(header.id);
 
                   return (
                     <th
@@ -323,7 +321,8 @@ export function DocumentCatalog({
                           ? () =>
                               onSortChange({
                                 field: header.id as CatalogSort['field'],
-                                order: sort.field === header.id && sort.order === 'asc' ? 'desc' : 'asc',
+                                order:
+                                  sort.field === header.id && sort.order === 'asc' ? 'desc' : 'asc',
                               })
                           : undefined
                       }
@@ -342,36 +341,40 @@ export function DocumentCatalog({
 
           {/* Table Body - Grouped by Project */}
           <tbody role="rowgroup">
-            {Array.from(groupedCatalog.groups.entries()).map(([projectId, { project, entries: projectEntries }]) => {
-              const isProjectExpanded = expandedProjects.has(projectId);
+            {Array.from(groupedCatalog.groups.entries()).map(
+              ([projectId, { project, entries: projectEntries }]) => {
+                const isProjectExpanded = expandedProjects.has(projectId);
 
-              return (
-                <React.Fragment key={projectId}>
-                  {/* Project Group Header */}
-                  <ProjectGroupRow
-                    project={project}
-                    documentCount={projectEntries.length}
-                    isExpanded={isProjectExpanded}
-                    onToggle={() => handleToggleProject(projectId)}
-                  />
+                return (
+                  <React.Fragment key={projectId}>
+                    {/* Project Group Header */}
+                    <ProjectGroupRow
+                      project={project}
+                      documentCount={projectEntries.length}
+                      isExpanded={isProjectExpanded}
+                      onToggle={() => handleToggleProject(projectId)}
+                    />
 
-                  {/* Document Rows (only if project is expanded) */}
-                  {isProjectExpanded &&
-                    projectEntries.map((entry) => (
-                      <DocumentRow
-                        key={entry.path}
-                        entry={entry}
-                        isExpanded={expandedPaths.has(entry.path)}
-                        onToggle={() => onToggleExpand(entry.path)}
-                        onLoadDocument={() => handleLoadDocument(entry.path)}
-                        isLoading={loadingPaths.has(entry.path)}
-                        document={documentCache.get(entry.path) || null}
-                        onAddItem={onAddItemToDocument ? () => handleAddItem(entry.path) : undefined}
-                      />
-                    ))}
-                </React.Fragment>
-              );
-            })}
+                    {/* Document Rows (only if project is expanded) */}
+                    {isProjectExpanded &&
+                      projectEntries.map((entry) => (
+                        <DocumentRow
+                          key={entry.path}
+                          entry={entry}
+                          isExpanded={expandedPaths.has(entry.path)}
+                          onToggle={() => onToggleExpand(entry.path)}
+                          onLoadDocument={() => handleLoadDocument(entry.path)}
+                          isLoading={loadingPaths.has(entry.path)}
+                          document={documentCache.get(entry.path) || null}
+                          onAddItem={
+                            onAddItemToDocument ? () => handleAddItem(entry.path) : undefined
+                          }
+                        />
+                      ))}
+                  </React.Fragment>
+                );
+              }
+            )}
           </tbody>
         </table>
       </div>

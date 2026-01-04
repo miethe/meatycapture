@@ -199,12 +199,7 @@ export function DocumentKebabMenu({
     isDangerous: true,
   });
 
-  return (
-    <KebabMenu
-      items={items}
-      ariaLabel={`Actions for document ${doc.doc_id}`}
-    />
-  );
+  return <KebabMenu items={items} ariaLabel={`Actions for document ${doc.doc_id}`} />;
 }
 
 export default DocumentKebabMenu;

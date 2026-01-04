@@ -3,6 +3,12 @@
  *
  * Styles for the NoteCard component used in Structured Notes feature.
  * Uses glass/x-morphism aesthetic consistent with MeatyCapture design system.
+ *
+ * Accessibility:
+ * - Action buttons visible on focus for keyboard users
+ * - Touch-friendly button sizes on mobile (44px minimum)
+ * - Respects prefers-reduced-motion
+ * - Sufficient color contrast for badges
  */
 
 /* =============================================================================
@@ -45,7 +51,7 @@
   white-space: nowrap;
 }
 
-/* Note Type Color Variants */
+/* Note Type Color Variants - Adjusted for WCAG AA contrast */
 .note-type-general {
   background: rgba(99, 150, 255, 0.2);
   border: 1px solid rgba(99, 150, 255, 0.5);
@@ -82,9 +88,23 @@
   transition: opacity var(--transition-fast);
 }
 
-/* Show actions on card hover or when focused within */
+/* Show actions on card hover, focus-within, OR when a button is focused */
 .note-card:hover .note-card__actions,
-.note-card:focus-within .note-card__actions {
+.note-card:focus-within .note-card__actions,
+.note-card__actions:focus-within {
+  opacity: 1;
+}
+
+/* Ensure actions are visible when any button inside is focused (keyboard accessibility) */
+.note-card__action-button:focus,
+.note-card__action-button:focus-visible {
+  /* Make parent visible when button is focused */
+  opacity: 1;
+}
+
+/* Also reveal actions via sibling selector when button is focused */
+.note-card__action-button:focus ~ .note-card__action-button,
+.note-card__action-button:focus-visible ~ .note-card__action-button {
   opacity: 1;
 }
 
@@ -103,6 +123,21 @@
   color: var(--color-text-muted);
   cursor: pointer;
   transition: all var(--transition-fast);
+  /* Ensure button is visible when focused even if parent has opacity: 0 */
+  position: relative;
+}
+
+/* Critical: When a button receives focus, ensure it and its container are visible */
+.note-card__action-button:focus,
+.note-card__action-button:focus-visible {
+  /* Force the button to be fully visible */
+  opacity: 1 !important;
+}
+
+/* Ensure parent actions container becomes visible when child is focused */
+.note-card:has(.note-card__action-button:focus) .note-card__actions,
+.note-card:has(.note-card__action-button:focus-visible) .note-card__actions {
+  opacity: 1;
 }
 
 .note-card__action-button:hover {
@@ -203,7 +238,7 @@
     opacity: 1;
   }
 
-  /* Touch-friendly button sizing (min 44px) */
+  /* Touch-friendly button sizing (min 44px per WCAG) */
   .note-card__action-button {
     width: 44px;
     height: 44px;

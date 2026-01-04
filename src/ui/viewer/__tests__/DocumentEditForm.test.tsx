@@ -106,9 +106,7 @@ describe('DocumentEditForm', () => {
     it('displays helper text for title field', () => {
       render(<DocumentEditForm {...createDefaultProps()} />);
 
-      expect(
-        screen.getByText(/the document title displayed in the catalog/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/the document title displayed in the catalog/i)).toBeInTheDocument();
     });
 
     it('displays helper text for description field', () => {

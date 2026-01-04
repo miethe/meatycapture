@@ -47,9 +47,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 // Higher-order function to wrap authenticated routes
-function requireAuth(
-  handler: (req: AuthenticatedRequest) => Promise<Response>
-) {
+function requireAuth(handler: (req: AuthenticatedRequest) => Promise<Response>) {
   return async (req: Request): Promise<Response> => {
     const authResult = checkAuth(req);
 
@@ -215,7 +213,7 @@ const AUTH_TOKEN = 'your-secret-token';
 async function getProjects() {
   const response = await fetch(`${API_URL}/api/projects`, {
     headers: {
-      'Authorization': `Bearer ${AUTH_TOKEN}`,
+      Authorization: `Bearer ${AUTH_TOKEN}`,
     },
   });
 
@@ -231,7 +229,7 @@ async function createProject(data) {
   const response = await fetch(`${API_URL}/api/projects`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${AUTH_TOKEN}`,
+      Authorization: `Bearer ${AUTH_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
@@ -262,7 +260,7 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: 'http://localhost:3000/api',
   headers: {
-    'Authorization': `Bearer ${process.env.MEATYCAPTURE_AUTH_TOKEN}`,
+    Authorization: `Bearer ${process.env.MEATYCAPTURE_AUTH_TOKEN}`,
   },
 });
 
@@ -306,14 +304,10 @@ async function handleRequest(req: Request): Promise<Response> {
     // Process authenticated request
     const data = await processRequest(req);
     return Response.json(data);
-
   } catch (error) {
     console.error('Request error:', error);
 
-    return Response.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 ```
@@ -354,6 +348,7 @@ describe('My API Route', () => {
 ## Security Best Practices
 
 ### DO:
+
 - Use HTTPS in production to encrypt tokens in transit
 - Generate strong tokens: `openssl rand -hex 32`
 - Rotate tokens regularly (monthly recommended)
@@ -362,6 +357,7 @@ describe('My API Route', () => {
 - Log authentication failures for security monitoring
 
 ### DON'T:
+
 - Don't commit tokens to version control
 - Don't log or expose tokens in error messages
 - Don't use weak tokens like "password" or "123456"

@@ -18,10 +18,7 @@
 
 import type { RequestLogDoc, RequestLogItem, Project } from '@core/models';
 import type { DocMeta } from '@core/ports';
-import type {
-  SearchMatch,
-  FormattableData,
-} from './types.js';
+import type { SearchMatch, FormattableData } from './types.js';
 import {
   serializeDate,
   isRequestLogDoc,
@@ -150,13 +147,7 @@ const DOC_META_HEADERS = ['path', 'doc_id', 'title', 'item_count', 'updated_at']
  * Formats a DocMeta as a CSV row (without header).
  */
 function docMetaToRow(meta: DocMeta): string {
-  return createRow([
-    meta.path,
-    meta.doc_id,
-    meta.title,
-    meta.item_count,
-    meta.updated_at,
-  ]);
+  return createRow([meta.path, meta.doc_id, meta.title, meta.item_count, meta.updated_at]);
 }
 
 /**

@@ -195,9 +195,7 @@ export class BrowserDocStore implements DocStore {
           }));
 
           // Sort by updated_at descending (most recent first)
-          const sorted = docMetas.sort(
-            (a, b) => b.updated_at.getTime() - a.updated_at.getTime()
-          );
+          const sorted = docMetas.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime());
 
           logger.info('Listed documents successfully (browser)', {
             project_id: directory,

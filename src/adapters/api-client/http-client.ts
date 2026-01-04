@@ -69,9 +69,7 @@ function deserializeDates(obj: unknown): unknown {
 
   // Recursively process objects
   if (obj && typeof obj === 'object') {
-    return Object.fromEntries(
-      Object.entries(obj).map(([k, v]) => [k, deserializeDates(v)])
-    );
+    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, deserializeDates(v)]));
   }
 
   return obj;
@@ -140,22 +138,21 @@ export class HttpClient {
     // Resolve base URL: config > env var (process.env or import.meta.env) > default
     // Check both process.env (Node/Bun) and import.meta.env (Vite browser builds)
     const envBaseUrl =
-      (typeof process !== 'undefined' && process.env?.MEATYCAPTURE_API_URL)
+      typeof process !== 'undefined' && process.env?.MEATYCAPTURE_API_URL
         ? process.env.MEATYCAPTURE_API_URL
-        : (typeof import.meta !== 'undefined' && import.meta.env?.MEATYCAPTURE_API_URL)
+        : typeof import.meta !== 'undefined' && import.meta.env?.MEATYCAPTURE_API_URL
           ? (import.meta.env.MEATYCAPTURE_API_URL as string)
           : undefined;
 
     const resolvedBaseUrl = config.baseUrl || envBaseUrl || DEFAULT_CONFIG.baseUrl;
 
     // Ensure baseUrl doesn't end with slash for consistent URL joining
-    this.baseUrl = resolvedBaseUrl.endsWith('/')
-      ? resolvedBaseUrl.slice(0, -1)
-      : resolvedBaseUrl;
+    this.baseUrl = resolvedBaseUrl.endsWith('/') ? resolvedBaseUrl.slice(0, -1) : resolvedBaseUrl;
 
     // Resolve auth token: config > env var
-    const resolvedToken = config.authToken
-      || (typeof process !== 'undefined' ? process.env.MEATYCAPTURE_AUTH_TOKEN : undefined);
+    const resolvedToken =
+      config.authToken ||
+      (typeof process !== 'undefined' ? process.env.MEATYCAPTURE_AUTH_TOKEN : undefined);
 
     // Only assign authToken if actually defined (strict optional handling)
     if (resolvedToken !== undefined) {
@@ -193,7 +190,7 @@ export class HttpClient {
   private buildHeaders(): HeadersInit {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      Accept: 'application/json',
     };
 
     if (this.authToken) {
@@ -216,11 +213,7 @@ export class HttpClient {
    * @returns HTTP response
    * @throws NetworkError, TimeoutError, or ApiError subclass
    */
-  private async fetchWithRetry(
-    url: string,
-    options: RequestInit,
-    attempt = 1
-  ): Promise<Response> {
+  private async fetchWithRetry(url: string, options: RequestInit, attempt = 1): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 

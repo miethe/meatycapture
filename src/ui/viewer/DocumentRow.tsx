@@ -196,11 +196,7 @@ export const DocumentRow = React.memo(function DocumentRow({
           <div className="doc-id-container">
             <code className="doc-id-code">{entry.doc_id}</code>
             {entry.archived && (
-              <span
-                className="doc-archived-badge"
-                role="status"
-                aria-label="Archived document"
-              >
+              <span className="doc-archived-badge" role="status" aria-label="Archived document">
                 <ArchiveIcon className="doc-archived-icon" aria-hidden="true" />
                 <span className="doc-archived-text">Archived</span>
               </span>

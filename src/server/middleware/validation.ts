@@ -222,10 +222,7 @@ export function validateEnum<T extends string>(
  * // Returns string if present, undefined if missing
  * ```
  */
-export function validateOptional<T>(
-  value: unknown,
-  validator: (v: unknown) => T
-): T | undefined {
+export function validateOptional<T>(value: unknown, validator: (v: unknown) => T): T | undefined {
   // Treat null, undefined, and empty string as "not present"
   if (value === null || value === undefined || value === '') {
     return undefined;
@@ -301,10 +298,7 @@ export function validateStringArray(value: unknown, name: string): string[] {
  * });
  * ```
  */
-export async function parseJsonBody<T>(
-  req: Request,
-  validator: (body: unknown) => T
-): Promise<T> {
+export async function parseJsonBody<T>(req: Request, validator: (body: unknown) => T): Promise<T> {
   // Check Content-Type header
   const contentType = req.headers.get('content-type');
   if (!contentType?.includes('application/json')) {

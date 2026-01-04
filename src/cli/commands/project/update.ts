@@ -20,17 +20,8 @@
 import type { Command } from 'commander';
 import { createAdapters } from '@adapters/factory';
 import type { Project } from '@core/models';
-import {
-  formatOutput,
-  type OutputFormat,
-  type FormatOptions,
-} from '@cli/formatters';
-import {
-  withErrorHandling,
-  setQuietMode,
-  isQuietMode,
-  createError,
-} from '@cli/handlers/errors.js';
+import { formatOutput, type OutputFormat, type FormatOptions } from '@cli/formatters';
+import { withErrorHandling, setQuietMode, isQuietMode, createError } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 
 /**
@@ -97,10 +88,7 @@ async function validatePath(path: string): Promise<void> {
  * - 1: Validation error (no fields specified, invalid path)
  * - 3: Project not found (ResourceNotFoundError)
  */
-export async function updateAction(
-  id: string,
-  options: UpdateOptions
-): Promise<void> {
+export async function updateAction(id: string, options: UpdateOptions): Promise<void> {
   // Set quiet mode globally for formatters
   if (options.quiet) {
     setQuietMode(true);

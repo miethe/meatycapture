@@ -177,9 +177,7 @@ describe('listAllDocuments', () => {
   it('should enrich DocMeta with project_id and project_name', async () => {
     const projects = [mockProject('app', 'My App', '/data/app', true)];
 
-    const docStore = createMockDocStore(async () => [
-      mockDocMeta('REQ-001', 'Test Doc'),
-    ]);
+    const docStore = createMockDocStore(async () => [mockDocMeta('REQ-001', 'Test Doc')]);
 
     const projectStore = createMockProjectStore(projects);
 
@@ -399,9 +397,7 @@ describe('enrichWithProjectInfo', () => {
   });
 
   it('should preserve all DocMeta fields', () => {
-    const docMetas: DocMeta[] = [
-      mockDocMeta('REQ-001', 'Test', new Date('2025-12-16'), 5),
-    ];
+    const docMetas: DocMeta[] = [mockDocMeta('REQ-001', 'Test', new Date('2025-12-16'), 5)];
 
     const project = mockProject('app', 'App');
 
@@ -500,9 +496,7 @@ describe('extractFilterOptions', () => {
 
   it('should return empty arrays for type/domain/priority/status/tags', () => {
     const projects = [mockProject('app', 'App')];
-    const entries: CatalogEntry[] = [
-      mockCatalogEntry('REQ-001', 'Test', 'app', 'App'),
-    ];
+    const entries: CatalogEntry[] = [mockCatalogEntry('REQ-001', 'Test', 'app', 'App')];
 
     const options = extractFilterOptions(entries, projects);
 
@@ -531,9 +525,7 @@ describe('extractFilterOptions', () => {
   });
 
   it('should extract only id and name from projects', () => {
-    const projects = [
-      mockProject('app', 'My App', '/data/app', true),
-    ];
+    const projects = [mockProject('app', 'My App', '/data/app', true)];
 
     const entries: CatalogEntry[] = [];
 
@@ -546,10 +538,7 @@ describe('extractFilterOptions', () => {
   });
 
   it('should not mutate original projects array', () => {
-    const projects = [
-      mockProject('zebra', 'Zebra'),
-      mockProject('alpha', 'Alpha'),
-    ];
+    const projects = [mockProject('zebra', 'Zebra'), mockProject('alpha', 'Alpha')];
     const original = [...projects];
 
     const entries: CatalogEntry[] = [];

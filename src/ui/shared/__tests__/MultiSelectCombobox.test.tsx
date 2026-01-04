@@ -202,9 +202,7 @@ describe('MultiSelectCombobox', () => {
     it('calls onRemove when clicking badge remove button', async () => {
       const user = userEvent.setup();
       const onRemove = vi.fn();
-      render(
-        <MultiSelectCombobox {...defaultProps} selected={['Frontend']} onRemove={onRemove} />
-      );
+      render(<MultiSelectCombobox {...defaultProps} selected={['Frontend']} onRemove={onRemove} />);
 
       await user.click(screen.getByLabelText('Remove Frontend'));
 
@@ -232,9 +230,7 @@ describe('MultiSelectCombobox', () => {
     it('does not remove item on Backspace when input has text', async () => {
       const user = userEvent.setup();
       const onRemove = vi.fn();
-      render(
-        <MultiSelectCombobox {...defaultProps} selected={['Frontend']} onRemove={onRemove} />
-      );
+      render(<MultiSelectCombobox {...defaultProps} selected={['Frontend']} onRemove={onRemove} />);
 
       const input = screen.getByRole('combobox');
       await user.click(input);
@@ -757,13 +753,7 @@ describe('MultiSelectCombobox', () => {
 
     it('handles all selected options case gracefully', async () => {
       const user = userEvent.setup();
-      render(
-        <MultiSelectCombobox
-          {...defaultProps}
-          options={['A', 'B']}
-          selected={['A', 'B']}
-        />
-      );
+      render(<MultiSelectCombobox {...defaultProps} options={['A', 'B']} selected={['A', 'B']} />);
 
       const input = screen.getByRole('combobox');
       await user.click(input);
@@ -801,13 +791,7 @@ describe('MultiSelectCombobox', () => {
 
     it('handles keyboard navigation with zero navigable items', async () => {
       const user = userEvent.setup();
-      render(
-        <MultiSelectCombobox
-          {...defaultProps}
-          options={['Test']}
-          selected={['Test']}
-        />
-      );
+      render(<MultiSelectCombobox {...defaultProps} options={['Test']} selected={['Test']} />);
 
       const input = screen.getByRole('combobox');
       await user.click(input);
@@ -886,9 +870,7 @@ describe('MultiSelectCombobox', () => {
 
       // We need to test that the recentlyAdded state works
       // This requires re-rendering with the newly added value
-      const { rerender } = render(
-        <MultiSelectCombobox {...defaultProps} onAdd={onAdd} />
-      );
+      const { rerender } = render(<MultiSelectCombobox {...defaultProps} onAdd={onAdd} />);
 
       const input = screen.getByRole('combobox');
       await user.click(input);
@@ -899,13 +881,7 @@ describe('MultiSelectCombobox', () => {
 
       // In the real app, the parent would update selected array
       // Here we simulate that behavior
-      rerender(
-        <MultiSelectCombobox
-          {...defaultProps}
-          selected={['NewValue']}
-          onAdd={onAdd}
-        />
-      );
+      rerender(<MultiSelectCombobox {...defaultProps} selected={['NewValue']} onAdd={onAdd} />);
 
       // The badge should be present (animation class testing would require checking internal state)
       expect(screen.getByText('NewValue')).toBeInTheDocument();

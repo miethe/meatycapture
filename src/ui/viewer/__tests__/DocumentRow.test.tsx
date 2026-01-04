@@ -48,7 +48,6 @@ const createMockDocument = (overrides: Partial<RequestLogDoc> = {}): RequestLogD
   ...overrides,
 });
 
-
 describe('DocumentRow', () => {
   const defaultProps = {
     entry: createMockEntry(),
@@ -206,11 +205,7 @@ describe('DocumentRow', () => {
       render(
         <table>
           <tbody>
-            <DocumentRow
-              {...defaultProps}
-              onToggle={onToggle}
-              onLoadDocument={onLoadDocument}
-            />
+            <DocumentRow {...defaultProps} onToggle={onToggle} onLoadDocument={onLoadDocument} />
           </tbody>
         </table>
       );
@@ -539,11 +534,7 @@ describe('DocumentRow', () => {
       render(
         <table>
           <tbody>
-            <DocumentRow
-              {...defaultProps}
-              isExpanded={true}
-              document={document}
-            />
+            <DocumentRow {...defaultProps} isExpanded={true} document={document} />
           </tbody>
         </table>
       );
@@ -556,11 +547,7 @@ describe('DocumentRow', () => {
       render(
         <table>
           <tbody>
-            <DocumentRow
-              {...defaultProps}
-              isExpanded={true}
-              document={null}
-            />
+            <DocumentRow {...defaultProps} isExpanded={true} document={null} />
           </tbody>
         </table>
       );
@@ -575,12 +562,7 @@ describe('DocumentRow', () => {
       render(
         <table>
           <tbody>
-            <DocumentRow
-              {...defaultProps}
-              isExpanded={true}
-              document={document}
-              isLoading={true}
-            />
+            <DocumentRow {...defaultProps} isExpanded={true} document={document} isLoading={true} />
           </tbody>
         </table>
       );
@@ -853,11 +835,7 @@ describe('DocumentRow', () => {
       render(
         <table>
           <tbody>
-            <DocumentRow
-              {...defaultProps}
-              onToggle={onToggle}
-              onLoadDocument={onLoadDocument}
-            />
+            <DocumentRow {...defaultProps} onToggle={onToggle} onLoadDocument={onLoadDocument} />
           </tbody>
         </table>
       );

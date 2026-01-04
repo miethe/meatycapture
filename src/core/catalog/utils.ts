@@ -155,10 +155,7 @@ export async function listAllDocuments(
  * // }
  * ```
  */
-export function extractFilterOptions(
-  _entries: CatalogEntry[],
-  projects: Project[]
-): FilterOptions {
+export function extractFilterOptions(_entries: CatalogEntry[], projects: Project[]): FilterOptions {
   // Build project filter options
   // Sort by name for consistent UI display
   const projectOptions: ProjectInfo[] = projects
@@ -213,10 +210,7 @@ export function extractFilterOptions(
  * // ]
  * ```
  */
-export function enrichWithProjectInfo(
-  docMetas: DocMeta[],
-  project: Project
-): CatalogEntry[] {
+export function enrichWithProjectInfo(docMetas: DocMeta[], project: Project): CatalogEntry[] {
   return docMetas.map((docMeta) => ({
     path: docMeta.path,
     doc_id: docMeta.doc_id,

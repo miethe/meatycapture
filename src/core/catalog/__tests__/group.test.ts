@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  groupByProject,
-  sortDocuments,
-  sortProjects,
-  createGroupedCatalog,
-} from '../group';
+import { groupByProject, sortDocuments, sortProjects, createGroupedCatalog } from '../group';
 import type { CatalogEntry, CatalogSort } from '../types';
 
 // ============================================================================
@@ -442,7 +437,10 @@ describe('sortProjects', () => {
     it('should handle project with null updated_at values', () => {
       const entries = [
         mockCatalogEntry('REQ-001', 'Test', 'app', 'App', 1, new Date('2025-12-16')),
-        { ...mockCatalogEntry('REQ-002', 'Test', 'api', 'API'), updated_at: null as unknown as Date },
+        {
+          ...mockCatalogEntry('REQ-002', 'Test', 'api', 'API'),
+          updated_at: null as unknown as Date,
+        },
       ] as CatalogEntry[];
 
       const projectIds = ['app', 'api'];

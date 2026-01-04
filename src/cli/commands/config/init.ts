@@ -146,11 +146,7 @@ async function createConfigFile(configDir: string): Promise<void> {
   try {
     await fs.writeFile(configFile, content, 'utf-8');
   } catch {
-    throw createError.permission(
-      configFile,
-      'write',
-      `Cannot write config file at ${configFile}`
-    );
+    throw createError.permission(configFile, 'write', `Cannot write config file at ${configFile}`);
   }
 }
 
