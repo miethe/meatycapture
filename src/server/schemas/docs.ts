@@ -13,7 +13,7 @@
  * All validators throw ValidationError with field-level details on failure.
  */
 
-import type { RequestLogDoc, ItemDraft, RequestLogItem, ItemIndexEntry } from '@core/models';
+import type { RequestLogDoc, ItemDraft, RequestLogItem, ItemIndexEntry, Note, NoteType } from '@core/models';
 import {
   validateString,
   validateStringArray,
@@ -50,7 +50,7 @@ function validateRequestLogItem(obj: unknown): RequestLogItem {
     priority: validateString(item.priority, 'priority'),
     status: validateString(item.status, 'status'),
     tags: validateStringArray(item.tags, 'tags'),
-    notes: Array.isArray(item.notes) ? item.notes : [],
+    notes: Array.isArray(item.notes) ? item.notes.map(validateNote) : [],
     created_at: validateDate(item.created_at, 'created_at'),
   };
 }
@@ -131,6 +131,32 @@ function validateDate(value: unknown, name: string): Date {
       [name]: 'Must be a Date, ISO string, or timestamp',
     },
   });
+}
+
+/**
+ * Validates a Note object from request body.
+ *
+ * Ensures all required fields are present and valid:
+ * - id: non-empty string
+ * - type: non-empty string (NoteType)
+ * - content: string (may be empty)
+ * - created_at: valid Date or ISO string
+ * - updated_at: valid Date or ISO string
+ *
+ * @param obj - Raw object to validate
+ * @returns Validated Note with Date objects
+ * @throws ValidationError if validation fails
+ */
+function validateNote(obj: unknown): Note {
+  const note = validateObject(obj, 'note');
+
+  return {
+    id: validateString(note.id, 'id'),
+    type: validateString(note.type, 'type') as NoteType,
+    content: typeof note.content === 'string' ? note.content : '',
+    created_at: validateDate(note.created_at, 'created_at'),
+    updated_at: validateDate(note.updated_at, 'updated_at'),
+  };
 }
 
 /**
@@ -255,7 +281,7 @@ export function validateItemDraftBody(body: unknown): ItemDraft {
     priority: validateString(obj.priority, 'priority'),
     status: validateString(obj.status, 'status'),
     tags: validateStringArray(obj.tags, 'tags'),
-    notes: Array.isArray(obj.notes) ? obj.notes : [],
+    notes: Array.isArray(obj.notes) ? obj.notes.map(validateNote) : [],
   };
 }
 

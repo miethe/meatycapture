@@ -80,3 +80,25 @@
   8. Updated 26 files with test fixtures and type assertions
 - **Commit(s)**: 97ea409
 - **Status**: RESOLVED
+
+---
+
+### Structured Notes Date Serialization Error
+
+**Issue**: Creating a new request log via web app fails with server error: "date.toISOString is not a function. (In 'date.toISOString()', 'date.toISOString' is undefined)"
+- **Location**: `src/server/schemas/docs.ts:53` and `src/server/schemas/docs.ts:258`
+- **Root Cause**: The `validateRequestLogItem` and `validateItemDraftBody` functions passed notes arrays through without validating/converting Note date fields. When notes come from JSON (via HTTP), `created_at` and `updated_at` fields are ISO strings, not Date objects. The serializer then failed when calling `.toISOString()` on these strings.
+- **Fix**: Added `validateNote` helper function that validates Note objects and converts date strings to Date objects using the existing `validateDate` function. Updated both `validateRequestLogItem` (line 53) and `validateItemDraftBody` (line 258) to map notes through this validator.
+- **Commit(s)**: dbe88af
+- **Status**: RESOLVED
+
+---
+
+### Existing Notes Not Appearing After Structured Notes Feature
+
+**Issue**: Existing notes no longer appearing in web app or CLI despite files still existing on disk
+- **Location**: `src/server/schemas/docs.ts`
+- **Root Cause**: Same root cause as above - when documents with notes were read from the server, the notes' date fields remained as strings instead of being converted to Date objects. This caused UI components (like NoteCard) that call `.toISOString()` on these dates to fail silently or display incorrectly.
+- **Fix**: Same fix as above - the `validateNote` helper now ensures all Note date fields are properly converted to Date objects during both read and write operations.
+- **Commit(s)**: dbe88af
+- **Status**: RESOLVED
