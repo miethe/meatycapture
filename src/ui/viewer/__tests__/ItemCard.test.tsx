@@ -142,7 +142,9 @@ describe('ItemCard', () => {
       const onDelete = vi.fn();
       render(<ItemCard {...defaultProps} onDelete={onDelete} />);
 
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-01/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-01/i,
+      });
       expect(deleteButton).toBeInTheDocument();
     });
 
@@ -189,7 +191,9 @@ describe('ItemCard', () => {
     it('delete button has correct aria-label', () => {
       render(<ItemCard {...defaultProps} onDelete={vi.fn()} />);
 
-      const deleteButton = screen.getByRole('button', { name: /delete item REQ-20251231-test-01/i });
+      const deleteButton = screen.getByRole('button', {
+        name: /delete item REQ-20251231-test-01/i,
+      });
       expect(deleteButton).toHaveAttribute('aria-label', 'Delete item REQ-20251231-test-01');
     });
   });
@@ -433,12 +437,154 @@ describe('ItemCard', () => {
     });
   });
 
-  describe('empty notes', () => {
-    it('does not render notes section when notes is empty array', () => {
+  describe('notes section', () => {
+    it('renders notes section with empty state when notes is empty array', () => {
       const item = createMockItem({ notes: [] });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      render(<ItemCard item={item} onCopyId={vi.fn()} />);
 
-      expect(container.querySelector('.viewer-item-notes')).not.toBeInTheDocument();
+      // NotesList renders with empty state and "Add Note" button
+      expect(screen.getByText('No notes yet')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /add note/i })).toBeInTheDocument();
+    });
+
+    it('renders notes section with NotesList when notes exist', () => {
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-20251231-test-01-01',
+            type: 'General',
+            content: 'Test note content',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+        ],
+      });
+      render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      // Should render NotesList with the note
+      expect(screen.getByText('Notes (1)')).toBeInTheDocument();
+      expect(screen.getByText('Test note content')).toBeInTheDocument();
+    });
+
+    it('opens NoteModal when Add Note button is clicked', async () => {
+      const user = userEvent.setup({ delay: null });
+      const item = createMockItem({ notes: [] });
+      render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const addButton = screen.getByRole('button', { name: /add note/i });
+      await user.click(addButton);
+
+      // NoteModal should be open
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      // Check for the modal title with the heading role
+      expect(screen.getByRole('heading', { name: 'Add Note' })).toBeInTheDocument();
+    });
+
+    it('opens NoteModal in edit mode when edit button is clicked', async () => {
+      const user = userEvent.setup({ delay: null });
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-20251231-test-01-01',
+            type: 'General',
+            content: 'Test note content',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+        ],
+      });
+      render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      // Click edit on the note - use aria-label which includes "General" for the note type
+      const noteEditButton = screen.getByRole('button', { name: /edit general note/i });
+      await user.click(noteEditButton);
+
+      // NoteModal should be open in edit mode
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Edit Note' })).toBeInTheDocument();
+    });
+
+    it('opens delete confirmation dialog when delete button is clicked', async () => {
+      const user = userEvent.setup({ delay: null });
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-20251231-test-01-01',
+            type: 'General',
+            content: 'Test note content',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+        ],
+      });
+      render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      // Click delete on the note - use aria-label which includes "General" for the note type
+      const noteDeleteButton = screen.getByRole('button', { name: /delete general note/i });
+      await user.click(noteDeleteButton);
+
+      // Confirmation dialog should be open
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Delete Note' })).toBeInTheDocument();
+    });
+
+    it('calls onNoteAdd callback when a note is added', async () => {
+      const user = userEvent.setup({ delay: null });
+      const onNoteAdd = vi.fn();
+      const item = createMockItem({ notes: [] });
+
+      // Mock crypto.randomUUID
+      vi.spyOn(crypto, 'randomUUID').mockReturnValue(
+        '12345678-1234-1234-1234-123456789012' as ReturnType<typeof crypto.randomUUID>
+      );
+
+      render(<ItemCard item={item} onCopyId={vi.fn()} onNoteAdd={onNoteAdd} />);
+
+      // Open modal
+      await user.click(screen.getByRole('button', { name: /add note/i }));
+
+      // Fill in content
+      const textarea = screen.getByPlaceholderText(/enter note content/i);
+      await user.type(textarea, 'New test note');
+
+      // Save
+      await user.click(screen.getByRole('button', { name: /save/i }));
+
+      expect(onNoteAdd).toHaveBeenCalledTimes(1);
+      expect(onNoteAdd).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'General',
+          content: 'New test note',
+        })
+      );
+    });
+
+    it('calls onNoteDelete callback when a note is deleted', async () => {
+      const user = userEvent.setup({ delay: null });
+      const onNoteDelete = vi.fn();
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-20251231-test-01-01',
+            type: 'General',
+            content: 'Test note content',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+        ],
+      });
+      render(<ItemCard item={item} onCopyId={vi.fn()} onNoteDelete={onNoteDelete} />);
+
+      // Click delete on the note - use aria-label which includes "General" for the note type
+      const noteDeleteButton = screen.getByRole('button', { name: /delete general note/i });
+      await user.click(noteDeleteButton);
+
+      // Confirm deletion - the confirm button in the dialog
+      const confirmButton = screen.getByRole('button', { name: 'Delete' });
+      await user.click(confirmButton);
+
+      expect(onNoteDelete).toHaveBeenCalledTimes(1);
+      expect(onNoteDelete).toHaveBeenCalledWith('NOTE-20251231-test-01-01');
     });
   });
 
@@ -525,6 +671,165 @@ describe('ItemCard', () => {
       expect(screen.getByText('Modified')).toBeInTheDocument();
       // Look for the modified date - Dec 15
       expect(screen.getByText(/Dec 15, 2025/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('note type filter', () => {
+    it('renders the note type filter dropdown', () => {
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'General',
+            content: 'General note',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+        ],
+      });
+      render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      // NoteTypeFilter button should be present with "All Types" label by default
+      const filterButton = screen.getByRole('button', { name: /filter by note type/i });
+      expect(filterButton).toBeInTheDocument();
+      expect(filterButton).toHaveTextContent('All Types');
+    });
+
+    it('shows all note types by default (empty filter = show all)', () => {
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'General',
+            content: 'General note content',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+          {
+            id: 'NOTE-02',
+            type: 'Bug Fix Attempt',
+            content: 'Bug fix note content',
+            created_at: new Date('2025-12-31T11:00:00Z'),
+            updated_at: new Date('2025-12-31T11:00:00Z'),
+          },
+          {
+            id: 'NOTE-03',
+            type: 'Validation',
+            content: 'Validation note content',
+            created_at: new Date('2025-12-31T12:00:00Z'),
+            updated_at: new Date('2025-12-31T12:00:00Z'),
+          },
+        ],
+      });
+      render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      // All notes should be visible
+      expect(screen.getByText('General note content')).toBeInTheDocument();
+      expect(screen.getByText('Bug fix note content')).toBeInTheDocument();
+      expect(screen.getByText('Validation note content')).toBeInTheDocument();
+      // Notes count should show all 3
+      expect(screen.getByText('Notes (3)')).toBeInTheDocument();
+    });
+
+    it('filters notes when a specific type is selected', async () => {
+      const user = userEvent.setup({ delay: null });
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'General',
+            content: 'General note content',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+          {
+            id: 'NOTE-02',
+            type: 'Bug Fix Attempt',
+            content: 'Bug fix note content',
+            created_at: new Date('2025-12-31T11:00:00Z'),
+            updated_at: new Date('2025-12-31T11:00:00Z'),
+          },
+          {
+            id: 'NOTE-03',
+            type: 'Validation',
+            content: 'Validation note content',
+            created_at: new Date('2025-12-31T12:00:00Z'),
+            updated_at: new Date('2025-12-31T12:00:00Z'),
+          },
+        ],
+      });
+      render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      // Open filter dropdown
+      const filterButton = screen.getByRole('button', { name: /filter by note type/i });
+      await user.click(filterButton);
+
+      // Click "All Types" to deselect all, then select only "General"
+      // First click on "All Types" (which is currently selected) - this keeps all selected
+      // Then click on "Bug Fix Attempt" to deselect it
+      const bugFixOption = screen.getByRole('option', { name: /bug fix attempt/i });
+      await user.click(bugFixOption);
+
+      // Now click on "Validation" to deselect it
+      const validationOption = screen.getByRole('option', { name: /validation/i });
+      await user.click(validationOption);
+
+      // Now click on "Other" to deselect it
+      const otherOption = screen.getByRole('option', { name: /^other$/i });
+      await user.click(otherOption);
+
+      // Close dropdown by clicking outside or pressing Escape
+      await user.keyboard('{Escape}');
+
+      // Only General notes should be visible
+      expect(screen.getByText('General note content')).toBeInTheDocument();
+      expect(screen.queryByText('Bug fix note content')).not.toBeInTheDocument();
+      expect(screen.queryByText('Validation note content')).not.toBeInTheDocument();
+
+      // Filter button should show "General"
+      expect(filterButton).toHaveTextContent('General');
+    });
+
+    it('filter dropdown is keyboard accessible', async () => {
+      const user = userEvent.setup({ delay: null });
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'General',
+            content: 'General note content',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+        ],
+      });
+      render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      // Focus the filter button and open with Enter
+      const filterButton = screen.getByRole('button', { name: /filter by note type/i });
+      filterButton.focus();
+      await user.keyboard('{Enter}');
+
+      // Dropdown should be open - listbox should be present
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // Navigate with arrow keys
+      await user.keyboard('{ArrowDown}');
+
+      // Close with Escape
+      await user.keyboard('{Escape}');
+
+      // Dropdown should be closed
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    it('renders filter dropdown even when notes list is empty', () => {
+      const item = createMockItem({ notes: [] });
+      render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      // Filter should still be present in empty state
+      const filterButton = screen.getByRole('button', { name: /filter by note type/i });
+      expect(filterButton).toBeInTheDocument();
     });
   });
 });

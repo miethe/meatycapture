@@ -68,6 +68,8 @@ export interface NotesListProps {
   notes: Note[];
   /** Optional filter for note types - if undefined or empty, shows all */
   activeFilter?: NoteType[];
+  /** Optional slot for rendering filter controls in the header */
+  filterSlot?: React.ReactNode;
   /** Callback when add note button is clicked */
   onAddNote: () => void;
   /** Callback when edit button is clicked on a note */
@@ -116,6 +118,7 @@ function groupNotesByType(notes: Note[]): Map<NoteType, Note[]> {
 export function NotesList({
   notes,
   activeFilter,
+  filterSlot,
   onAddNote,
   onEditNote,
   onDeleteNote,
@@ -158,15 +161,18 @@ export function NotesList({
       <section className="notes-list glass" aria-label="Notes">
         <div className="notes-list__header">
           <h3 className="notes-list__title">Notes</h3>
-          <button
-            type="button"
-            className="button primary small notes-list__add-button"
-            onClick={onAddNote}
-            aria-label="Add note"
-          >
-            <PlusIcon />
-            <span>Add Note</span>
-          </button>
+          <div className="notes-list__header-actions">
+            {filterSlot}
+            <button
+              type="button"
+              className="button primary small notes-list__add-button"
+              onClick={onAddNote}
+              aria-label="Add note"
+            >
+              <PlusIcon />
+              <span>Add Note</span>
+            </button>
+          </div>
         </div>
         <div className="notes-list__empty">
           <p className="notes-list__empty-text">No notes yet</p>
@@ -180,18 +186,21 @@ export function NotesList({
 
   return (
     <section className="notes-list glass" aria-label="Notes">
-      {/* Header with add button */}
+      {/* Header with filter and add button */}
       <div className="notes-list__header">
         <h3 className="notes-list__title">Notes ({filteredNotes.length})</h3>
-        <button
-          type="button"
-          className="button primary small notes-list__add-button"
-          onClick={onAddNote}
-          aria-label="Add note"
-        >
-          <PlusIcon />
-          <span>Add Note</span>
-        </button>
+        <div className="notes-list__header-actions">
+          {filterSlot}
+          <button
+            type="button"
+            className="button primary small notes-list__add-button"
+            onClick={onAddNote}
+            aria-label="Add note"
+          >
+            <PlusIcon />
+            <span>Add Note</span>
+          </button>
+        </div>
       </div>
 
       {/* Grouped notes */}

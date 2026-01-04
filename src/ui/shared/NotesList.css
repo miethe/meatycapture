@@ -36,6 +36,13 @@
   color: var(--color-text);
 }
 
+.notes-list__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
 .notes-list__add-button {
   display: inline-flex;
   align-items: center;
@@ -206,9 +213,15 @@
     gap: var(--spacing-sm);
   }
 
+  .notes-list__header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
   .notes-list__add-button {
-    width: 100%;
+    flex: 1;
     justify-content: center;
+    min-width: 120px;
   }
 
   .notes-list__group-header {

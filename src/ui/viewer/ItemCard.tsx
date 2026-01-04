@@ -2,20 +2,24 @@
  * ItemCard Component
  *
  * Displays a single request log item with all its fields.
- * Shows item metadata, tags, and markdown-rendered notes.
+ * Shows item metadata, tags, and structured notes with CRUD operations.
  *
  * Features:
  * - Copy item ID to clipboard
  * - Display all item fields (type, domain, context, priority, status)
  * - Tags as chips
- * - Markdown rendering for notes
+ * - Structured notes with NotesList component (grouped by type)
+ * - Add/Edit/Delete notes with modal and confirmation dialog
  * - Accessible copy feedback
  * - Edit and Delete action buttons
  */
 
-import React, { useState } from 'react';
-import type { RequestLogItem } from '@core/models';
-import { MarkdownRenderer } from './MarkdownRenderer';
+import React, { useState, useCallback, useEffect } from 'react';
+import type { RequestLogItem, Note, NoteType } from '@core/models';
+import { NotesList } from '@ui/shared/NotesList';
+import { NoteTypeFilter } from '@ui/shared/NoteTypeFilter';
+import { NoteModal } from '@ui/shared/NoteModal';
+import { ConfirmationDialog } from '@ui/shared/ConfirmationDialog';
 
 /**
  * Edit icon SVG component (pencil)
@@ -75,19 +79,51 @@ export interface ItemCardProps {
 
   /** Callback when delete button is clicked (optional) */
   onDelete?: (item: RequestLogItem) => void;
+
+  /** Callback when a note is added (optional - for persistence) */
+  onNoteAdd?: (note: Note) => void;
+
+  /** Callback when a note is edited (optional - for persistence) */
+  onNoteEdit?: (note: Note) => void;
+
+  /** Callback when a note is deleted (optional - for persistence) */
+  onNoteDelete?: (noteId: string) => void;
 }
 
 /**
  * ItemCard Component
  *
  * Card layout for displaying a single request log item.
- * Includes all metadata, tags, and notes with markdown rendering.
+ * Includes all metadata, tags, and structured notes with CRUD operations.
  *
  * @param props - ItemCardProps
  * @returns ItemCard component
  */
-export function ItemCard({ item, onCopyId, onEdit, onDelete }: ItemCardProps): React.JSX.Element {
+export function ItemCard({
+  item,
+  onCopyId,
+  onEdit,
+  onDelete,
+  onNoteAdd,
+  onNoteEdit,
+  onNoteDelete,
+}: ItemCardProps): React.JSX.Element {
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+
+  // Note type filter state (empty array = show all types)
+  const [noteTypeFilter, setNoteTypeFilter] = useState<NoteType[]>([]);
+
+  // Note management state
+  const [localNotes, setLocalNotes] = useState<Note[]>(item.notes || []);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
+
+  // Sync local notes when item.notes changes from parent
+  useEffect(() => {
+    setLocalNotes(item.notes || []);
+  }, [item.notes]);
 
   /**
    * Handle edit button click
@@ -128,6 +164,120 @@ export function ItemCard({ item, onCopyId, onEdit, onDelete }: ItemCardProps): R
       }, 2000);
     }
   };
+
+  // -------------------------------------------------------------------------
+  // Note CRUD handlers
+  // -------------------------------------------------------------------------
+
+  /**
+   * Open NoteModal for adding a new note
+   */
+  const handleAddNote = useCallback(() => {
+    setNoteToEdit(null);
+    setIsNoteModalOpen(true);
+  }, []);
+
+  /**
+   * Open NoteModal for editing an existing note
+   */
+  const handleEditNote = useCallback((note: Note) => {
+    setNoteToEdit(note);
+    setIsNoteModalOpen(true);
+  }, []);
+
+  /**
+   * Open delete confirmation dialog for a note
+   */
+  const handleDeleteNoteClick = useCallback((note: Note) => {
+    setNoteToDelete(note);
+    setIsDeleteConfirmOpen(true);
+  }, []);
+
+  /**
+   * Handle saving a note from NoteModal (add or edit)
+   */
+  const handleNoteSave = useCallback(
+    (noteData: Omit<Note, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
+      const now = new Date();
+
+      if (noteToEdit && noteData.id) {
+        // Edit mode: update existing note
+        const updatedNote: Note = {
+          ...noteToEdit,
+          type: noteData.type,
+          content: noteData.content,
+          updated_at: now,
+        };
+
+        // Update local state immediately for responsive UX
+        setLocalNotes((prev) =>
+          prev.map((n) => (n.id === updatedNote.id ? updatedNote : n))
+        );
+
+        // Call persistence callback if provided
+        if (onNoteEdit) {
+          onNoteEdit(updatedNote);
+        }
+      } else {
+        // Add mode: create new note with temporary ID
+        const newNote: Note = {
+          id: crypto.randomUUID(),
+          type: noteData.type,
+          content: noteData.content,
+          created_at: now,
+          updated_at: now,
+        };
+
+        // Update local state immediately for responsive UX
+        setLocalNotes((prev) => [...prev, newNote]);
+
+        // Call persistence callback if provided
+        if (onNoteAdd) {
+          onNoteAdd(newNote);
+        }
+      }
+
+      // Close modal and reset edit state
+      setIsNoteModalOpen(false);
+      setNoteToEdit(null);
+    },
+    [noteToEdit, onNoteAdd, onNoteEdit]
+  );
+
+  /**
+   * Handle canceling the NoteModal
+   */
+  const handleNoteModalCancel = useCallback(() => {
+    setIsNoteModalOpen(false);
+    setNoteToEdit(null);
+  }, []);
+
+  /**
+   * Handle confirming note deletion
+   */
+  const handleDeleteNoteConfirm = useCallback(() => {
+    if (noteToDelete) {
+      // Update local state immediately for responsive UX
+      setLocalNotes((prev) => prev.filter((n) => n.id !== noteToDelete.id));
+
+      // Call persistence callback if provided
+      if (onNoteDelete) {
+        onNoteDelete(noteToDelete.id);
+      }
+    }
+
+    // Close dialog and reset state
+    setIsDeleteConfirmOpen(false);
+    setNoteToDelete(null);
+  }, [noteToDelete, onNoteDelete]);
+
+  /**
+   * Handle canceling note deletion
+   */
+  const handleDeleteNoteCancel = useCallback(() => {
+    setIsDeleteConfirmOpen(false);
+    setNoteToDelete(null);
+  }, []);
 
   /**
    * Format date for display
@@ -299,18 +449,46 @@ export function ItemCard({ item, onCopyId, onEdit, onDelete }: ItemCardProps): R
         </div>
       )}
 
-      {/* Item Notes (Markdown) - display all notes concatenated */}
-      {item.notes && item.notes.length > 0 && (
-        <div className="viewer-item-notes">
-          <div className="viewer-item-notes-label">
-            <span className="meta-label">Notes ({item.notes.length})</span>
-          </div>
-          <MarkdownRenderer
-            content={item.notes.map(n => n.content).join('\n\n---\n\n')}
-            className="viewer-item-notes-content"
-          />
-        </div>
-      )}
+      {/* Item Notes - Structured Notes with NotesList */}
+      <div className="viewer-item-notes">
+        <NotesList
+          notes={localNotes}
+          activeFilter={noteTypeFilter}
+          filterSlot={
+            <NoteTypeFilter
+              value={noteTypeFilter}
+              onChange={setNoteTypeFilter}
+            />
+          }
+          onAddNote={handleAddNote}
+          onEditNote={handleEditNote}
+          onDeleteNote={handleDeleteNoteClick}
+        />
+      </div>
+
+      {/* NoteModal for add/edit operations */}
+      <NoteModal
+        isOpen={isNoteModalOpen}
+        {...(noteToEdit ? { initialNote: noteToEdit } : {})}
+        onSave={handleNoteSave}
+        onCancel={handleNoteModalCancel}
+      />
+
+      {/* Delete confirmation dialog */}
+      <ConfirmationDialog
+        isOpen={isDeleteConfirmOpen}
+        title="Delete Note"
+        message={
+          noteToDelete
+            ? `Are you sure you want to delete this ${noteToDelete.type.toLowerCase()} note? This action cannot be undone.`
+            : 'Are you sure you want to delete this note?'
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={handleDeleteNoteConfirm}
+        onCancel={handleDeleteNoteCancel}
+        isDangerous={true}
+      />
     </div>
   );
 }

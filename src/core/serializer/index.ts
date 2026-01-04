@@ -7,10 +7,21 @@
  * - Tag aggregation (unique sorted list from all items)
  * - Item count auto-update
  * - Backup creation before writes
+ * - Item-level update operations (notes, metadata)
  */
 
 import type { RequestLogDoc, RequestLogItem, ItemIndexEntry, Note, NoteType } from '@core/models';
 import { NOTE_TYPE_LABELS, isNoteType } from '@core/models';
+
+// Re-export item update utilities
+export {
+  updateItemNotes,
+  type UpdateItemNotesOptions,
+  DocumentNotFoundError,
+  ItemNotFoundError,
+  DocumentParseError,
+  FileWriteError,
+} from './item-update';
 
 /**
  * Serializes a RequestLogDoc to markdown format with YAML frontmatter.
@@ -229,9 +240,7 @@ function serializeNotes(notes: Note[] | undefined): string {
   }
 
   // Sort notes by created_at ascending (oldest first)
-  const sortedNotes = [...notes].sort(
-    (a, b) => a.created_at.getTime() - b.created_at.getTime()
-  );
+  const sortedNotes = [...notes].sort((a, b) => a.created_at.getTime() - b.created_at.getTime());
 
   const lines: string[] = ['', '#### Notes', ''];
 
@@ -503,7 +512,12 @@ function parseItems(body: string): RequestLogItem[] {
 
     const type = metadataMatch[1]?.trim() || '';
     const domainStr = metadataMatch[2]?.trim() || '';
-    const domain = domainStr ? domainStr.split(',').map((d) => d.trim()).filter((d) => d.length > 0) : [];
+    const domain = domainStr
+      ? domainStr
+          .split(',')
+          .map((d) => d.trim())
+          .filter((d) => d.length > 0)
+      : [];
     const priority = metadataMatch[3]?.trim() || '';
     const status = metadataMatch[4]?.trim() || '';
 
@@ -522,7 +536,12 @@ function parseItems(body: string): RequestLogItem[] {
     // Parse context line
     const contextMatch = content.match(/\*\*Context:\*\*\s*([^\n]+)/);
     const contextStr = contextMatch?.[1]?.trim() || '';
-    const context = contextStr ? contextStr.split(',').map((c) => c.trim()).filter((c) => c.length > 0) : [];
+    const context = contextStr
+      ? contextStr
+          .split(',')
+          .map((c) => c.trim())
+          .filter((c) => c.length > 0)
+      : [];
 
     // Extract created_at from item ID (REQ-YYYYMMDD-...)
     // For MVP, use a default timestamp if not parseable
@@ -531,7 +550,7 @@ function parseItems(body: string): RequestLogItem[] {
     const created_at = dateStr ? parseDateFromId(dateStr) : new Date();
 
     // Parse modified_at, defaulting to created_at for backward compatibility
-    const modified_at = modifiedStr ? parseDate(modifiedStr) ?? created_at : created_at;
+    const modified_at = modifiedStr ? (parseDate(modifiedStr) ?? created_at) : created_at;
 
     // Parse structured notes from #### Notes section
     // Returns empty array if no notes section exists (backward compatibility)

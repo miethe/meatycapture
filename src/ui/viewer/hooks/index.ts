@@ -36,8 +36,7 @@ export { useItemDelete } from './useItemDelete';
 export type { UseItemDeleteResult } from './useItemDelete';
 
 export { useItemEdit } from './useItemEdit';
-export type {
-  UseItemEditResult,
-  ItemEditModalProps,
-  ItemEditFormHookProps,
-} from './useItemEdit';
+export type { UseItemEditResult, ItemEditModalProps, ItemEditFormHookProps } from './useItemEdit';
+
+export { useNoteOperations } from './useNoteOperations';
+export type { UseNoteOperationsResult, UseNoteOperationsOptions } from './useNoteOperations';
