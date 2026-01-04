@@ -13,7 +13,7 @@
  */
 
 import React, { useState, useCallback, useMemo, useId } from 'react';
-import type { RequestLogItem } from '@core/models';
+import type { RequestLogItem, Note } from '@core/models';
 import { DropdownWithAdd } from '../shared/DropdownWithAdd';
 import { MultiSelectCombobox } from '../shared/MultiSelectCombobox';
 import { MultiSelectWithAdd } from '../shared/MultiSelectWithAdd';
@@ -82,7 +82,8 @@ export function ItemEditForm({
   const [priority, setPriority] = useState(item.priority);
   const [status, setStatus] = useState(item.status);
   const [tags, setTags] = useState<string[]>(item.tags);
-  const [notes, setNotes] = useState(item.notes);
+  // Notes are now Note[] - keep them unchanged for MVP (full notes UI in Phase 3)
+  const [notes] = useState<Note[]>(item.notes || []);
 
   // Validation errors
   const [errors, setErrors] = useState<FormErrors>({});
@@ -283,12 +284,8 @@ export function ItemEditForm({
     []
   );
 
-  /**
-   * Handle notes change
-   */
-  const handleNotesChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNotes(event.target.value);
-  }, []);
+  // Notes editing is disabled for MVP - full UI comes in Phase 3
+  // Notes are preserved as-is when saving
 
   return (
     <form
@@ -403,27 +400,27 @@ export function ItemEditForm({
         helperText="Keywords for categorization and search"
       />
 
-      {/* Notes Field */}
-      <div className="field-container">
-        <div className="form-field-label-row">
-          <label className="field-label" htmlFor={`${formId}-notes`}>
-            Notes
-          </label>
+      {/* Notes Field - Read-only display for MVP (editing comes in Phase 3) */}
+      {notes.length > 0 && (
+        <div className="field-container">
+          <div className="form-field-label-row">
+            <label className="field-label" htmlFor={`${formId}-notes`}>
+              Notes ({notes.length})
+            </label>
+          </div>
+          <div className="form-field-helper" id={`${formId}-notes-helper`}>
+            Notes editing will be available in a future update
+          </div>
+          <div
+            id={`${formId}-notes`}
+            className="input-base item-edit-notes"
+            style={{ minHeight: '100px', whiteSpace: 'pre-wrap', opacity: 0.7 }}
+            aria-describedby={`${formId}-notes-helper`}
+          >
+            {notes.map(n => n.content).join('\n\n---\n\n')}
+          </div>
         </div>
-        <div className="form-field-helper" id={`${formId}-notes-helper`}>
-          Detailed description, problem/goal, or any additional information
-        </div>
-        <textarea
-          id={`${formId}-notes`}
-          className="input-base item-edit-notes"
-          value={notes}
-          onChange={handleNotesChange}
-          placeholder="Enter notes (supports Markdown)..."
-          disabled={isSaving}
-          rows={6}
-          aria-describedby={`${formId}-notes-helper`}
-        />
-      </div>
+      )}
 
       {/* Form Actions */}
       <div className="item-edit-form-actions">

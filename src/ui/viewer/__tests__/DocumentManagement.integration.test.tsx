@@ -47,7 +47,7 @@ function createMockDocument(overrides: Partial<RequestLogDoc> = {}): RequestLogD
         priority: 'medium',
         status: 'triage',
         tags: ['tag1'],
-        notes: 'Test notes',
+        notes: [],
         created_at: new Date('2025-12-31T09:00:00Z'),
       },
       {
@@ -59,7 +59,7 @@ function createMockDocument(overrides: Partial<RequestLogDoc> = {}): RequestLogD
         priority: 'high',
         status: 'backlog',
         tags: ['tag2'],
-        notes: 'Test notes 2',
+        notes: [],
         created_at: new Date('2025-12-31T10:00:00Z'),
       },
     ],

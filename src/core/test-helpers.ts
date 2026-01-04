@@ -6,7 +6,39 @@
  * and the ability to override specific fields for edge case testing.
  */
 
-import type { RequestLogItem, RequestLogDoc } from './models';
+import type { RequestLogItem, RequestLogDoc, Note } from './models';
+import { NOTE_TYPES } from './models';
+
+/**
+ * Creates a test Note with sensible defaults.
+ *
+ * @param overrides - Partial object to override default values
+ * @returns Complete Note for testing
+ *
+ * @example
+ * ```typescript
+ * // Create with defaults
+ * const note = createTestNote();
+ *
+ * // Create with custom values
+ * const customNote = createTestNote({
+ *   type: NOTE_TYPES.BugFixAttempt,
+ *   content: 'Custom content here'
+ * });
+ * ```
+ */
+export function createTestNote(overrides?: Partial<Note>): Note {
+  const now = new Date('2025-12-03T10:00:00Z');
+
+  return {
+    id: 'NOTE-20251203-test-project-01-01',
+    type: NOTE_TYPES.General,
+    content: 'Test note content with **markdown** support.',
+    created_at: now,
+    updated_at: now,
+    ...overrides,
+  };
+}
 
 /**
  * Creates a test RequestLogItem with sensible defaults.
@@ -39,7 +71,7 @@ export function createTestItem(overrides?: Partial<RequestLogItem>): RequestLogI
     priority: 'medium',
     status: 'triage',
     tags: ['test', 'example'],
-    notes: 'Test notes describing the problem or goal.',
+    notes: [],
     created_at: now,
     ...overrides,
   };

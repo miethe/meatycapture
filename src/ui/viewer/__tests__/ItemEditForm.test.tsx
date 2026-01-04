@@ -24,7 +24,7 @@ const createMockItem = (overrides: Partial<RequestLogItem> = {}): RequestLogItem
   priority: 'medium',
   status: 'triage',
   tags: ['ux', 'api'],
-  notes: 'Test notes content',
+  notes: [],
   created_at: new Date('2025-12-31T10:00:00Z'),
   ...overrides,
 });
@@ -85,8 +85,8 @@ describe('ItemEditForm', () => {
       // Tags field
       expect(screen.getByText('Tags')).toBeInTheDocument();
 
-      // Notes field
-      expect(screen.getByLabelText(/notes/i)).toBeInTheDocument();
+      // Notes field is now read-only display (only shown when notes exist)
+      // With empty notes array, no notes section should render
 
       // Action buttons
       expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
@@ -96,7 +96,7 @@ describe('ItemEditForm', () => {
     it('initializes form with item values', () => {
       const item = createMockItem({
         title: 'My Test Title',
-        notes: 'My test notes',
+        notes: [],
       });
 
       render(<ItemEditForm {...createDefaultProps({ item })} />);
@@ -105,9 +105,8 @@ describe('ItemEditForm', () => {
       const titleInput = screen.getByLabelText(/title/i);
       expect(titleInput).toHaveValue('My Test Title');
 
-      // Check notes textarea value
-      const notesTextarea = screen.getByLabelText(/notes/i);
-      expect(notesTextarea).toHaveValue('My test notes');
+      // Notes are now read-only display for MVP - verify no notes section when empty
+      expect(screen.queryByText(/notes editing/i)).not.toBeInTheDocument();
     });
 
     it('shows required indicator on title field', () => {
@@ -270,8 +269,7 @@ describe('ItemEditForm', () => {
       const titleInput = screen.getByLabelText(/title/i);
       expect(titleInput).toBeDisabled();
 
-      const notesTextarea = screen.getByLabelText(/notes/i);
-      expect(notesTextarea).toBeDisabled();
+      // Notes field is now read-only display - no textarea to disable
 
       const cancelButton = screen.getByRole('button', { name: /cancel/i });
       expect(cancelButton).toBeDisabled();
@@ -287,28 +285,15 @@ describe('ItemEditForm', () => {
   });
 
   describe('notes field', () => {
-    it('updates notes value on change', async () => {
-      const user = userEvent.setup({ delay: null });
-
-      render(<ItemEditForm {...createDefaultProps()} />);
-
-      const notesTextarea = screen.getByLabelText(/notes/i);
-      await user.clear(notesTextarea);
-      await user.type(notesTextarea, 'Updated notes content');
-
-      expect(notesTextarea).toHaveValue('Updated notes content');
-    });
-
-    it('preserves notes in saved item', async () => {
+    // Notes editing is disabled for MVP - notes are now Note[] and read-only
+    // Full notes UI will be implemented in Phase 3
+    it('preserves notes array in saved item', async () => {
       const user = userEvent.setup({ delay: null });
       const onSave = vi.fn();
 
       render(<ItemEditForm {...createDefaultProps({ onSave })} />);
 
-      const notesTextarea = screen.getByLabelText(/notes/i);
-      await user.clear(notesTextarea);
-      await user.type(notesTextarea, 'New notes');
-
+      // Just submit the form - notes should be preserved as empty array
       const saveButton = screen.getByRole('button', { name: /save changes/i });
       await user.click(saveButton);
 
@@ -318,7 +303,8 @@ describe('ItemEditForm', () => {
 
       const savedItem = onSave.mock.calls[0]?.[0] as RequestLogItem | undefined;
       expect(savedItem).toBeDefined();
-      expect(savedItem!.notes).toBe('New notes');
+      // Notes should be preserved as the original empty array
+      expect(Array.isArray(savedItem!.notes)).toBe(true);
     });
   });
 
@@ -379,12 +365,13 @@ describe('ItemEditForm', () => {
       ).toBeInTheDocument();
     });
 
-    it('displays helper text for notes field', () => {
+    it('does not display notes field when notes array is empty', () => {
       render(<ItemEditForm {...createDefaultProps()} />);
 
+      // Notes section only renders when notes array has items
       expect(
-        screen.getByText(/detailed description, problem\/goal/i)
-      ).toBeInTheDocument();
+        screen.queryByText(/notes editing/i)
+      ).not.toBeInTheDocument();
     });
   });
 

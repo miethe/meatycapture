@@ -8,6 +8,7 @@
  * - ItemDraft: Request log item being created
  * - RequestLogItem: Persisted item in request-log document
  * - RequestLogDoc: Complete request-log document structure
+ * - Note: Structured note attached to a RequestLogItem
  */
 
 /**
@@ -104,8 +105,11 @@ export interface ItemDraft {
   status: string;
   /** Array of tag strings for categorization */
   tags: string[];
-  /** Freeform notes/description with problem/goal details */
-  notes: string;
+  /**
+   * Structured notes attached to this item.
+   * @default []
+   */
+  notes: Note[];
 }
 
 /**
@@ -130,8 +134,12 @@ export interface RequestLogItem {
   status: string;
   /** Array of tag strings for categorization */
   tags: string[];
-  /** Freeform notes/description with problem/goal details */
-  notes: string;
+  /**
+   * Structured notes attached to this item.
+   * Optional for backward compatibility with existing documents that have notes: string.
+   * @default []
+   */
+  notes?: Note[];
   /** Timestamp when item was created */
   created_at: Date;
   /** Timestamp when item was last modified (optional for backward compatibility) */
@@ -189,6 +197,233 @@ export const DEFAULT_FIELD_OPTIONS = {
   status: ['triage', 'backlog', 'planned', 'in-progress', 'done', 'wontfix'],
 } as const;
 
+// ============================================================================
+// NoteType: Structured Notes Feature
+// ============================================================================
+
+/**
+ * Valid note types for categorizing observations.
+ * Using const object pattern (not TypeScript enum) for tree-shaking.
+ */
+export const NOTE_TYPES = {
+  General: 'General',
+  BugFixAttempt: 'Bug Fix Attempt',
+  Validation: 'Validation',
+  Other: 'Other',
+} as const;
+
+/** Type union of all valid note types */
+export type NoteType = (typeof NOTE_TYPES)[keyof typeof NOTE_TYPES];
+
+/**
+ * Type guard to check if a value is a valid NoteType.
+ * @param value - Value to check
+ * @returns True if value is a valid NoteType
+ */
+export function isNoteType(value: unknown): value is NoteType {
+  return Object.values(NOTE_TYPES).includes(value as NoteType);
+}
+
+/**
+ * Human-readable labels for each note type.
+ * Used for dropdown display and card badges.
+ */
+export const NOTE_TYPE_LABELS: Record<NoteType, string> = {
+  [NOTE_TYPES.General]: 'General',
+  [NOTE_TYPES.BugFixAttempt]: 'Bug Fix Attempt',
+  [NOTE_TYPES.Validation]: 'Validation',
+  [NOTE_TYPES.Other]: 'Other',
+};
+
+/**
+ * CSS color classes for each note type badge.
+ * Matches glass/x-morphism design system.
+ */
+export const NOTE_TYPE_COLORS: Record<NoteType, string> = {
+  [NOTE_TYPES.General]: 'note-type-general',
+  [NOTE_TYPES.BugFixAttempt]: 'note-type-bugfix',
+  [NOTE_TYPES.Validation]: 'note-type-validation',
+  [NOTE_TYPES.Other]: 'note-type-other',
+};
+
+/**
+ * Note types in display order for dropdowns.
+ */
+export const NOTE_TYPE_OPTIONS: readonly NoteType[] = [
+  NOTE_TYPES.General,
+  NOTE_TYPES.BugFixAttempt,
+  NOTE_TYPES.Validation,
+  NOTE_TYPES.Other,
+] as const;
+
+// ============================================================================
+// Note: Structured Notes Entity
+// ============================================================================
+
+/**
+ * Maximum allowed length for note content in characters.
+ * Prevents excessive storage and ensures reasonable UI display.
+ */
+export const NOTE_MAX_CONTENT_LENGTH = 10000;
+
+/**
+ * Structured note attached to a RequestLogItem.
+ * Notes allow adding typed observations (General, Bug Fix Attempt, Validation, Other)
+ * with markdown content and timestamps for tracking.
+ */
+export interface Note {
+  /** Unique note ID (e.g., 'NOTE-20260101-meatycapture-01-01') */
+  id: string;
+  /** Type of note - categorizes the observation */
+  type: NoteType;
+  /** Note content in markdown format (max 10,000 characters) */
+  content: string;
+  /** When the note was created */
+  created_at: Date;
+  /** When the note was last updated (same as created_at if never edited) */
+  updated_at: Date;
+}
+
+/**
+ * Type guard to check if an object is a valid Note.
+ * Validates all required fields and their types.
+ * @param obj - Object to validate
+ * @returns True if obj is a valid Note
+ */
+export function isNote(obj: unknown): obj is Note {
+  if (!obj || typeof obj !== 'object') return false;
+  const n = obj as Partial<Note>;
+  return (
+    typeof n.id === 'string' &&
+    typeof n.type === 'string' &&
+    isNoteType(n.type) &&
+    typeof n.content === 'string' &&
+    n.content.length <= NOTE_MAX_CONTENT_LENGTH &&
+    n.created_at instanceof Date &&
+    n.updated_at instanceof Date
+  );
+}
+
+/**
+ * Validates a Note object and returns an array of error messages.
+ * Returns empty array if the note is valid.
+ * @param note - Note object to validate
+ * @returns Array of validation error messages (empty if valid)
+ */
+export function validateNote(note: Note): string[] {
+  const errors: string[] = [];
+
+  if (!note.id || typeof note.id !== 'string') {
+    errors.push('Note ID is required and must be a string');
+  } else if (note.id.trim().length === 0) {
+    errors.push('Note ID cannot be empty');
+  }
+
+  if (!note.type || typeof note.type !== 'string') {
+    errors.push('Note type is required and must be a string');
+  } else if (!isNoteType(note.type)) {
+    errors.push(`Invalid note type: ${note.type}. Must be one of: ${NOTE_TYPE_OPTIONS.join(', ')}`);
+  }
+
+  if (typeof note.content !== 'string') {
+    errors.push('Note content must be a string');
+  } else if (note.content.length > NOTE_MAX_CONTENT_LENGTH) {
+    errors.push(
+      `Note content exceeds maximum length of ${NOTE_MAX_CONTENT_LENGTH} characters (current: ${note.content.length})`
+    );
+  }
+
+  if (!(note.created_at instanceof Date)) {
+    errors.push('Note created_at must be a valid Date');
+  } else if (isNaN(note.created_at.getTime())) {
+    errors.push('Note created_at is an invalid Date');
+  }
+
+  if (!(note.updated_at instanceof Date)) {
+    errors.push('Note updated_at must be a valid Date');
+  } else if (isNaN(note.updated_at.getTime())) {
+    errors.push('Note updated_at is an invalid Date');
+  }
+
+  return errors;
+}
+
+// ============================================================================
+// Legacy Notes Conversion
+// ============================================================================
+
+/**
+ * Formats a date as YYYYMMDD string for ID generation.
+ * @param date - Date to format
+ * @returns Formatted date string (e.g., '20260103')
+ */
+function formatDateForId(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+/**
+ * Extracts the item number from an item ID.
+ * @param itemId - Item ID in format REQ-YYYYMMDD-slug-XX
+ * @returns Two-digit item number string (e.g., '01'), or '01' if parsing fails
+ */
+function extractItemNumber(itemId: string): string {
+  // Match the last two digits after final hyphen
+  const match = itemId.match(/-(\d{2})$/);
+  return match && match[1] ? match[1] : '01';
+}
+
+/**
+ * Converts old-format notes (string) to new format (Note[]).
+ * Used during parsing of legacy documents that have notes as a plain string.
+ *
+ * @param notesString - Old string notes field
+ * @param itemId - Parent item ID for generating note IDs
+ * @param projectSlug - Project slug for note ID generation
+ * @returns Note array (empty if notesString is empty/undefined)
+ *
+ * @example
+ * ```typescript
+ * const notes = convertLegacyNotes(
+ *   'Legacy content here',
+ *   'REQ-20260101-test-01',
+ *   'test'
+ * );
+ * // Returns: [{
+ * //   id: 'NOTE-20260103-test-01-01',
+ * //   type: 'General',
+ * //   content: 'Legacy content here',
+ * //   created_at: <now>,
+ * //   updated_at: <now>
+ * // }]
+ * ```
+ */
+export function convertLegacyNotes(
+  notesString: string | undefined,
+  itemId: string,
+  projectSlug: string
+): Note[] {
+  if (!notesString || notesString.trim() === '') {
+    return [];
+  }
+
+  // Create single "General" note with legacy content
+  const now = new Date();
+  const itemNumber = extractItemNumber(itemId);
+
+  return [
+    {
+      id: `NOTE-${formatDateForId(now)}-${projectSlug}-${itemNumber}-01`,
+      type: NOTE_TYPES.General,
+      content: notesString.trim(),
+      created_at: now,
+      updated_at: now,
+    },
+  ];
+}
+
 /**
  * Type guard to check if an object is a valid Project
  */
@@ -227,7 +462,8 @@ export function isFieldOption(obj: unknown): obj is FieldOption {
 }
 
 /**
- * Type guard to check if an object is a valid ItemDraft
+ * Type guard to check if an object is a valid ItemDraft.
+ * Notes must be an array of valid Note objects.
  */
 export function isItemDraft(obj: unknown): obj is ItemDraft {
   if (!obj || typeof obj !== 'object') return false;
@@ -243,17 +479,24 @@ export function isItemDraft(obj: unknown): obj is ItemDraft {
     typeof i.status === 'string' &&
     Array.isArray(i.tags) &&
     i.tags.every((t) => typeof t === 'string') &&
-    typeof i.notes === 'string'
+    Array.isArray(i.notes) &&
+    i.notes.every((n) => isNote(n))
   );
 }
 
 /**
- * Type guard to check if an object is a valid RequestLogItem
- * Note: `modified_at` is optional for backward compatibility (existing docs may not have it)
+ * Type guard to check if an object is a valid RequestLogItem.
+ * Notes can be undefined (backward compat) or an array of valid Note objects.
+ * modified_at is optional for backward compatibility (existing docs may not have it).
  */
 export function isRequestLogItem(obj: unknown): obj is RequestLogItem {
   if (!obj || typeof obj !== 'object') return false;
   const i = obj as Partial<RequestLogItem>;
+
+  // Validate notes: undefined is allowed (backward compat), or must be array of Notes
+  const notesValid =
+    i.notes === undefined || (Array.isArray(i.notes) && i.notes.every((n) => isNote(n)));
+
   return (
     typeof i.id === 'string' &&
     typeof i.title === 'string' &&
@@ -266,7 +509,7 @@ export function isRequestLogItem(obj: unknown): obj is RequestLogItem {
     typeof i.status === 'string' &&
     Array.isArray(i.tags) &&
     i.tags.every((t) => typeof t === 'string') &&
-    typeof i.notes === 'string' &&
+    notesValid &&
     i.created_at instanceof Date &&
     (i.modified_at === undefined || i.modified_at instanceof Date)
   );

@@ -86,7 +86,7 @@ export function formatItemAsTable(item: RequestLogItem): string {
     ['Priority', item.priority],
     ['Status', item.status],
     ['Tags', formatTags(item.tags)],
-    ['Notes', truncate(item.notes, 55)],
+    ['Notes', truncate(item.notes?.map(n => n.content).join('\n') || '(none)', 55)],
     ['Created', formatDate(item.created_at)]
   );
 

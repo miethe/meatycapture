@@ -299,13 +299,16 @@ export function ItemCard({ item, onCopyId, onEdit, onDelete }: ItemCardProps): R
         </div>
       )}
 
-      {/* Item Notes (Markdown) */}
-      {item.notes && (
+      {/* Item Notes (Markdown) - display all notes concatenated */}
+      {item.notes && item.notes.length > 0 && (
         <div className="viewer-item-notes">
           <div className="viewer-item-notes-label">
-            <span className="meta-label">Notes</span>
+            <span className="meta-label">Notes ({item.notes.length})</span>
           </div>
-          <MarkdownRenderer content={item.notes} className="viewer-item-notes-content" />
+          <MarkdownRenderer
+            content={item.notes.map(n => n.content).join('\n\n---\n\n')}
+            className="viewer-item-notes-content"
+          />
         </div>
       )}
     </div>

@@ -182,12 +182,8 @@ export function ItemStep({
     [draft, onDraftChange]
   );
 
-  const handleNotesChange = useCallback(
-    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onDraftChange({ ...draft, notes: event.target.value });
-    },
-    [draft, onDraftChange]
-  );
+  // Notes editing disabled for MVP - notes are now Note[] and full UI comes in Phase 3
+  // For now, notes remain empty array until proper notes editor is implemented
 
   // Add field option handlers
   const handleAddType = useCallback(
@@ -352,23 +348,20 @@ export function ItemStep({
           tooltip="Add relevant tags to help organize and filter requests (ux, api, security, etc.)"
         />
 
-        {/* Notes - Full width textarea */}
+        {/* Notes - Disabled for MVP (Phase 3 will add proper Notes UI) */}
         <FormField
           label="Notes"
           id="item-notes"
-          helperText="Describe the problem, goal, or provide additional context"
-          tooltip="Detailed description of the request - explain what needs to be done and why"
+          helperText="Notes editor coming soon - structured notes with types will be available in a future update"
+          tooltip="Notes feature is being enhanced - you'll be able to add typed observations after saving"
         >
-          <textarea
-            id="item-notes"
+          <div
             className="input-base item-notes-textarea"
-            value={draft.notes}
-            onChange={handleNotesChange}
-            placeholder="Problem/goal description, context, or additional details"
-            rows={6}
-            aria-label="Item notes"
-            aria-describedby="item-notes-helper"
-          />
+            style={{ opacity: 0.6, cursor: 'not-allowed', minHeight: '100px' }}
+            aria-label="Notes - coming soon"
+          >
+            Notes editor coming in future update...
+          </div>
         </FormField>
       </form>
     </StepShell>

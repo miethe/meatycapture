@@ -50,7 +50,7 @@ function validateRequestLogItem(obj: unknown): RequestLogItem {
     priority: validateString(item.priority, 'priority'),
     status: validateString(item.status, 'status'),
     tags: validateStringArray(item.tags, 'tags'),
-    notes: typeof item.notes === 'string' ? item.notes : '',
+    notes: Array.isArray(item.notes) ? item.notes : [],
     created_at: validateDate(item.created_at, 'created_at'),
   };
 }
@@ -255,7 +255,7 @@ export function validateItemDraftBody(body: unknown): ItemDraft {
     priority: validateString(obj.priority, 'priority'),
     status: validateString(obj.status, 'status'),
     tags: validateStringArray(obj.tags, 'tags'),
-    notes: typeof obj.notes === 'string' ? obj.notes : '',
+    notes: Array.isArray(obj.notes) ? obj.notes : [],
   };
 }
 

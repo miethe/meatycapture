@@ -200,7 +200,7 @@ describe('ApiDocStore', () => {
         priority: 'medium',
         status: 'triage',
         tags: ['api', 'backend'],
-        notes: 'Test notes',
+        notes: [],
         created_at: new Date('2025-12-08T09:00:00Z'),
       };
 
@@ -254,7 +254,7 @@ describe('ApiDocStore', () => {
         priority: 'high',
         status: 'triage',
         tags: ['web', 'ui'],
-        notes: 'Found a bug in the UI',
+        notes: [],
       };
 
       const updatedDoc: RequestLogDoc = {
@@ -310,7 +310,7 @@ describe('ApiDocStore', () => {
         priority: 'low',
         status: 'triage',
         tags: [],
-        notes: 'Testing clock handling',
+        notes: [],
       };
 
       const updatedDoc: RequestLogDoc = {

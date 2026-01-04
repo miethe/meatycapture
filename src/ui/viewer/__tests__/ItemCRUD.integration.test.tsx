@@ -61,7 +61,7 @@ function createMockItem(overrides: Partial<RequestLogItem> = {}): RequestLogItem
     priority: 'medium',
     status: 'triage',
     tags: ['ux', 'api'],
-    notes: 'Test notes content with **markdown**',
+    notes: [],
     created_at: new Date('2025-12-31T10:00:00Z'),
     ...overrides,
   };
@@ -942,7 +942,7 @@ describe('ItemCRUD Integration Tests', () => {
         priority: expect.any(String),
         status: expect.any(String),
         tags: expect.any(Array),
-        notes: expect.any(String),
+        notes: expect.any(Array),
         created_at: expect.any(Date),
         modified_at: expect.any(Date),
       });

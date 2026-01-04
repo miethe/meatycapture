@@ -17,7 +17,7 @@ const createMockItem = (overrides: Partial<RequestLogItem> = {}): RequestLogItem
   priority: 'medium',
   status: 'triage',
   tags: ['ux', 'api'],
-  notes: 'Test notes content',
+  notes: [],
   created_at: new Date('2025-12-31T10:00:00Z'),
   ...overrides,
 });
@@ -434,8 +434,8 @@ describe('ItemCard', () => {
   });
 
   describe('empty notes', () => {
-    it('does not render notes section when notes is empty', () => {
-      const item = createMockItem({ notes: '' });
+    it('does not render notes section when notes is empty array', () => {
+      const item = createMockItem({ notes: [] });
       const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
 
       expect(container.querySelector('.viewer-item-notes')).not.toBeInTheDocument();
@@ -498,7 +498,7 @@ describe('ItemCard', () => {
         priority: 'high',
         status: 'backlog',
         tags: ['legacy'],
-        notes: 'Legacy notes',
+        notes: [],
         created_at: new Date('2025-11-01T08:00:00Z'),
       });
       // Explicitly delete modified_at to simulate a legacy item

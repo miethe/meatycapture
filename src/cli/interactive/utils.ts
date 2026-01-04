@@ -6,7 +6,7 @@
 
 import type { Project, FieldOption, ItemDraft, FieldName } from '@core/models';
 import { createAdapters } from '@adapters/factory';
-import { confirm, selectFromList, promptWithValidation, promptMultiValue } from './prompts.js';
+import { selectFromList, promptWithValidation, promptMultiValue } from './prompts.js';
 import { validateNonEmpty } from './validators.js';
 
 /**
@@ -133,11 +133,9 @@ export async function promptItemDraft(projectId: string): Promise<ItemDraft> {
 
   const tags = await promptTags(projectId);
 
-  const addNotes = await confirm('Add notes?', false);
-  let notes = '';
-  if (addNotes) {
-    notes = await promptWithValidation('Notes', (v) => validateNonEmpty(v, 'Notes'));
-  }
+  // Notes are now Note[] - for MVP interactive mode, we skip note creation
+  // Full notes UI will be added in Phase 2-4
+  const notes: import('@core/models').Note[] = [];
 
   return {
     title,

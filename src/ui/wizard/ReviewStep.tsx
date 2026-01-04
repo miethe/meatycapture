@@ -207,11 +207,13 @@ export function ReviewStep({
               </div>
             )}
 
-            {/* Notes */}
-            {draft.notes && (
+            {/* Notes - display if any exist */}
+            {draft.notes && draft.notes.length > 0 && (
               <div className="review-field full-width">
-                <span className="review-label">Notes:</span>
-                <div className="review-notes">{draft.notes}</div>
+                <span className="review-label">Notes ({draft.notes.length}):</span>
+                <div className="review-notes">
+                  {draft.notes.map(n => n.content).join('\n\n')}
+                </div>
               </div>
             )}
           </div>

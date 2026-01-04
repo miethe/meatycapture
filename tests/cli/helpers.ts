@@ -281,7 +281,7 @@ export function createMockItemDraft(overrides?: Partial<ItemDraft>): ItemDraft {
     priority: 'medium',
     status: 'triage',
     tags: ['test'],
-    notes: 'Test notes for this item.',
+    notes: [],
     ...overrides,
   };
 }
@@ -300,7 +300,7 @@ export function createMockItem(overrides?: Partial<RequestLogItem>): RequestLogI
     priority: 'medium',
     status: 'triage',
     tags: ['test'],
-    notes: 'Test notes for this item.',
+    notes: [],
     created_at: now,
     ...overrides,
   };

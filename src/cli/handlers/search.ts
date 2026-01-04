@@ -338,12 +338,13 @@ function matchComponent(
         return result;
       }
 
-      // Then search in notes
-      if (matchString(item.notes, component.value, mode)) {
-        const pos = findMatchPosition(item.notes, component.value);
+      // Then search in notes (convert Note[] to searchable string)
+      const notesText = item.notes?.map(n => n.content).join('\n') || '';
+      if (notesText && matchString(notesText, component.value, mode)) {
+        const pos = findMatchPosition(notesText, component.value);
         const result: MatchedField = {
           field: 'notes',
-          match_text: pos ? extractContext(item.notes, pos.start, pos.end) : item.notes,
+          match_text: pos ? extractContext(notesText, pos.start, pos.end) : notesText,
         };
         if (pos) {
           result.start = pos.start;

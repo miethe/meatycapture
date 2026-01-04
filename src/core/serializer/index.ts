@@ -9,7 +9,8 @@
  * - Backup creation before writes
  */
 
-import type { RequestLogDoc, RequestLogItem, ItemIndexEntry } from '@core/models';
+import type { RequestLogDoc, RequestLogItem, ItemIndexEntry, Note, NoteType } from '@core/models';
+import { NOTE_TYPE_LABELS, isNoteType } from '@core/models';
 
 /**
  * Serializes a RequestLogDoc to markdown format with YAML frontmatter.
@@ -194,6 +195,67 @@ function serializeFrontmatter(doc: RequestLogDoc): string {
 }
 
 /**
+ * Formats a Date to human-readable timestamp for notes.
+ *
+ * Output format: YYYY-MM-DD HH:mm
+ *
+ * @param date - Date to format
+ * @returns Formatted timestamp string
+ */
+function formatTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 16).replace('T', ' ');
+}
+
+/**
+ * Serializes an array of notes to markdown format.
+ *
+ * Output format for each note:
+ * ```
+ * **Note 1: General** (Created: 2026-01-01 10:00)
+ *
+ * Note content here with **markdown** formatting.
+ *
+ * ```
+ *
+ * Notes are sorted by created_at ascending (oldest first).
+ * Updated timestamp is only shown if different from created.
+ *
+ * @param notes - Array of Note objects to serialize
+ * @returns Markdown string, or empty string if no notes
+ */
+function serializeNotes(notes: Note[] | undefined): string {
+  if (!notes || notes.length === 0) {
+    return '';
+  }
+
+  // Sort notes by created_at ascending (oldest first)
+  const sortedNotes = [...notes].sort(
+    (a, b) => a.created_at.getTime() - b.created_at.getTime()
+  );
+
+  const lines: string[] = ['', '#### Notes', ''];
+
+  sortedNotes.forEach((note, index) => {
+    const noteNum = index + 1;
+    const typeLabel = NOTE_TYPE_LABELS[note.type] || note.type;
+    const createdStr = formatTimestamp(note.created_at);
+
+    // Include updated only if different from created
+    const updatedStr =
+      note.updated_at.getTime() !== note.created_at.getTime()
+        ? `, Updated: ${formatTimestamp(note.updated_at)}`
+        : '';
+
+    lines.push(`**Note ${noteNum}: ${typeLabel}** (Created: ${createdStr}${updatedStr})`);
+    lines.push('');
+    lines.push(note.content);
+    lines.push('');
+  });
+
+  return lines.join('\n');
+}
+
+/**
  * Serializes a single RequestLogItem to markdown section.
  *
  * Format:
@@ -205,11 +267,16 @@ function serializeFrontmatter(doc: RequestLogDoc): string {
  * **Modified:** 2025-12-03T14:30:00Z
  * **Context:** Settings page redesign
  *
- * ### Problem/Goal
+ * #### Notes
+ *
+ * **Note 1: General** (Created: 2026-01-01 10:00)
+ *
  * Users need dark mode for better readability at night.
+ *
  * ```
  *
  * Note: **Modified:** line is only included when modified_at is present (optional field).
+ * Notes section is only included if there are notes attached to the item.
  *
  * @param item - The RequestLogItem to serialize
  * @returns Markdown section string
@@ -228,9 +295,12 @@ function serializeItem(item: RequestLogItem): string {
   }
 
   lines.push(`**Context:** ${item.context.join(', ')}`);
-  lines.push('');
-  lines.push('### Problem/Goal');
-  lines.push(item.notes);
+
+  // Serialize notes section (only if notes exist)
+  const notesSection = serializeNotes(item.notes);
+  if (notesSection) {
+    lines.push(notesSection);
+  }
 
   return lines.join('\n');
 }
@@ -454,12 +524,6 @@ function parseItems(body: string): RequestLogItem[] {
     const contextStr = contextMatch?.[1]?.trim() || '';
     const context = contextStr ? contextStr.split(',').map((c) => c.trim()).filter((c) => c.length > 0) : [];
 
-    // Parse notes (everything after "### Problem/Goal")
-    const notesMatch = content.match(/###\s*Problem\/Goal\s*\n([\s\S]*)/);
-    // Strip trailing separators (---) that may be included from item delimiters
-    const rawNotes = notesMatch?.[1]?.trim() || '';
-    const notes = rawNotes.replace(/\n*---\s*$/, '').trim();
-
     // Extract created_at from item ID (REQ-YYYYMMDD-...)
     // For MVP, use a default timestamp if not parseable
     const dateMatch = id.match(/REQ-(\d{8})-/);
@@ -469,7 +533,12 @@ function parseItems(body: string): RequestLogItem[] {
     // Parse modified_at, defaulting to created_at for backward compatibility
     const modified_at = modifiedStr ? parseDate(modifiedStr) ?? created_at : created_at;
 
-    items.push({
+    // Parse structured notes from #### Notes section
+    // Returns empty array if no notes section exists (backward compatibility)
+    const parsedNotes = parseNotes(content, id);
+
+    // Build item object - only include notes if present (exactOptionalPropertyTypes)
+    const item: RequestLogItem = {
       id,
       title,
       type,
@@ -478,10 +547,16 @@ function parseItems(body: string): RequestLogItem[] {
       priority,
       status,
       tags,
-      notes,
       created_at,
       modified_at,
-    });
+    };
+
+    // Add notes only if present (avoids undefined assignment with exactOptionalPropertyTypes)
+    if (parsedNotes.length > 0) {
+      item.notes = parsedNotes;
+    }
+
+    items.push(item);
   }
 
   return items;
@@ -541,4 +616,160 @@ function parseBoolean(value: unknown, defaultValue: boolean): boolean {
     return value.toLowerCase() === 'true';
   }
   return defaultValue;
+}
+
+/**
+ * Maps a display label back to NoteType.
+ *
+ * Used during parsing to convert human-readable labels (e.g., "Bug Fix Attempt")
+ * back to NoteType values.
+ *
+ * @param label - The display label from markdown
+ * @returns The corresponding NoteType or null if not found
+ */
+function mapLabelToNoteType(label: string): NoteType | null {
+  const trimmedLabel = label.trim();
+  const entry = Object.entries(NOTE_TYPE_LABELS).find(
+    ([_, displayLabel]) => displayLabel === trimmedLabel
+  );
+  if (entry && isNoteType(entry[0])) {
+    return entry[0] as NoteType;
+  }
+  return null;
+}
+
+/**
+ * Parses a timestamp string from note metadata.
+ *
+ * Handles format: "YYYY-MM-DD HH:mm"
+ *
+ * @param str - Timestamp string to parse
+ * @returns Date object or null if parsing fails
+ */
+function parseNoteTimestamp(str: string): Date | null {
+  const trimmed = str.trim();
+  // Expected format: "YYYY-MM-DD HH:mm"
+  const match = trimmed.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})$/);
+  if (!match) {
+    return null;
+  }
+  const [, datePart, timePart] = match;
+  if (!datePart || !timePart) {
+    return null;
+  }
+  const date = new Date(`${datePart}T${timePart}:00Z`);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+/**
+ * Extracts the item number from an item ID.
+ *
+ * @param itemId - Item ID (e.g., "REQ-20260101-meatycapture-01")
+ * @returns The zero-padded item number (e.g., "01") or null if not found
+ */
+function extractItemNumber(itemId: string): string | null {
+  const match = itemId.match(/-(\d+)$/);
+  return match?.[1] ?? null;
+}
+
+/**
+ * Formats a date as YYYYMMDD for ID generation.
+ *
+ * @param date - Date to format
+ * @returns Formatted date string
+ */
+function formatDateForId(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+/**
+ * Extracts the project slug from an item ID.
+ *
+ * @param itemId - Item ID (e.g., "REQ-20260101-meatycapture-01")
+ * @returns The project slug (e.g., "meatycapture") or null if not found
+ */
+function extractProjectSlug(itemId: string): string | null {
+  // Pattern: REQ-YYYYMMDD-<project-slug>-NN
+  const match = itemId.match(/^REQ-\d{8}-(.+)-\d+$/);
+  return match?.[1] ?? null;
+}
+
+/**
+ * Parses structured notes from item markdown content.
+ *
+ * Looks for "#### Notes" section and extracts individual note blocks.
+ * Each note is expected in format:
+ * **Note N: Type** (Created: YYYY-MM-DD HH:mm, Updated: YYYY-MM-DD HH:mm)
+ *
+ * Note content with markdown.
+ *
+ * @param content - The item content after metadata lines
+ * @param itemId - Item ID for generating note IDs if missing
+ * @returns Array of parsed Note objects
+ */
+function parseNotes(content: string, itemId: string): Note[] {
+  // Find "#### Notes" section - content goes until end of item or next major section
+  const notesMatch = content.match(/####\s*Notes\s*\n([\s\S]*?)(?=\n---\s*$|$)/);
+  if (!notesMatch || !notesMatch[1]) {
+    return [];
+  }
+
+  const notesContent = notesMatch[1];
+  const notes: Note[] = [];
+  const projectSlug = extractProjectSlug(itemId) || 'unknown';
+  const itemNumber = extractItemNumber(itemId) || '00';
+
+  // Parse each note block
+  // Pattern: **Note N: Type** (Created: YYYY-MM-DD HH:mm) or with Updated
+  // Content follows until next note or end
+  const notePattern =
+    /\*\*Note\s+(\d+):\s*([^*]+)\*\*\s*\(Created:\s*([^,)]+)(?:,\s*Updated:\s*([^)]+))?\)\s*\n\n?([\s\S]*?)(?=\n\*\*Note\s+\d+:|$)/g;
+
+  let match;
+  while ((match = notePattern.exec(notesContent)) !== null) {
+    const [, numStr, typeLabel, createdStr, updatedStr, noteContent] = match;
+
+    if (!numStr || !typeLabel || !createdStr) {
+      console.warn(`Skipping malformed note in item ${itemId}: missing required fields`);
+      continue;
+    }
+
+    // Map label back to NoteType
+    const type = mapLabelToNoteType(typeLabel);
+    if (!type) {
+      console.warn(`Skipping note in item ${itemId}: unknown type "${typeLabel}"`);
+      continue;
+    }
+
+    const created_at = parseNoteTimestamp(createdStr);
+    if (!created_at) {
+      console.warn(`Skipping note in item ${itemId}: invalid created timestamp "${createdStr}"`);
+      continue;
+    }
+
+    const updated_at = updatedStr ? parseNoteTimestamp(updatedStr) : created_at;
+    if (!updated_at) {
+      console.warn(`Note in item ${itemId} has invalid updated timestamp, using created_at`);
+    }
+
+    // Generate note ID from item ID + note number
+    const noteNum = numStr.padStart(2, '0');
+    const id = `NOTE-${formatDateForId(created_at)}-${projectSlug}-${itemNumber}-${noteNum}`;
+
+    // Handle empty or undefined note content
+    const content = noteContent?.trim() ?? '';
+
+    notes.push({
+      id,
+      type,
+      content,
+      created_at,
+      updated_at: updated_at || created_at,
+    });
+  }
+
+  return notes;
 }

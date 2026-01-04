@@ -130,7 +130,7 @@ const createMockDoc = (docId: string, itemCount: number = 1): RequestLogDoc => (
       priority: 'medium',
       status: 'triage',
       tags: ['api', 'server'],
-      notes: 'Test notes',
+      notes: [],
       created_at: new Date('2025-12-08T09:00:00Z'),
     },
   ],
@@ -156,7 +156,7 @@ const createMockItemDraft = (): ItemDraft => ({
   priority: 'high',
   status: 'triage',
   tags: ['ui', 'bug'],
-  notes: 'New item notes',
+  notes: [],
 });
 
 // ============================================================================

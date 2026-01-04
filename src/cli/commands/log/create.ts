@@ -113,7 +113,7 @@ function isValidItemDraft(obj: unknown): obj is ItemDraft {
     typeof item.status === 'string' &&
     Array.isArray(item.tags) &&
     item.tags.every((tag) => typeof tag === 'string') &&
-    typeof item.notes === 'string'
+    Array.isArray(item.notes)
   );
 }
 
@@ -133,7 +133,7 @@ function getExpectedFormatHint(): string {
     '    "priority": "medium",\n' +
     '    "status": "triage",\n' +
     '    "tags": ["tag1"],\n' +
-    '    "notes": "Description"\n' +
+    '    "notes": []\n' +
     '  }]\n' +
     '}'
   );

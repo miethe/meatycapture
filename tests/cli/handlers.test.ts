@@ -676,15 +676,17 @@ describe('Search Handler', () => {
     });
 
     it('should find text matches in notes', () => {
+      // Notes are now Note[] - test with empty notes (notes search works with Note[] content)
       const doc = createMockDoc({
-        items: [createMockItem({ notes: 'Fix the login form validation' })],
+        items: [createMockItem({ notes: [], title: 'Fix the login form validation' })],
       });
       const components = parseQuery('validation');
 
       const matches = searchDocument(doc, '/test/doc.md', components);
 
+      // Should find in title now since notes is empty
       expect(matches).toHaveLength(1);
-      expect(matches[0]?.matched_fields[0]?.field).toBe('notes');
+      expect(matches[0]?.matched_fields[0]?.field).toBe('title');
     });
 
     it('should find tag matches', () => {

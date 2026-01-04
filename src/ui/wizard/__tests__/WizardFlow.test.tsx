@@ -57,7 +57,7 @@ const mockDocument: RequestLogDoc = {
       priority: 'medium',
       status: 'triage',
       tags: ['tag1'],
-      notes: 'Test notes',
+      notes: [],
       created_at: new Date('2025-12-31T10:00:00Z'),
     },
   ],

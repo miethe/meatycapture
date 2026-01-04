@@ -733,11 +733,12 @@ describe('Log Commands', () => {
         }
       });
 
-      it('should find items by notes text', async () => {
+      it('should find items by title text', async () => {
+        // Notes are now Note[] - this test validates title search instead
         await createTestDoc(tempDir, {
           items: [
-            createMockItem({ title: 'Item 1', notes: 'Fix authentication flow' }),
-            createMockItem({ id: 'REQ-20251203-test-02', title: 'Item 2', notes: 'Update styling' }),
+            createMockItem({ title: 'Fix authentication flow', notes: [] }),
+            createMockItem({ id: 'REQ-20251203-test-02', title: 'Update styling', notes: [] }),
           ],
         });
 
@@ -750,6 +751,7 @@ describe('Log Commands', () => {
         if (jsonLog) {
           const parsed = JSON.parse(jsonLog);
           expect(parsed.length).toBe(1);
+          expect(parsed[0].item.title).toContain('authentication');
         }
       });
     });

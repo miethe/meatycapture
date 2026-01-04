@@ -23,7 +23,7 @@ const createMockItem = (overrides: Partial<RequestLogItem> = {}): RequestLogItem
   priority: 'medium',
   status: 'triage',
   tags: ['ux', 'api'],
-  notes: 'Test notes content',
+  notes: [],
   created_at: new Date('2025-12-31T10:00:00Z'),
   ...overrides,
 });

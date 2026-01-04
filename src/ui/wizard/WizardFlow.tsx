@@ -83,7 +83,7 @@ const EMPTY_DRAFT: ItemDraft = {
   priority: 'medium',
   status: 'triage',
   tags: [],
-  notes: '',
+  notes: [],
 };
 
 export function WizardFlow({
