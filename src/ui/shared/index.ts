@@ -18,6 +18,7 @@ export { useFocusTrap } from './useFocusTrap';
 export { Toast, ToastContainer } from './Toast';
 export { ToastProvider, useToast } from './useToast';
 export { EditModal } from './EditModal';
+export { NoteTypeFilter } from './NoteTypeFilter';
 
 // Re-export types for convenience
 export type { default as DropdownWithAddProps } from './DropdownWithAdd';
@@ -28,3 +29,4 @@ export type { default as PathFieldProps } from './PathField';
 export type { ToastType, ToastData } from './Toast';
 export type { ValidationState } from './FormField';
 export type { EditModalProps } from './EditModal';
+export type { NoteTypeFilterProps } from './NoteTypeFilter';

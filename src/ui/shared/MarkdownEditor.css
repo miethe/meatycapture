@@ -1,0 +1,165 @@
+/**
+ * MarkdownEditor Component Styles
+ * Formatting toolbar with glass morphism aesthetic
+ */
+
+.markdown-editor {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Toolbar */
+.markdown-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--color-bg-glass);
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+/* Toolbar buttons */
+.markdown-editor-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 var(--spacing-sm);
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.markdown-editor-toolbar-btn:hover:not(:disabled) {
+  background: var(--color-bg-glass-hover);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.markdown-editor-toolbar-btn:focus-visible {
+  background: var(--color-bg-glass-hover);
+  border-color: rgba(99, 150, 255, 0.5);
+  box-shadow: 0 0 0 2px rgba(99, 150, 255, 0.2);
+  color: var(--color-text);
+}
+
+.markdown-editor-toolbar-btn:active:not(:disabled) {
+  background: var(--color-bg-glass-active);
+  transform: scale(0.95);
+}
+
+.markdown-editor-toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Bold button styling */
+.markdown-editor-toolbar-btn.bold {
+  font-weight: 700;
+}
+
+/* Italic button styling */
+.markdown-editor-toolbar-btn.italic {
+  font-style: italic;
+}
+
+/* Separator between button groups (optional enhancement) */
+.markdown-editor-toolbar-separator {
+  width: 1px;
+  height: 1.5rem;
+  background: var(--color-border);
+  margin: 0 var(--spacing-xs);
+  align-self: center;
+}
+
+/* Textarea */
+.markdown-editor-textarea {
+  width: 100%;
+  min-height: 8rem;
+  resize: vertical;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.markdown-editor-textarea:focus {
+  /* Override input-base focus to maintain connected appearance with toolbar */
+  border-color: rgba(99, 150, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(99, 150, 255, 0.15);
+}
+
+/* When textarea is focused, highlight toolbar border too */
+.markdown-editor:focus-within .markdown-editor-toolbar {
+  border-color: rgba(99, 150, 255, 0.5);
+}
+
+/* Character count */
+.markdown-editor-char-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: right;
+  margin-top: var(--spacing-xs);
+  padding-right: var(--spacing-xs);
+}
+
+/* Warning state when approaching max length */
+.markdown-editor-char-count.warning {
+  color: rgba(255, 200, 99, 0.9);
+}
+
+/* Error state when at max length */
+.markdown-editor-char-count.error {
+  color: var(--color-error);
+}
+
+/* Responsive: Toolbar wraps on small screens */
+@media (max-width: 480px) {
+  .markdown-editor-toolbar {
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs);
+  }
+
+  .markdown-editor-toolbar-btn {
+    min-width: 2.25rem;
+    height: 2.25rem;
+    font-size: 0.8125rem;
+  }
+
+  .markdown-editor-textarea {
+    min-height: 6rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Disabled state */
+.markdown-editor.disabled .markdown-editor-toolbar {
+  opacity: 0.5;
+}
+
+.markdown-editor.disabled .markdown-editor-textarea {
+  cursor: not-allowed;
+}
+
+/* Accessibility: Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .markdown-editor-toolbar-btn {
+    transition: none;
+  }
+
+  .markdown-editor-toolbar-btn:active:not(:disabled) {
+    transform: none;
+  }
+}

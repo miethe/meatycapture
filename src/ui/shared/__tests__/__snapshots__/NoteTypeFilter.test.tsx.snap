@@ -1,0 +1,541 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`NoteTypeFilter > snapshot > matches closed state snapshot 1`] = `
+<div>
+  <div
+    class="note-type-filter"
+  >
+    <button
+      aria-expanded="false"
+      aria-haspopup="listbox"
+      aria-label="Filter by note type"
+      class="note-type-filter__button"
+      type="button"
+    >
+      <span
+        class="note-type-filter__button-text"
+      >
+        All Types
+      </span>
+      <svg
+        aria-hidden="true"
+        class="note-type-filter__chevron "
+        fill="currentColor"
+        height="12"
+        viewBox="0 0 12 12"
+        width="12"
+      >
+        <path
+          d="M6 9L1 4h10z"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`NoteTypeFilter > snapshot > matches open state snapshot with all types 1`] = `
+<div>
+  <div
+    class="note-type-filter"
+  >
+    <button
+      aria-expanded="true"
+      aria-haspopup="listbox"
+      aria-label="Filter by note type"
+      class="note-type-filter__button"
+      type="button"
+    >
+      <span
+        class="note-type-filter__button-text"
+      >
+        All Types
+      </span>
+      <svg
+        aria-hidden="true"
+        class="note-type-filter__chevron note-type-filter__chevron--open"
+        fill="currentColor"
+        height="12"
+        viewBox="0 0 12 12"
+        width="12"
+      >
+        <path
+          d="M6 9L1 4h10z"
+        />
+      </svg>
+    </button>
+    <div
+      aria-label="Note type filter options"
+      aria-multiselectable="true"
+      class="note-type-filter__dropdown"
+      role="listbox"
+    >
+      <button
+        aria-selected="true"
+        class="note-type-filter__option note-type-filter__option--focused"
+        role="option"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox note-type-filter__checkbox--checked"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="3 8 6 11 13 4"
+            />
+          </svg>
+        </span>
+        <span
+          class="note-type-filter__label"
+        >
+          All Types
+        </span>
+      </button>
+      <button
+        aria-selected="true"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox note-type-filter__checkbox--checked"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="3 8 6 11 13 4"
+            />
+          </svg>
+        </span>
+        <span
+          class="note-type-filter__label"
+        >
+          General
+        </span>
+      </button>
+      <button
+        aria-selected="true"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox note-type-filter__checkbox--checked"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="3 8 6 11 13 4"
+            />
+          </svg>
+        </span>
+        <span
+          class="note-type-filter__label"
+        >
+          Bug Fix Attempt
+        </span>
+      </button>
+      <button
+        aria-selected="true"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox note-type-filter__checkbox--checked"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="3 8 6 11 13 4"
+            />
+          </svg>
+        </span>
+        <span
+          class="note-type-filter__label"
+        >
+          Validation
+        </span>
+      </button>
+      <button
+        aria-selected="true"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox note-type-filter__checkbox--checked"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="3 8 6 11 13 4"
+            />
+          </svg>
+        </span>
+        <span
+          class="note-type-filter__label"
+        >
+          Other
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`NoteTypeFilter > snapshot > matches snapshot with partial selection 1`] = `
+<div>
+  <div
+    class="note-type-filter"
+  >
+    <button
+      aria-expanded="true"
+      aria-haspopup="listbox"
+      aria-label="Filter by note type"
+      class="note-type-filter__button"
+      type="button"
+    >
+      <span
+        class="note-type-filter__button-text"
+      >
+        2 types
+      </span>
+      <svg
+        aria-hidden="true"
+        class="note-type-filter__chevron note-type-filter__chevron--open"
+        fill="currentColor"
+        height="12"
+        viewBox="0 0 12 12"
+        width="12"
+      >
+        <path
+          d="M6 9L1 4h10z"
+        />
+      </svg>
+    </button>
+    <div
+      aria-label="Note type filter options"
+      aria-multiselectable="true"
+      class="note-type-filter__dropdown"
+      role="listbox"
+    >
+      <button
+        aria-selected="false"
+        class="note-type-filter__option note-type-filter__option--focused"
+        role="option"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox "
+        />
+        <span
+          class="note-type-filter__label"
+        >
+          All Types
+        </span>
+      </button>
+      <button
+        aria-selected="true"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox note-type-filter__checkbox--checked"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="3 8 6 11 13 4"
+            />
+          </svg>
+        </span>
+        <span
+          class="note-type-filter__label"
+        >
+          General
+        </span>
+      </button>
+      <button
+        aria-selected="true"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox note-type-filter__checkbox--checked"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="3 8 6 11 13 4"
+            />
+          </svg>
+        </span>
+        <span
+          class="note-type-filter__label"
+        >
+          Bug Fix Attempt
+        </span>
+      </button>
+      <button
+        aria-selected="false"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox "
+        />
+        <span
+          class="note-type-filter__label"
+        >
+          Validation
+        </span>
+      </button>
+      <button
+        aria-selected="false"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox "
+        />
+        <span
+          class="note-type-filter__label"
+        >
+          Other
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`NoteTypeFilter > snapshot > matches snapshot with single selection 1`] = `
+<div>
+  <div
+    class="note-type-filter"
+  >
+    <button
+      aria-expanded="true"
+      aria-haspopup="listbox"
+      aria-label="Filter by note type"
+      class="note-type-filter__button"
+      type="button"
+    >
+      <span
+        class="note-type-filter__button-text"
+      >
+        Validation
+      </span>
+      <svg
+        aria-hidden="true"
+        class="note-type-filter__chevron note-type-filter__chevron--open"
+        fill="currentColor"
+        height="12"
+        viewBox="0 0 12 12"
+        width="12"
+      >
+        <path
+          d="M6 9L1 4h10z"
+        />
+      </svg>
+    </button>
+    <div
+      aria-label="Note type filter options"
+      aria-multiselectable="true"
+      class="note-type-filter__dropdown"
+      role="listbox"
+    >
+      <button
+        aria-selected="false"
+        class="note-type-filter__option note-type-filter__option--focused"
+        role="option"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox "
+        />
+        <span
+          class="note-type-filter__label"
+        >
+          All Types
+        </span>
+      </button>
+      <button
+        aria-selected="false"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox "
+        />
+        <span
+          class="note-type-filter__label"
+        >
+          General
+        </span>
+      </button>
+      <button
+        aria-selected="false"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox "
+        />
+        <span
+          class="note-type-filter__label"
+        >
+          Bug Fix Attempt
+        </span>
+      </button>
+      <button
+        aria-selected="true"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox note-type-filter__checkbox--checked"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 16 16"
+            width="16"
+          >
+            <polyline
+              points="3 8 6 11 13 4"
+            />
+          </svg>
+        </span>
+        <span
+          class="note-type-filter__label"
+        >
+          Validation
+        </span>
+      </button>
+      <button
+        aria-selected="false"
+        class="note-type-filter__option "
+        role="option"
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="note-type-filter__checkbox "
+        />
+        <span
+          class="note-type-filter__label"
+        >
+          Other
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,235 @@
+/**
+ * NoteCard Component Styles
+ *
+ * Styles for the NoteCard component used in Structured Notes feature.
+ * Uses glass/x-morphism aesthetic consistent with MeatyCapture design system.
+ */
+
+/* =============================================================================
+ * Main Container
+ * ============================================================================= */
+
+.note-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.note-card:hover {
+  background: var(--color-bg-glass-hover);
+}
+
+/* =============================================================================
+ * Header - Badge and Actions
+ * ============================================================================= */
+
+.note-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+/* Type Badge */
+.note-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* Note Type Color Variants */
+.note-type-general {
+  background: rgba(99, 150, 255, 0.2);
+  border: 1px solid rgba(99, 150, 255, 0.5);
+  color: rgba(150, 180, 255, 1);
+}
+
+.note-type-bugfix {
+  background: rgba(255, 140, 99, 0.2);
+  border: 1px solid rgba(255, 140, 99, 0.5);
+  color: rgba(255, 180, 150, 1);
+}
+
+.note-type-validation {
+  background: rgba(99, 220, 150, 0.2);
+  border: 1px solid rgba(99, 220, 150, 0.5);
+  color: rgba(150, 230, 180, 1);
+}
+
+.note-type-other {
+  background: rgba(180, 150, 255, 0.2);
+  border: 1px solid rgba(180, 150, 255, 0.5);
+  color: rgba(200, 180, 255, 1);
+}
+
+/* =============================================================================
+ * Action Buttons
+ * ============================================================================= */
+
+.note-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+/* Show actions on card hover or when focused within */
+.note-card:hover .note-card__actions,
+.note-card:focus-within .note-card__actions {
+  opacity: 1;
+}
+
+.note-card__action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  background: var(--color-bg-glass);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.note-card__action-button:hover {
+  background: var(--color-bg-glass-hover);
+  border-color: var(--color-border-focus);
+  color: var(--color-text);
+  transform: scale(1.05);
+}
+
+.note-card__action-button:active {
+  transform: scale(0.98);
+}
+
+.note-card__action-button:focus-visible {
+  outline: 3px solid rgba(99, 150, 255, 0.9);
+  outline-offset: 2px;
+}
+
+/* Edit button hover state */
+.note-card__edit-button:hover {
+  border-color: rgba(99, 150, 255, 0.5);
+  box-shadow: 0 0 8px rgba(99, 150, 255, 0.2);
+}
+
+/* Delete button hover state */
+.note-card__delete-button:hover {
+  border-color: rgba(255, 99, 99, 0.5);
+  color: rgba(255, 150, 150, 1);
+  box-shadow: 0 0 8px rgba(255, 99, 99, 0.2);
+}
+
+/* SVG icon sizing */
+.note-card__action-button svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+ * Content Area
+ * ============================================================================= */
+
+.note-card__content {
+  padding: var(--spacing-sm) 0;
+}
+
+.note-card__text {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* =============================================================================
+ * Footer - Timestamps
+ * ============================================================================= */
+
+.note-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+.note-card__timestamp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.note-card__timestamp-label {
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.note-card__timestamp time {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* =============================================================================
+ * Responsive Design
+ * ============================================================================= */
+
+@media (max-width: 768px) {
+  .note-card {
+    padding: var(--spacing-md);
+  }
+
+  /* Always show actions on mobile for touch access */
+  .note-card__actions {
+    opacity: 1;
+  }
+
+  /* Touch-friendly button sizing (min 44px) */
+  .note-card__action-button {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .note-card__footer {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+}
+
+/* =============================================================================
+ * Accessibility: Reduced Motion
+ * ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .note-card,
+  .note-card__actions,
+  .note-card__action-button {
+    transition: none;
+  }
+
+  .note-card__action-button:hover,
+  .note-card__action-button:active {
+    transform: none;
+  }
+}

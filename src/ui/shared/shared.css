@@ -1149,6 +1149,162 @@ textarea:focus-visible {
   outline: none;
 }
 
+/* =================================================================
+   NoteModal Component Styles
+   ================================================================= */
+
+/* Modal container with fixed header/footer and scrollable content */
+.note-modal {
+  display: flex;
+  flex-direction: column;
+  width: 40rem;
+  max-width: 90vw;
+  max-height: 80vh;
+  background: var(--color-bg-dropdown);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  animation: noteModalScaleUp var(--transition-normal) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes noteModalScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Modal header - fixed at top */
+.note-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.note-modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Close button (X) */
+.note-modal-close {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.note-modal-close:hover {
+  background: var(--color-bg-glass-hover);
+  color: var(--color-text);
+}
+
+.note-modal-close:focus-visible {
+  outline: 2px solid rgba(99, 150, 255, 0.8);
+  outline-offset: 2px;
+}
+
+/* Scrollable content area */
+.note-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  min-height: 0; /* Allows flex child to shrink below content size */
+}
+
+/* Content label row with character count */
+.note-modal-content-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Character count display */
+.note-modal-char-count {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--transition-fast);
+}
+
+.note-modal-char-count-error {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+/* Modal footer - fixed at bottom */
+.note-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+  gap: var(--spacing-md);
+}
+
+/* Remove focus outline on modal container itself */
+.note-modal:focus {
+  outline: none;
+}
+
+/* Error state for markdown editor in modal */
+.note-modal-editor-error .markdown-editor-textarea {
+  border-color: var(--color-error);
+}
+
+/* NoteModal responsive adjustments */
+@media (max-width: 768px) {
+  .note-modal {
+    width: 100%;
+    max-height: 90vh;
+    margin: var(--spacing-md);
+    border-radius: var(--radius-md);
+  }
+
+  .note-modal-header,
+  .note-modal-content,
+  .note-modal-footer {
+    padding: var(--spacing-md);
+  }
+
+  .note-modal-title {
+    font-size: 1.125rem;
+  }
+
+  .note-modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .note-modal-footer .button {
+    width: 100%;
+  }
+}
+
 /* Accessibility: Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,

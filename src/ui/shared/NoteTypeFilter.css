@@ -1,0 +1,225 @@
+/**
+ * NoteTypeFilter Component Styles
+ *
+ * Multi-select dropdown filter for note types.
+ * Glass morphism aesthetic with accessible design.
+ */
+
+/* =============================================================================
+ * Container
+ * ============================================================================= */
+
+.note-type-filter {
+  position: relative;
+  display: inline-block;
+}
+
+/* =============================================================================
+ * Trigger Button
+ * ============================================================================= */
+
+.note-type-filter__button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-width: 8rem;
+  background: var(--color-bg-glass);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.note-type-filter__button:hover {
+  background: var(--color-bg-glass-hover);
+  border-color: var(--color-border-focus);
+}
+
+.note-type-filter__button:focus-visible {
+  background: var(--color-bg-glass-hover);
+  border-color: var(--color-border-focus);
+  outline: 3px solid rgba(99, 150, 255, 0.9);
+  outline-offset: 2px;
+}
+
+.note-type-filter__button:active {
+  background: var(--color-bg-glass-active);
+}
+
+.note-type-filter__button[aria-expanded="true"] {
+  background: var(--color-bg-glass-active);
+  border-color: var(--color-border-focus);
+}
+
+.note-type-filter__button-text {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chevron Icon */
+.note-type-filter__chevron {
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.note-type-filter__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* =============================================================================
+ * Dropdown Panel
+ * ============================================================================= */
+
+.note-type-filter__dropdown {
+  position: absolute;
+  top: calc(100% + var(--spacing-xs));
+  left: 0;
+  min-width: 100%;
+  max-width: 16rem;
+  padding: var(--spacing-xs);
+  background: var(--color-bg-dropdown);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(99, 150, 255, 0.3);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  z-index: 1000;
+  animation: noteTypeFilterOpen var(--transition-fast);
+}
+
+@keyframes noteTypeFilterOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =============================================================================
+ * Option Items
+ * ============================================================================= */
+
+.note-type-filter__option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  min-height: 2.75rem; /* 44px touch target */
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.note-type-filter__option:hover {
+  background: var(--color-bg-glass-hover);
+}
+
+.note-type-filter__option:focus {
+  outline: none;
+}
+
+.note-type-filter__option:focus-visible,
+.note-type-filter__option--focused {
+  background: rgba(99, 150, 255, 0.2);
+  outline: none;
+}
+
+.note-type-filter__option:active {
+  background: var(--color-bg-glass-active);
+}
+
+/* =============================================================================
+ * Checkbox Indicator
+ * ============================================================================= */
+
+.note-type-filter__checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: transparent;
+  transition: all var(--transition-fast);
+}
+
+.note-type-filter__checkbox--checked {
+  background: rgba(99, 150, 255, 0.3);
+  border-color: rgba(99, 150, 255, 0.6);
+  color: var(--color-text);
+}
+
+.note-type-filter__checkbox svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* =============================================================================
+ * Option Label
+ * ============================================================================= */
+
+.note-type-filter__label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =============================================================================
+ * Responsive Design
+ * ============================================================================= */
+
+@media (max-width: 768px) {
+  .note-type-filter__button {
+    min-width: 6rem;
+    padding: var(--spacing-sm);
+  }
+
+  .note-type-filter__dropdown {
+    min-width: 10rem;
+  }
+
+  .note-type-filter__option {
+    min-height: 3rem; /* Larger touch target on mobile */
+    padding: var(--spacing-md);
+  }
+}
+
+/* =============================================================================
+ * Accessibility: Reduced Motion
+ * ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .note-type-filter__dropdown {
+    animation: none;
+  }
+
+  .note-type-filter__button,
+  .note-type-filter__option,
+  .note-type-filter__checkbox,
+  .note-type-filter__chevron {
+    transition: none;
+  }
+}
