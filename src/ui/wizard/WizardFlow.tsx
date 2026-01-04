@@ -16,7 +16,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import type { Project, ItemDraft, RequestLogDoc, FieldOption, FieldName } from '@core/models';
+import type { Project, ItemDraft, RequestLogDoc, FieldOption, FieldName, Note } from '@core/models';
 import type { ProjectStore, FieldCatalogStore, DocStore, Clock } from '@core/ports';
 import { generateDocId, slugify } from '@core/validation';
 import { ProjectStep } from './ProjectStep';
@@ -431,6 +431,15 @@ export function WizardFlow({
         // Create new document with first item
         const slug = slugify(selectedProject.name);
         const docId = generateDocId(slug, clock.now());
+        const itemId = `${docId}-01`;
+        const now = clock.now();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+
+        // Regenerate proper note IDs at submit time (replaces temp UUIDs from capture)
+        const notesWithFinalIds = draft.notes.map((note, index) => ({
+          ...note,
+          id: `NOTE-${dateStr}-${slug}-01-${(index + 1).toString().padStart(2, '0')}`,
+        }));
 
         const newDoc: RequestLogDoc = {
           doc_id: docId,
@@ -438,7 +447,7 @@ export function WizardFlow({
           project_id: selectedProject.id,
           items: [
             {
-              id: `${docId}-01`,
+              id: itemId,
               title: draft.title,
               type: draft.type,
               domain: draft.domain,
@@ -446,21 +455,21 @@ export function WizardFlow({
               priority: draft.priority,
               status: draft.status,
               tags: draft.tags,
-              notes: draft.notes,
-              created_at: clock.now(),
+              notes: notesWithFinalIds,
+              created_at: now,
             },
           ],
           items_index: [
             {
-              id: `${docId}-01`,
+              id: itemId,
               type: draft.type,
               title: draft.title,
             },
           ],
           tags: [...draft.tags].sort(),
           item_count: 1,
-          created_at: clock.now(),
-          updated_at: clock.now(),
+          created_at: now,
+          updated_at: now,
           archived: false,
         };
 
@@ -513,6 +522,62 @@ export function WizardFlow({
   }, [onComplete, onClearContext]);
 
   // ============================================================================
+  // Note Handlers (for ReviewStep)
+  // ============================================================================
+
+  /**
+   * Generate a unique note ID based on current timestamp
+   */
+  const generateNoteId = useCallback(() => {
+    const now = clock.now();
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const projectSlug = selectedProject ? slugify(selectedProject.name) : 'draft';
+    const noteCount = draft.notes.length + 1;
+    return `NOTE-${dateStr}-${projectSlug}-${noteCount.toString().padStart(2, '0')}`;
+  }, [clock, selectedProject, draft.notes.length]);
+
+  /**
+   * Add a new note to the draft
+   */
+  const handleAddNote = useCallback(
+    (noteData: Omit<Note, 'id' | 'created_at' | 'updated_at'>) => {
+      const now = clock.now();
+      const newNote: Note = {
+        id: generateNoteId(),
+        type: noteData.type,
+        content: noteData.content,
+        created_at: now,
+        updated_at: now,
+      };
+      setDraft((prev) => ({
+        ...prev,
+        notes: [...prev.notes, newNote],
+      }));
+    },
+    [clock, generateNoteId]
+  );
+
+  /**
+   * Edit an existing note in the draft
+   */
+  const handleEditNote = useCallback((updatedNote: Note) => {
+    setDraft((prev) => ({
+      ...prev,
+      notes: prev.notes.map((note) => (note.id === updatedNote.id ? updatedNote : note)),
+    }));
+  }, []);
+
+  /**
+   * Delete a note from the draft
+   */
+  const handleDeleteNote = useCallback((noteId: string) => {
+    setDraft((prev) => ({
+      ...prev,
+      notes: prev.notes.filter((note) => note.id !== noteId),
+    }));
+  }, []);
+
+  // ============================================================================
   // Render Current Step
   // ============================================================================
 
@@ -535,7 +600,11 @@ export function WizardFlow({
     if (!batchingMode || !selectedProject) return null;
 
     return (
-      <div className="wizard-preselection-summary glass" role="region" aria-label="Pre-selected context">
+      <div
+        className="wizard-preselection-summary glass"
+        role="region"
+        aria-label="Pre-selected context"
+      >
         <div className="preselection-header">
           <span className="preselection-label">Adding item to:</span>
         </div>
@@ -647,6 +716,9 @@ export function WizardFlow({
             onSubmit={handleSubmit}
             onAddAnother={handleAddAnother}
             onComplete={handleWizardComplete}
+            onAddNote={handleAddNote}
+            onEditNote={handleEditNote}
+            onDeleteNote={handleDeleteNote}
             isSubmitting={isSubmitting}
             submitSuccess={submitSuccess}
           />

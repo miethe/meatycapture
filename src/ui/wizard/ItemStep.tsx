@@ -4,6 +4,7 @@
  * Main capture form step for entering request item details.
  * Third step in the wizard flow (Project -> Doc -> Item -> Review).
  * Enhanced with real-time validation and contextual help tooltips.
+ * Includes structured notes support with add/edit/delete capabilities.
  */
 
 import React, { useCallback, useMemo, useState } from 'react';
@@ -12,7 +13,9 @@ import { DropdownWithAdd } from '../shared/DropdownWithAdd';
 import { MultiSelectWithAdd } from '../shared/MultiSelectWithAdd';
 import { MultiSelectCombobox } from '../shared/MultiSelectCombobox';
 import { FormField, type ValidationState } from '../shared/FormField';
-import type { ItemDraft, FieldOption, FieldName } from '../../core/models';
+import { NoteModal } from '../shared/NoteModal';
+import { NotesList } from '../shared/NotesList';
+import type { ItemDraft, FieldOption, FieldName, Note, NoteType } from '../../core/models';
 import './ItemStep.css';
 
 interface ItemStepProps {
@@ -47,6 +50,10 @@ export function ItemStep({
 }: ItemStepProps): React.JSX.Element {
   // Track validation states for fields
   const [titleValidation, setTitleValidation] = useState<ValidationState>('idle');
+
+  // Notes modal state
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<Note | undefined>(undefined);
 
   // Convert FieldOption[] to dropdown format
   const convertOptions = useCallback((options: FieldOption[]) => {
@@ -182,8 +189,63 @@ export function ItemStep({
     [draft, onDraftChange]
   );
 
-  // Notes editing disabled for MVP - notes are now Note[] and full UI comes in Phase 3
-  // For now, notes remain empty array until proper notes editor is implemented
+  // Notes handlers
+  const handleOpenAddNote = useCallback(() => {
+    setEditingNote(undefined);
+    setIsNoteModalOpen(true);
+  }, []);
+
+  const handleOpenEditNote = useCallback((note: Note) => {
+    setEditingNote(note);
+    setIsNoteModalOpen(true);
+  }, []);
+
+  const handleCloseNoteModal = useCallback(() => {
+    setIsNoteModalOpen(false);
+    setEditingNote(undefined);
+  }, []);
+
+  const handleSaveNote = useCallback(
+    (noteData: Omit<Note, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
+      const now = new Date();
+
+      if (noteData.id) {
+        // Edit existing note
+        const updatedNotes = draft.notes.map((n) =>
+          n.id === noteData.id
+            ? {
+                ...n,
+                type: noteData.type,
+                content: noteData.content,
+                updated_at: now,
+              }
+            : n
+        );
+        onDraftChange({ ...draft, notes: updatedNotes });
+      } else {
+        // Add new note with temporary ID
+        const newNote: Note = {
+          id: crypto.randomUUID(),
+          type: noteData.type as NoteType,
+          content: noteData.content,
+          created_at: now,
+          updated_at: now,
+        };
+        onDraftChange({ ...draft, notes: [...draft.notes, newNote] });
+      }
+
+      handleCloseNoteModal();
+    },
+    [draft, onDraftChange, handleCloseNoteModal]
+  );
+
+  const handleDeleteNote = useCallback(
+    (note: Note) => {
+      const updatedNotes = draft.notes.filter((n) => n.id !== note.id);
+      onDraftChange({ ...draft, notes: updatedNotes });
+    },
+    [draft, onDraftChange]
+  );
 
   // Add field option handlers
   const handleAddType = useCallback(
@@ -193,7 +255,6 @@ export function ItemStep({
     },
     [draft, onAddFieldOption, onDraftChange]
   );
-
 
   const handleAddPriority = useCallback(
     async (value: string) => {
@@ -348,22 +409,24 @@ export function ItemStep({
           tooltip="Add relevant tags to help organize and filter requests (ux, api, security, etc.)"
         />
 
-        {/* Notes - Disabled for MVP (Phase 3 will add proper Notes UI) */}
-        <FormField
-          label="Notes"
-          id="item-notes"
-          helperText="Notes editor coming soon - structured notes with types will be available in a future update"
-          tooltip="Notes feature is being enhanced - you'll be able to add typed observations after saving"
-        >
-          <div
-            className="input-base item-notes-textarea"
-            style={{ opacity: 0.6, cursor: 'not-allowed', minHeight: '100px' }}
-            aria-label="Notes - coming soon"
-          >
-            Notes editor coming in future update...
-          </div>
-        </FormField>
+        {/* Structured Notes */}
+        <div className="item-notes-section">
+          <NotesList
+            notes={draft.notes}
+            onAddNote={handleOpenAddNote}
+            onEditNote={handleOpenEditNote}
+            onDeleteNote={handleDeleteNote}
+          />
+        </div>
       </form>
+
+      {/* Note Modal */}
+      <NoteModal
+        isOpen={isNoteModalOpen}
+        {...(editingNote ? { initialNote: editingNote } : {})}
+        onSave={handleSaveNote}
+        onCancel={handleCloseNoteModal}
+      />
     </StepShell>
   );
 }

@@ -79,3 +79,24 @@
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-lg);
 }
+
+/* Notes section styling */
+.item-notes-section {
+  padding: var(--spacing-md);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+}
+
+.item-notes-section .notes-list {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Responsive notes section */
+@media (max-width: 768px) {
+  .item-notes-section {
+    padding: var(--spacing-sm);
+  }
+}

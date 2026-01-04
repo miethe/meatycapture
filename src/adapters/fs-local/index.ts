@@ -235,7 +235,10 @@ export class FsDocStore implements DocStore {
         await fs.access(expandedPath);
         await this.backup(expandedPath);
         backupCreated = true;
-        logger.debug('Backup created before write', { path: expandedPath, backup: `${expandedPath}.bak` });
+        logger.debug('Backup created before write', {
+          path: expandedPath,
+          backup: `${expandedPath}.bak`,
+        });
       } catch {
         // File doesn't exist yet, no backup needed
         logger.debug('No existing file, skipping backup', { path: expandedPath });
@@ -298,12 +301,23 @@ export class FsDocStore implements DocStore {
       // Generate next item ID
       const nextNumber = getNextItemNumber(doc.items);
       const itemId = generateItemId(doc.doc_id, nextNumber);
+      const now = clock.now();
+
+      // Regenerate proper note IDs at persist time (replaces temp UUIDs from capture)
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const projectSlug = doc.doc_id.split('-').slice(2).join('-'); // Extract slug from doc_id
+      const itemNum = nextNumber.toString().padStart(2, '0');
+      const notesWithFinalIds = (item.notes || []).map((note, index) => ({
+        ...note,
+        id: `NOTE-${dateStr}-${projectSlug}-${itemNum}-${(index + 1).toString().padStart(2, '0')}`,
+      }));
 
       // Create the new item
       const newItem = {
         ...item,
         id: itemId,
-        created_at: clock.now(),
+        notes: notesWithFinalIds,
+        created_at: now,
       };
 
       // Add item to document
@@ -316,7 +330,7 @@ export class FsDocStore implements DocStore {
         tags: aggregateTags(updatedItems),
         items_index: updateItemsIndex(updatedItems),
         item_count: updatedItems.length,
-        updated_at: clock.now(),
+        updated_at: now,
       };
 
       // Write updated document (includes automatic backup)
@@ -405,7 +419,9 @@ export class FsDocStore implements DocStore {
         logger.debug('Path is writable (existing file)', { path: expandedPath });
         return true;
       } catch {
-        logger.debug('Path is not writable (existing file, no write permission)', { path: expandedPath });
+        logger.debug('Path is not writable (existing file, no write permission)', {
+          path: expandedPath,
+        });
         return false;
       }
     } catch {
@@ -422,10 +438,16 @@ export class FsDocStore implements DocStore {
         try {
           const parentDir = dirname(dir);
           await fs.access(parentDir, fs.constants.W_OK);
-          logger.debug('Path is writable (can create parent directory)', { path: expandedPath, parentDir });
+          logger.debug('Path is writable (can create parent directory)', {
+            path: expandedPath,
+            parentDir,
+          });
           return true;
         } catch {
-          logger.debug('Path is not writable (cannot create directory)', { path: expandedPath, dir });
+          logger.debug('Path is not writable (cannot create directory)', {
+            path: expandedPath,
+            dir,
+          });
           return false;
         }
       }

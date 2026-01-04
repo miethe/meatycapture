@@ -4,11 +4,21 @@
  * Final review and submit step of the capture wizard.
  * Displays a summary of all captured data and handles submission.
  * Fourth step in the wizard flow (Project -> Doc -> Item -> Review).
+ *
+ * Features:
+ * - Project and document summary
+ * - Item details with metadata badges
+ * - Structured notes display with type grouping
+ * - Inline note editing via NoteModal
+ * - Delete confirmation for notes
  */
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { StepShell } from '../shared/StepShell';
-import type { Project, ItemDraft } from '../../core/models';
+import { NotesList } from '../shared/NotesList';
+import { NoteModal } from '../shared/NoteModal';
+import { ConfirmationDialog } from '../shared/ConfirmationDialog';
+import type { Project, ItemDraft, Note } from '../../core/models';
 import './wizard.css';
 
 interface ReviewStepProps {
@@ -28,6 +38,12 @@ interface ReviewStepProps {
   onAddAnother: () => void;
   /** Called when user clicks Done to complete the wizard */
   onComplete: () => void;
+  /** Called when a note is added */
+  onAddNote?: (note: Omit<Note, 'id' | 'created_at' | 'updated_at'>) => void;
+  /** Called when a note is edited */
+  onEditNote?: (note: Note) => void;
+  /** Called when a note is deleted */
+  onDeleteNote?: (noteId: string) => void;
   /** Whether submission is in progress */
   isSubmitting?: boolean;
   /** Whether submission was successful */
@@ -43,9 +59,112 @@ export function ReviewStep({
   onSubmit,
   onAddAnother,
   onComplete,
+  onAddNote,
+  onEditNote,
+  onDeleteNote,
   isSubmitting = false,
   submitSuccess = false,
 }: ReviewStepProps): React.JSX.Element {
+  // ============================================================================
+  // State for Notes Management
+  // ============================================================================
+
+  // NoteModal state
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<Note | undefined>(undefined);
+
+  // Delete confirmation state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
+
+  // ============================================================================
+  // Notes Handlers
+  // ============================================================================
+
+  /**
+   * Open NoteModal for adding a new note
+   */
+  const handleOpenAddNote = useCallback(() => {
+    setEditingNote(undefined);
+    setIsNoteModalOpen(true);
+  }, []);
+
+  /**
+   * Open NoteModal for editing an existing note
+   */
+  const handleOpenEditNote = useCallback((note: Note) => {
+    setEditingNote(note);
+    setIsNoteModalOpen(true);
+  }, []);
+
+  /**
+   * Close NoteModal without saving
+   */
+  const handleCloseNoteModal = useCallback(() => {
+    setIsNoteModalOpen(false);
+    setEditingNote(undefined);
+  }, []);
+
+  /**
+   * Save note from modal (add or edit)
+   */
+  const handleSaveNote = useCallback(
+    (noteData: Omit<Note, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
+      if (noteData.id && editingNote) {
+        // Editing existing note
+        if (onEditNote) {
+          const updatedNote: Note = {
+            ...editingNote,
+            type: noteData.type,
+            content: noteData.content,
+            updated_at: new Date(),
+          };
+          onEditNote(updatedNote);
+        }
+      } else {
+        // Adding new note
+        if (onAddNote) {
+          onAddNote({
+            type: noteData.type,
+            content: noteData.content,
+          });
+        }
+      }
+      handleCloseNoteModal();
+    },
+    [editingNote, onAddNote, onEditNote, handleCloseNoteModal]
+  );
+
+  /**
+   * Open delete confirmation dialog
+   */
+  const handleOpenDeleteConfirm = useCallback((note: Note) => {
+    setNoteToDelete(note);
+    setIsDeleteDialogOpen(true);
+  }, []);
+
+  /**
+   * Close delete confirmation dialog
+   */
+  const handleCloseDeleteConfirm = useCallback(() => {
+    setIsDeleteDialogOpen(false);
+    setNoteToDelete(null);
+  }, []);
+
+  /**
+   * Confirm note deletion
+   */
+  const handleConfirmDelete = useCallback(() => {
+    if (noteToDelete && onDeleteNote) {
+      onDeleteNote(noteToDelete.id);
+    }
+    handleCloseDeleteConfirm();
+  }, [noteToDelete, onDeleteNote, handleCloseDeleteConfirm]);
+
+  // ============================================================================
+  // Submit Handler
+  // ============================================================================
+
   // Handle submit button click
   const handleSubmit = async () => {
     await onSubmit();
@@ -168,7 +287,9 @@ export function ReviewStep({
                   <span className="review-label">Domain:</span>
                   <div className="review-badges">
                     {draft.domain.map((d) => (
-                      <span key={d} className="review-badge-inline domain">{d}</span>
+                      <span key={d} className="review-badge-inline domain">
+                        {d}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -178,7 +299,9 @@ export function ReviewStep({
                   <span className="review-label">Context:</span>
                   <div className="review-badges">
                     {draft.context.map((c) => (
-                      <span key={c} className="review-badge-inline context">{c}</span>
+                      <span key={c} className="review-badge-inline context">
+                        {c}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -207,16 +330,18 @@ export function ReviewStep({
               </div>
             )}
 
-            {/* Notes - display if any exist */}
-            {draft.notes && draft.notes.length > 0 && (
-              <div className="review-field full-width">
-                <span className="review-label">Notes ({draft.notes.length}):</span>
-                <div className="review-notes">
-                  {draft.notes.map(n => n.content).join('\n\n')}
-                </div>
-              </div>
-            )}
           </div>
+        </section>
+
+        {/* Structured Notes Section */}
+        <section className="review-section">
+          <h3 className="review-section-title">Notes</h3>
+          <NotesList
+            notes={draft.notes || []}
+            onAddNote={handleOpenAddNote}
+            onEditNote={handleOpenEditNote}
+            onDeleteNote={handleOpenDeleteConfirm}
+          />
         </section>
 
         {/* Submit Button */}
@@ -233,6 +358,30 @@ export function ReviewStep({
           </button>
         </div>
       </div>
+
+      {/* Note Modal for Add/Edit */}
+      <NoteModal
+        isOpen={isNoteModalOpen}
+        {...(editingNote ? { initialNote: editingNote } : {})}
+        onSave={handleSaveNote}
+        onCancel={handleCloseNoteModal}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        title="Delete Note"
+        message={
+          noteToDelete
+            ? `Are you sure you want to delete this ${noteToDelete.type} note? This action cannot be undone.`
+            : 'Are you sure you want to delete this note?'
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCloseDeleteConfirm}
+        isDangerous={true}
+      />
     </StepShell>
   );
 }

@@ -8,7 +8,7 @@
  * - Accessibility compliance
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
+import { render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NoteModal } from '../NoteModal';
 import type { Note } from '@core/models';
@@ -414,7 +414,6 @@ describe('NoteModal', () => {
 
     it('shows error when saving content that exceeds max length', async () => {
       const onSave = vi.fn();
-      const user = userEvent.setup({ delay: null });
 
       // Create initial note with content at max length + 1
       const longContent = 'a'.repeat(NOTE_MAX_CONTENT_LENGTH + 1);
