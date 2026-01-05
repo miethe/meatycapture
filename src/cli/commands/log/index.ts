@@ -1,7 +1,7 @@
 /**
  * Log Command Group
  *
- * Manages request-log documents: create, append, list, view, delete, search.
+ * Manages request-log documents: create, append, list, view, delete, search, note, item.
  * This is the primary command group for document operations.
  *
  * Usage:
@@ -11,6 +11,8 @@
  *   meatycapture log view <doc-path>        View document contents
  *   meatycapture log delete <doc-path>      Delete document (with confirmation)
  *   meatycapture log search <query>         Search documents
+ *   meatycapture log note add <doc> <item>  Add a note to an item
+ *   meatycapture log item update <doc> <id> Update item fields
  */
 
 import { Command } from 'commander';
@@ -20,6 +22,8 @@ import { registerListCommand } from './list';
 import { registerViewCommand } from './view';
 import { registerDeleteCommand } from './delete';
 import { registerSearchCommand } from './search';
+import { registerNoteAddCommand } from './note-add';
+import { createItemCommand } from './item-update';
 
 /**
  * Creates and configures the log command group.
@@ -56,6 +60,10 @@ Examples:
   registerViewCommand(log);
   registerDeleteCommand(log);
   registerSearchCommand(log);
+  registerNoteAddCommand(log);
+
+  // Add the item subcommand group
+  log.addCommand(createItemCommand());
 
   return log;
 }
@@ -67,3 +75,5 @@ export { listAction } from './list';
 export { viewAction } from './view';
 export { deleteAction } from './delete';
 export { searchAction } from './search';
+export { noteAddAction } from './note-add';
+export { itemUpdateAction } from './item-update';
