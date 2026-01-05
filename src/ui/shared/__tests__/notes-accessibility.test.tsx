@@ -17,7 +17,7 @@
  */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, within, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NoteModal } from '../NoteModal';
 import { MarkdownEditor } from '../MarkdownEditor';
@@ -25,7 +25,7 @@ import { NoteCard } from '../NoteCard';
 import { NotesList } from '../NotesList';
 import { NoteTypeFilter } from '../NoteTypeFilter';
 import type { Note, NoteType } from '@core/models';
-import { NOTE_TYPES, NOTE_TYPE_OPTIONS } from '@core/models';
+import { NOTE_TYPES } from '@core/models';
 
 // =============================================================================
 // Test Fixtures

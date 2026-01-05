@@ -5,17 +5,19 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useNoteOperations } from '../useNoteOperations';
 import { ToastProvider } from '@ui/shared/useToast';
-import type { Note, NoteType } from '@core/models';
+import type { Note, NoteType, RequestLogDoc, RequestLogItem } from '@core/models';
+import type { DocStore } from '@core/ports';
 import type { ReactNode } from 'react';
 
-// Mock updateItemNotes
-vi.mock('@core/serializer/item-update', () => ({
-  updateItemNotes: vi.fn(),
-}));
-
-import { updateItemNotes } from '@core/serializer/item-update';
-
-const mockUpdateItemNotes = vi.mocked(updateItemNotes);
+// Mock DocStore - matches actual interface
+const mockDocStore: DocStore = {
+  list: vi.fn(),
+  read: vi.fn(),
+  write: vi.fn().mockResolvedValue(undefined),
+  append: vi.fn(),
+  backup: vi.fn(),
+  isWritable: vi.fn(),
+};
 
 // Wrapper with ToastProvider for all tests
 const wrapper = ({ children }: { children: ReactNode }) => (
@@ -27,6 +29,42 @@ const TEST_DOC_PATH = '/path/to/REQ-20260104-meatycapture.md';
 const TEST_ITEM_ID = 'REQ-20260104-meatycapture-01';
 const TEST_DOC_ID = 'REQ-20260104-meatycapture';
 const FIXED_DATE = new Date('2026-01-04T12:00:00Z');
+
+// Helper to create a mock item with proper types
+const createMockItem = (overrides: Partial<RequestLogItem> = {}): RequestLogItem => ({
+  id: TEST_ITEM_ID,
+  type: 'enhancement',
+  title: 'Test Item',
+  domain: ['web'],
+  context: ['test'],
+  priority: 'medium',
+  status: 'triage',
+  tags: [],
+  notes: [],
+  created_at: new Date('2026-01-04T10:00:00Z'),
+  ...overrides,
+});
+
+// Mock RequestLogDoc
+const createMockCurrentDoc = (overrides: Partial<RequestLogDoc> = {}): RequestLogDoc => ({
+  doc_id: TEST_DOC_ID,
+  title: 'Test Request Log',
+  project_id: 'meatycapture',
+  items_index: [
+    {
+      id: TEST_ITEM_ID,
+      type: 'enhancement',
+      title: 'Test Item',
+    },
+  ],
+  tags: [],
+  item_count: 1,
+  items: [createMockItem()],
+  created_at: new Date('2026-01-04T09:00:00Z'),
+  updated_at: new Date('2026-01-04T10:00:00Z'),
+  archived: false,
+  ...overrides,
+});
 
 // Note factory
 const createMockNote = (overrides: Partial<Note> = {}): Note => ({
@@ -41,11 +79,13 @@ const createMockNote = (overrides: Partial<Note> = {}): Note => ({
 describe('useNoteOperations', () => {
   const mockOnNotesChanged = vi.fn();
   const mockClock = vi.fn(() => FIXED_DATE);
+  let mockCurrentDoc: RequestLogDoc;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUpdateItemNotes.mockResolvedValue(undefined as never);
+    vi.mocked(mockDocStore.write).mockResolvedValue(undefined);
     mockClock.mockReturnValue(FIXED_DATE);
+    mockCurrentDoc = createMockCurrentDoc();
   });
 
   afterEach(() => {
@@ -56,7 +96,7 @@ describe('useNoteOperations', () => {
     it('starts with isOperating false', () => {
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [],
             clock: mockClock,
           }),
@@ -69,7 +109,7 @@ describe('useNoteOperations', () => {
     it('provides all expected functions', () => {
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [],
             clock: mockClock,
           }),
@@ -86,7 +126,7 @@ describe('useNoteOperations', () => {
     it('generates correct note ID for first note', async () => {
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [],
             clock: mockClock,
           }),
@@ -100,9 +140,15 @@ describe('useNoteOperations', () => {
         });
       });
 
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
+      expect(mockDocStore.write).toHaveBeenCalledWith(
         TEST_DOC_PATH,
-        TEST_ITEM_ID,
+        expect.objectContaining({
+          doc_id: TEST_DOC_ID,
+        })
+      );
+
+      // Verify onNotesChanged was called with correct note ID
+      expect(mockOnNotesChanged).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             id: 'NOTE-20260104-meatycapture-01-01',
@@ -119,7 +165,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: existingNotes,
             clock: mockClock,
           }),
@@ -134,9 +180,7 @@ describe('useNoteOperations', () => {
       });
 
       // Should use next number (03) after existing 01, 02
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
-        TEST_DOC_PATH,
-        TEST_ITEM_ID,
+      expect(mockOnNotesChanged).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             id: 'NOTE-20260104-meatycapture-01-03',
@@ -148,7 +192,7 @@ describe('useNoteOperations', () => {
     it('sets created_at and updated_at to current time', async () => {
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [],
             clock: mockClock,
           }),
@@ -162,9 +206,7 @@ describe('useNoteOperations', () => {
         });
       });
 
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
-        TEST_DOC_PATH,
-        TEST_ITEM_ID,
+      expect(mockOnNotesChanged).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             created_at: FIXED_DATE,
@@ -177,7 +219,7 @@ describe('useNoteOperations', () => {
     it('calls onNotesChanged with updated notes array', async () => {
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [],
             clock: mockClock,
           }),
@@ -206,7 +248,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [existingNote],
             clock: mockClock,
           }),
@@ -220,9 +262,7 @@ describe('useNoteOperations', () => {
         });
       });
 
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
-        TEST_DOC_PATH,
-        TEST_ITEM_ID,
+      expect(mockOnNotesChanged).toHaveBeenCalledWith(
         expect.arrayContaining([existingNote, expect.objectContaining({ type: 'Validation' })])
       );
     });
@@ -232,11 +272,11 @@ describe('useNoteOperations', () => {
       const slowSave = new Promise<void>((resolve) => {
         resolveSave = resolve;
       });
-      mockUpdateItemNotes.mockReturnValue(slowSave as never);
+      vi.mocked(mockDocStore.write).mockReturnValue(slowSave as never);
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [],
             clock: mockClock,
           }),
@@ -263,13 +303,13 @@ describe('useNoteOperations', () => {
 
     it('handles errors gracefully', async () => {
       const error = new Error('Write failed');
-      mockUpdateItemNotes.mockRejectedValue(error);
+      vi.mocked(mockDocStore.write).mockRejectedValue(error);
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [],
             clock: mockClock,
           }),
@@ -295,11 +335,11 @@ describe('useNoteOperations', () => {
       const slowSave = new Promise<void>((resolve) => {
         resolveSave = resolve;
       });
-      mockUpdateItemNotes.mockReturnValue(slowSave as never);
+      vi.mocked(mockDocStore.write).mockReturnValue(slowSave as never);
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [],
             clock: mockClock,
           }),
@@ -317,7 +357,7 @@ describe('useNoteOperations', () => {
       });
 
       // Only first call should be made
-      expect(mockUpdateItemNotes).toHaveBeenCalledTimes(1);
+      expect(mockDocStore.write).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         resolveSave?.();
@@ -336,7 +376,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [existingNote],
             clock: mockClock,
           }),
@@ -347,9 +387,14 @@ describe('useNoteOperations', () => {
         await result.current.editNote(updatedNote);
       });
 
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
+      expect(mockDocStore.write).toHaveBeenCalledWith(
         TEST_DOC_PATH,
-        TEST_ITEM_ID,
+        expect.objectContaining({
+          doc_id: TEST_DOC_ID,
+        })
+      );
+
+      expect(mockOnNotesChanged).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             id: existingNote.id,
@@ -366,7 +411,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [existingNote],
             clock: mockClock,
           }),
@@ -377,9 +422,7 @@ describe('useNoteOperations', () => {
         await result.current.editNote(existingNote);
       });
 
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
-        TEST_DOC_PATH,
-        TEST_ITEM_ID,
+      expect(mockOnNotesChanged).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             updated_at: FIXED_DATE,
@@ -396,7 +439,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [existingNote],
             clock: mockClock,
           }),
@@ -407,9 +450,7 @@ describe('useNoteOperations', () => {
         await result.current.editNote(existingNote);
       });
 
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
-        TEST_DOC_PATH,
-        TEST_ITEM_ID,
+      expect(mockOnNotesChanged).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             created_at: originalCreatedAt,
@@ -423,7 +464,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [existingNote],
             clock: mockClock,
           }),
@@ -445,7 +486,7 @@ describe('useNoteOperations', () => {
 
     it('handles errors gracefully', async () => {
       const error = new Error('Write failed');
-      mockUpdateItemNotes.mockRejectedValue(error);
+      vi.mocked(mockDocStore.write).mockRejectedValue(error);
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -453,7 +494,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [existingNote],
             clock: mockClock,
           }),
@@ -476,7 +517,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [note1, note2],
             clock: mockClock,
           }),
@@ -487,10 +528,11 @@ describe('useNoteOperations', () => {
         await result.current.editNote({ ...note1, content: 'Modified First' });
       });
 
-      const [, , notesArg] = mockUpdateItemNotes.mock.calls[0] as [string, string, Note[]];
+      const notesArg = mockOnNotesChanged.mock.calls[0]?.[0] as Note[] | undefined;
+      expect(notesArg).toBeDefined();
       expect(notesArg).toHaveLength(2);
-      expect(notesArg[0]).toMatchObject({ id: note1.id, content: 'Modified First' });
-      expect(notesArg[1]).toMatchObject({ id: note2.id, content: 'Second' });
+      expect(notesArg?.[0]).toMatchObject({ id: note1.id, content: 'Modified First' });
+      expect(notesArg?.[1]).toMatchObject({ id: note2.id, content: 'Second' });
     });
   });
 
@@ -498,9 +540,14 @@ describe('useNoteOperations', () => {
     it('removes the note from the array', async () => {
       const noteToDelete = createMockNote();
 
+      // Create doc with the note already in it so applyNoteUpdate detects the change
+      const docWithNote = createMockCurrentDoc({
+        items: [createMockItem({ notes: [noteToDelete] })],
+      });
+
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, docWithNote, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [noteToDelete],
             clock: mockClock,
           }),
@@ -511,7 +558,8 @@ describe('useNoteOperations', () => {
         await result.current.deleteNote(noteToDelete.id);
       });
 
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(TEST_DOC_PATH, TEST_ITEM_ID, []);
+      expect(mockDocStore.write).toHaveBeenCalledWith(TEST_DOC_PATH, expect.objectContaining({ doc_id: TEST_DOC_ID }));
+      expect(mockOnNotesChanged).toHaveBeenCalledWith([]);
     });
 
     it('preserves other notes when deleting', async () => {
@@ -521,7 +569,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [note1, note2, note3],
             clock: mockClock,
           }),
@@ -532,9 +580,10 @@ describe('useNoteOperations', () => {
         await result.current.deleteNote(note2.id);
       });
 
-      const [, , notesArg] = mockUpdateItemNotes.mock.calls[0] as [string, string, Note[]];
+      const notesArg = mockOnNotesChanged.mock.calls[0]?.[0] as Note[] | undefined;
+      expect(notesArg).toBeDefined();
       expect(notesArg).toHaveLength(2);
-      expect(notesArg.map((n) => n.id)).toEqual([note1.id, note3.id]);
+      expect(notesArg?.map((n) => n.id)).toEqual([note1.id, note3.id]);
     });
 
     it('calls onNotesChanged with updated array', async () => {
@@ -542,7 +591,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [note],
             clock: mockClock,
           }),
@@ -558,15 +607,20 @@ describe('useNoteOperations', () => {
 
     it('handles errors gracefully', async () => {
       const error = new Error('Write failed');
-      mockUpdateItemNotes.mockRejectedValue(error);
+      vi.mocked(mockDocStore.write).mockRejectedValue(error);
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const note = createMockNote();
 
+      // Create doc with the note so applyNoteUpdate detects the change and calls write
+      const docWithNote = createMockCurrentDoc({
+        items: [createMockItem({ notes: [note] })],
+      });
+
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, docWithNote, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [note],
             clock: mockClock,
           }),
@@ -588,7 +642,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [existingNote],
             clock: mockClock,
           }),
@@ -599,8 +653,9 @@ describe('useNoteOperations', () => {
         await result.current.deleteNote('non-existent-note');
       });
 
-      // Should still call updateItemNotes with the existing note
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(TEST_DOC_PATH, TEST_ITEM_ID, [existingNote]);
+      // Should still call write with the existing note (unchanged)
+      expect(mockDocStore.write).toHaveBeenCalledWith(TEST_DOC_PATH, expect.objectContaining({ doc_id: TEST_DOC_ID }));
+      expect(mockOnNotesChanged).toHaveBeenCalledWith([existingNote]);
     });
   });
 
@@ -614,7 +669,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: existingNotes,
             clock: mockClock,
           }),
@@ -626,9 +681,7 @@ describe('useNoteOperations', () => {
       });
 
       // Should use 06 (max + 1)
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
-        TEST_DOC_PATH,
-        TEST_ITEM_ID,
+      expect(mockOnNotesChanged).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             id: 'NOTE-20260104-meatycapture-01-06',
@@ -638,12 +691,29 @@ describe('useNoteOperations', () => {
     });
 
     it('handles different project slug in doc ID', async () => {
+      const otherProjectDoc = createMockCurrentDoc({
+        doc_id: 'REQ-20260104-other-project',
+        items_index: [
+          {
+            id: 'REQ-20260104-other-project-01',
+            type: 'enhancement',
+            title: 'Test Item',
+          },
+        ],
+        items: [
+          createMockItem({
+            id: 'REQ-20260104-other-project-01',
+          }),
+        ],
+      });
+
       const { result } = renderHook(
         () =>
           useNoteOperations(
+            mockDocStore,
             '/path/to/doc.md',
+            otherProjectDoc,
             'REQ-20260104-other-project-01',
-            'REQ-20260104-other-project',
             mockOnNotesChanged,
             {
               currentNotes: [],
@@ -657,9 +727,7 @@ describe('useNoteOperations', () => {
         await result.current.addNote({ type: 'General', content: 'Test' });
       });
 
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
-        '/path/to/doc.md',
-        'REQ-20260104-other-project-01',
+      expect(mockOnNotesChanged).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             id: 'NOTE-20260104-other-project-01-01',
@@ -677,7 +745,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: existingNotes,
             clock: mockClock,
           }),
@@ -689,9 +757,7 @@ describe('useNoteOperations', () => {
       });
 
       // Should use 04 (max valid + 1), ignoring malformed ID
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
-        TEST_DOC_PATH,
-        TEST_ITEM_ID,
+      expect(mockOnNotesChanged).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             id: 'NOTE-20260104-meatycapture-01-04',
@@ -707,7 +773,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [],
             // No clock provided
           }),
@@ -720,10 +786,11 @@ describe('useNoteOperations', () => {
 
       const afterTest = new Date();
 
-      const [, , notesArg] = mockUpdateItemNotes.mock.calls[0] as [string, string, Note[]];
-      const addedNote = notesArg[0];
+      const notesArg = mockOnNotesChanged.mock.calls[0]?.[0] as Note[] | undefined;
+      const addedNote = notesArg?.[0];
 
       // created_at should be between before and after test
+      expect(addedNote).toBeDefined();
       if (addedNote) {
         expect(addedNote.created_at.getTime()).toBeGreaterThanOrEqual(beforeTest.getTime());
         expect(addedNote.created_at.getTime()).toBeLessThanOrEqual(afterTest.getTime());
@@ -736,7 +803,7 @@ describe('useNoteOperations', () => {
 
       const { result } = renderHook(
         () =>
-          useNoteOperations(TEST_DOC_PATH, TEST_ITEM_ID, TEST_DOC_ID, mockOnNotesChanged, {
+          useNoteOperations(mockDocStore, TEST_DOC_PATH, mockCurrentDoc, TEST_ITEM_ID, mockOnNotesChanged, {
             currentNotes: [],
             clock: customClock,
           }),
@@ -749,9 +816,7 @@ describe('useNoteOperations', () => {
 
       expect(customClock).toHaveBeenCalled();
 
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
-        TEST_DOC_PATH,
-        TEST_ITEM_ID,
+      expect(mockOnNotesChanged).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             created_at: customDate,

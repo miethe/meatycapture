@@ -341,7 +341,7 @@ describe('MarkdownEditor', () => {
       });
     });
 
-    it('allows Tab navigation through toolbar', async () => {
+    it('allows arrow key navigation through toolbar (roving tabindex)', async () => {
       const user = userEvent.setup();
       render(<MarkdownEditor value="" onChange={() => {}} />);
 
@@ -352,8 +352,8 @@ describe('MarkdownEditor', () => {
       boldButton.focus();
       expect(document.activeElement).toBe(boldButton);
 
-      // Tab to next button
-      await user.tab();
+      // Arrow right to next button (toolbars use arrow keys, not Tab)
+      await user.keyboard('{ArrowRight}');
       expect(document.activeElement).toBe(italicButton);
     });
   });

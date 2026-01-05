@@ -41,7 +41,7 @@ import { ValidationError } from '../middleware/error-handler.js';
 function validateRequestLogItem(obj: unknown): RequestLogItem {
   const item = validateObject(obj, 'item');
 
-  return {
+  const result: RequestLogItem = {
     id: validateString(item.id, 'id'),
     title: validateString(item.title, 'title'),
     type: validateString(item.type, 'type'),
@@ -53,6 +53,13 @@ function validateRequestLogItem(obj: unknown): RequestLogItem {
     notes: Array.isArray(item.notes) ? item.notes.map(validateNote) : [],
     created_at: validateDate(item.created_at, 'created_at'),
   };
+
+  // Preserve optional modified_at if present (exactOptionalPropertyTypes compatible)
+  if (item.modified_at !== undefined && item.modified_at !== null) {
+    result.modified_at = validateDate(item.modified_at, 'modified_at');
+  }
+
+  return result;
 }
 
 /**

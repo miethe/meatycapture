@@ -181,8 +181,8 @@ async function fillAndSaveNote(
   const typeSelect = within(modal).getByRole('combobox');
   await user.selectOptions(typeSelect, type);
 
-  // Enter content
-  const textarea = within(modal).getByRole('textbox', { name: /markdown content/i });
+  // Enter content - label is "Content" with aria-labelledby
+  const textarea = within(modal).getByRole('textbox', { name: /^content$/i });
   await user.type(textarea, content);
 
   // Click save
@@ -373,7 +373,7 @@ describe('Notes Capture Integration - ItemStep', () => {
       });
 
       // Verify pre-filled content
-      const textarea = screen.getByRole('textbox', { name: /markdown content/i });
+      const textarea = screen.getByRole('textbox', { name: /^content$/i });
       expect(textarea).toHaveValue('Original note content.');
 
       // Clear and type new content
@@ -625,7 +625,7 @@ describe('Notes Capture Integration - ReviewStep', () => {
         expect(screen.getByRole('heading', { name: 'Edit Note' })).toBeInTheDocument();
       });
 
-      const textarea = screen.getByRole('textbox', { name: /markdown content/i });
+      const textarea = screen.getByRole('textbox', { name: /^content$/i });
       await user.clear(textarea);
       await user.type(textarea, 'Note edited during review.');
 

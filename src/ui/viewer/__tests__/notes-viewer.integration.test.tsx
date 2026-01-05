@@ -17,8 +17,9 @@ import userEvent from '@testing-library/user-event';
 import { ItemCard } from '../ItemCard';
 import { useNoteOperations } from '../hooks/useNoteOperations';
 import { ToastProvider } from '@ui/shared/useToast';
-import type { RequestLogItem, Note, NoteType } from '@core/models';
+import type { RequestLogItem, RequestLogDoc, Note, NoteType } from '@core/models';
 import { NOTE_TYPES } from '@core/models';
+import type { DocStore } from '@core/ports';
 import type { ReactNode } from 'react';
 import React from 'react';
 
@@ -26,14 +27,49 @@ import React from 'react';
 // Mocks
 // ============================================================================
 
-// Mock updateItemNotes from serializer
-vi.mock('@core/serializer/item-update', () => ({
-  updateItemNotes: vi.fn(),
-}));
+/**
+ * Create a mock DocStore for file operations.
+ * All methods are vi.fn() for assertion tracking.
+ */
+function createMockDocStore(): DocStore {
+  return {
+    list: vi.fn(),
+    read: vi.fn(),
+    write: vi.fn().mockResolvedValue(undefined),
+    append: vi.fn(),
+    backup: vi.fn(),
+    isWritable: vi.fn().mockResolvedValue(true),
+  };
+}
 
-import { updateItemNotes } from '@core/serializer/item-update';
-
-const mockUpdateItemNotes = vi.mocked(updateItemNotes);
+/**
+ * Create a mock RequestLogDoc from a RequestLogItem.
+ * Used for testing the useNoteOperations hook which requires a full doc.
+ */
+function createMockDocFromItem(
+  item: RequestLogItem,
+  docId: string,
+  projectId: string = 'test-project'
+): RequestLogDoc {
+  return {
+    doc_id: docId,
+    project_id: projectId,
+    title: 'Test Request Log',
+    items_index: [
+      {
+        id: item.id,
+        type: item.type,
+        title: item.title,
+      },
+    ],
+    tags: item.tags,
+    item_count: 1,
+    items: [item],
+    created_at: new Date('2026-01-04'),
+    updated_at: new Date('2026-01-04'),
+    archived: false,
+  };
+}
 
 // ============================================================================
 // Test Constants
@@ -93,6 +129,7 @@ interface TestWrapperProps {
   item: RequestLogItem;
   docPath?: string;
   docId?: string;
+  docStore?: DocStore;
   onItemUpdated?: (item: RequestLogItem) => void;
   clock?: () => Date;
 }
@@ -101,10 +138,19 @@ function IntegratedItemCard({
   item: initialItem,
   docPath = TEST_DOC_PATH,
   docId = TEST_DOC_ID,
+  docStore,
   onItemUpdated,
   clock = () => FIXED_DATE,
 }: TestWrapperProps): React.JSX.Element {
   const [item, setItem] = React.useState(initialItem);
+  const [currentDoc, setCurrentDoc] = React.useState(() =>
+    createMockDocFromItem(initialItem, docId)
+  );
+
+  // Update doc when item changes
+  React.useEffect(() => {
+    setCurrentDoc(createMockDocFromItem(item, docId));
+  }, [item, docId]);
 
   // Handle notes changes from the hook
   const handleNotesChanged = React.useCallback(
@@ -118,11 +164,15 @@ function IntegratedItemCard({
     [onItemUpdated]
   );
 
-  // Use the actual useNoteOperations hook
+  // Use the mock docStore or create one
+  const store = React.useMemo(() => docStore ?? createMockDocStore(), [docStore]);
+
+  // Use the actual useNoteOperations hook with new signature
   const { addNote, editNote, deleteNote } = useNoteOperations(
+    store,
     docPath,
+    currentDoc,
     item.id,
-    docId,
     handleNotesChanged,
     {
       currentNotes: item.notes ?? [],
@@ -177,6 +227,7 @@ function renderViewerWithNotes(options: {
   item: RequestLogItem;
   docPath?: string;
   docId?: string;
+  docStore?: DocStore;
   onItemUpdated?: (item: RequestLogItem) => void;
   clock?: () => Date;
 }) {
@@ -222,8 +273,8 @@ async function fillAndSaveNote(
   const typeSelect = within(modal).getByRole('combobox');
   await user.selectOptions(typeSelect, type);
 
-  // Enter content
-  const textarea = within(modal).getByRole('textbox', { name: /markdown content/i });
+  // Enter content (accessible name is "Content")
+  const textarea = within(modal).getByRole('textbox', { name: /^content$/i });
   await user.type(textarea, content);
 
   // Click save
@@ -293,9 +344,11 @@ async function deleteNoteWithConfirm(
 // ============================================================================
 
 describe('Viewer Notes Integration - File Persistence', () => {
+  let mockDocStore: DocStore;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUpdateItemNotes.mockResolvedValue(undefined as never);
+    mockDocStore = createMockDocStore();
   });
 
   afterEach(() => {
@@ -307,7 +360,7 @@ describe('Viewer Notes Integration - File Persistence', () => {
       const item = createMockItem({ notes: [] });
       const onItemUpdated = vi.fn();
 
-      const { user } = renderViewerWithNotes({ item, onItemUpdated });
+      const { user } = renderViewerWithNotes({ item, docStore: mockDocStore, onItemUpdated });
 
       // Open add note modal
       await openAddNoteModal(user);
@@ -317,20 +370,27 @@ describe('Viewer Notes Integration - File Persistence', () => {
 
       // Wait for persistence
       await waitFor(() => {
-        expect(mockUpdateItemNotes).toHaveBeenCalledTimes(1);
+        expect(mockDocStore.write).toHaveBeenCalledTimes(1);
       });
 
-      // Verify file update call
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
+      // Verify file update call - docStore.write receives (path, doc)
+      expect(mockDocStore.write).toHaveBeenCalledWith(
         TEST_DOC_PATH,
-        TEST_ITEM_ID,
-        expect.arrayContaining([
-          expect.objectContaining({
-            type: NOTE_TYPES.General,
-            content: 'New note from viewer',
-            id: expect.stringMatching(/^NOTE-\d{8}-meatycapture-01-01$/),
-          }),
-        ])
+        expect.objectContaining({
+          doc_id: TEST_DOC_ID,
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              id: TEST_ITEM_ID,
+              notes: expect.arrayContaining([
+                expect.objectContaining({
+                  type: NOTE_TYPES.General,
+                  content: 'New note from viewer',
+                  id: expect.stringMatching(/^NOTE-\d{8}-meatycapture-01-01$/),
+                }),
+              ]),
+            }),
+          ]),
+        })
       );
 
       // Verify UI updated
@@ -356,19 +416,20 @@ describe('Viewer Notes Integration - File Persistence', () => {
       });
       const item = createMockItem({ notes: [existingNote] });
 
-      const { user } = renderViewerWithNotes({ item });
+      const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
       // Add second note
       await openAddNoteModal(user);
       await fillAndSaveNote(user, NOTE_TYPES.BugFixAttempt, 'Second note');
 
       await waitFor(() => {
-        expect(mockUpdateItemNotes).toHaveBeenCalled();
+        expect(mockDocStore.write).toHaveBeenCalled();
       });
 
       // Verify new note has correct sequential ID
-      const callArgs = mockUpdateItemNotes.mock.calls[0];
-      const notesArg = callArgs?.[2] as Note[];
+      const callArgs = (mockDocStore.write as ReturnType<typeof vi.fn>).mock.calls[0];
+      const docArg = callArgs?.[1] as RequestLogDoc;
+      const notesArg = docArg.items[0]?.notes ?? [];
       expect(notesArg).toHaveLength(2);
 
       const newNote = notesArg.find((n) => n.content === 'Second note');
@@ -385,14 +446,14 @@ describe('Viewer Notes Integration - File Persistence', () => {
       });
       const item = createMockItem({ notes: [originalNote] });
 
-      const { user } = renderViewerWithNotes({ item });
+      const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
       // Open edit modal
       await openEditNoteModal(user, 'Original content');
 
       // Modify content
       const modal = screen.getByRole('dialog');
-      const textarea = within(modal).getByRole('textbox', { name: /markdown content/i });
+      const textarea = within(modal).getByRole('textbox', { name: /^content$/i });
       await user.clear(textarea);
       await user.type(textarea, 'Updated content');
 
@@ -402,22 +463,21 @@ describe('Viewer Notes Integration - File Persistence', () => {
 
       // Wait for persistence
       await waitFor(() => {
-        expect(mockUpdateItemNotes).toHaveBeenCalled();
+        expect(mockDocStore.write).toHaveBeenCalled();
       });
 
-      // Verify file update
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(
-        TEST_DOC_PATH,
-        TEST_ITEM_ID,
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: originalNote.id,
-            content: 'Updated content',
-            updated_at: FIXED_DATE, // New timestamp
-            created_at: originalNote.created_at, // Original preserved
-          }),
-        ])
-      );
+      // Verify file update - check the doc passed to write
+      const callArgs = (mockDocStore.write as ReturnType<typeof vi.fn>).mock.calls[0];
+      const docArg = callArgs?.[1] as RequestLogDoc;
+      const notesArg = docArg.items[0]?.notes ?? [];
+      const updatedNote = notesArg.find((n) => n.id === originalNote.id);
+
+      expect(updatedNote).toMatchObject({
+        id: originalNote.id,
+        content: 'Updated content',
+        updated_at: FIXED_DATE, // New timestamp
+        created_at: originalNote.created_at, // Original preserved
+      });
 
       // Verify UI updated
       await waitFor(() => {
@@ -435,25 +495,26 @@ describe('Viewer Notes Integration - File Persistence', () => {
       });
       const item = createMockItem({ notes: [originalNote] });
 
-      const { user } = renderViewerWithNotes({ item });
+      const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
       // Edit the note
       await openEditNoteModal(user, 'Test content');
 
       const modal = screen.getByRole('dialog');
-      const textarea = within(modal).getByRole('textbox', { name: /markdown content/i });
+      const textarea = within(modal).getByRole('textbox', { name: /^content$/i });
       await user.clear(textarea);
       await user.type(textarea, 'Modified content');
 
       await user.click(within(modal).getByRole('button', { name: /save/i }));
 
       await waitFor(() => {
-        expect(mockUpdateItemNotes).toHaveBeenCalled();
+        expect(mockDocStore.write).toHaveBeenCalled();
       });
 
       // Verify created_at is preserved
-      const callArgs = mockUpdateItemNotes.mock.calls[0];
-      const notesArg = callArgs?.[2] as Note[];
+      const callArgs = (mockDocStore.write as ReturnType<typeof vi.fn>).mock.calls[0];
+      const docArg = callArgs?.[1] as RequestLogDoc;
+      const notesArg = docArg.items[0]?.notes ?? [];
       const editedNote = notesArg[0];
 
       expect(editedNote?.created_at).toEqual(originalCreatedAt);
@@ -468,7 +529,7 @@ describe('Viewer Notes Integration - File Persistence', () => {
       });
       const item = createMockItem({ notes: [noteToDelete] });
 
-      const { user } = renderViewerWithNotes({ item });
+      const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
       // Verify note exists
       expect(screen.getByText('Note to be deleted')).toBeInTheDocument();
@@ -478,11 +539,14 @@ describe('Viewer Notes Integration - File Persistence', () => {
 
       // Wait for persistence
       await waitFor(() => {
-        expect(mockUpdateItemNotes).toHaveBeenCalled();
+        expect(mockDocStore.write).toHaveBeenCalled();
       });
 
       // Verify file updated with empty notes array
-      expect(mockUpdateItemNotes).toHaveBeenCalledWith(TEST_DOC_PATH, TEST_ITEM_ID, []);
+      const callArgs = (mockDocStore.write as ReturnType<typeof vi.fn>).mock.calls[0];
+      const docArg = callArgs?.[1] as RequestLogDoc;
+      const notesArg = docArg.items[0]?.notes ?? [];
+      expect(notesArg).toHaveLength(0);
 
       // Verify UI updated
       await waitFor(() => {
@@ -506,18 +570,19 @@ describe('Viewer Notes Integration - File Persistence', () => {
       });
       const item = createMockItem({ notes: [note1, note2, note3] });
 
-      const { user } = renderViewerWithNotes({ item });
+      const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
       // Delete the middle note
       await deleteNoteWithConfirm(user, 'Second note - delete');
 
       await waitFor(() => {
-        expect(mockUpdateItemNotes).toHaveBeenCalled();
+        expect(mockDocStore.write).toHaveBeenCalled();
       });
 
       // Verify only note2 was removed
-      const callArgs = mockUpdateItemNotes.mock.calls[0];
-      const notesArg = callArgs?.[2] as Note[];
+      const callArgs = (mockDocStore.write as ReturnType<typeof vi.fn>).mock.calls[0];
+      const docArg = callArgs?.[1] as RequestLogDoc;
+      const notesArg = docArg.items[0]?.notes ?? [];
 
       expect(notesArg).toHaveLength(2);
       expect(notesArg.map((n) => n.id)).toEqual([note1.id, note3.id]);
@@ -539,7 +604,6 @@ describe('Viewer Notes Integration - File Persistence', () => {
 describe('Viewer Notes Integration - Filtering', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUpdateItemNotes.mockResolvedValue(undefined as never);
   });
 
   afterEach(() => {
@@ -648,9 +712,11 @@ describe('Viewer Notes Integration - Filtering', () => {
 // ============================================================================
 
 describe('Viewer Notes Integration - Sequential Operations', () => {
+  let mockDocStore: DocStore;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUpdateItemNotes.mockResolvedValue(undefined as never);
+    mockDocStore = createMockDocStore();
   });
 
   afterEach(() => {
@@ -662,19 +728,21 @@ describe('Viewer Notes Integration - Sequential Operations', () => {
     let currentNotes: Note[] = [];
 
     // Track notes state after each operation
-    mockUpdateItemNotes.mockImplementation(async (_path, _itemId, notes) => {
-      currentNotes = notes as Note[];
-      return undefined as never;
-    });
+    (mockDocStore.write as ReturnType<typeof vi.fn>).mockImplementation(
+      async (_path: string, doc: RequestLogDoc) => {
+        currentNotes = doc.items[0]?.notes ?? [];
+        return undefined;
+      }
+    );
 
-    const { user } = renderViewerWithNotes({ item });
+    const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
     // Step 1: Add first note
     await openAddNoteModal(user);
     await fillAndSaveNote(user, NOTE_TYPES.General, 'First note');
 
     await waitFor(() => {
-      expect(mockUpdateItemNotes).toHaveBeenCalledTimes(1);
+      expect(mockDocStore.write).toHaveBeenCalledTimes(1);
     });
 
     expect(currentNotes).toHaveLength(1);
@@ -685,7 +753,7 @@ describe('Viewer Notes Integration - Sequential Operations', () => {
     await fillAndSaveNote(user, NOTE_TYPES.BugFixAttempt, 'Second note');
 
     await waitFor(() => {
-      expect(mockUpdateItemNotes).toHaveBeenCalledTimes(2);
+      expect(mockDocStore.write).toHaveBeenCalledTimes(2);
     });
 
     expect(currentNotes).toHaveLength(2);
@@ -695,13 +763,13 @@ describe('Viewer Notes Integration - Sequential Operations', () => {
     await openEditNoteModal(user, 'First note');
 
     const modal = screen.getByRole('dialog');
-    const textarea = within(modal).getByRole('textbox', { name: /markdown content/i });
+    const textarea = within(modal).getByRole('textbox', { name: /^content$/i });
     await user.clear(textarea);
     await user.type(textarea, 'First note - edited');
     await user.click(within(modal).getByRole('button', { name: /save/i }));
 
     await waitFor(() => {
-      expect(mockUpdateItemNotes).toHaveBeenCalledTimes(3);
+      expect(mockDocStore.write).toHaveBeenCalledTimes(3);
     });
 
     expect(currentNotes).toHaveLength(2);
@@ -712,7 +780,7 @@ describe('Viewer Notes Integration - Sequential Operations', () => {
     await deleteNoteWithConfirm(user, 'Second note');
 
     await waitFor(() => {
-      expect(mockUpdateItemNotes).toHaveBeenCalledTimes(4);
+      expect(mockDocStore.write).toHaveBeenCalledTimes(4);
     });
 
     expect(currentNotes).toHaveLength(1);
@@ -728,14 +796,14 @@ describe('Viewer Notes Integration - Sequential Operations', () => {
     const item = createMockItem({ notes: [] });
     let operationCount = 0;
 
-    mockUpdateItemNotes.mockImplementation(async () => {
+    (mockDocStore.write as ReturnType<typeof vi.fn>).mockImplementation(async () => {
       operationCount++;
       // Simulate small delay
       await new Promise((resolve) => setTimeout(resolve, 10));
-      return undefined as never;
+      return undefined;
     });
 
-    const { user } = renderViewerWithNotes({ item });
+    const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
     // Add three notes in sequence
     await openAddNoteModal(user);
@@ -776,7 +844,6 @@ describe('Viewer Notes Integration - Sequential Operations', () => {
 describe('Viewer Notes Integration - Reload Persistence', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUpdateItemNotes.mockResolvedValue(undefined as never);
   });
 
   afterEach(() => {
@@ -854,8 +921,11 @@ describe('Viewer Notes Integration - Reload Persistence', () => {
 // ============================================================================
 
 describe('Viewer Notes Integration - Error Handling', () => {
+  let mockDocStore: DocStore;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDocStore = createMockDocStore();
   });
 
   afterEach(() => {
@@ -864,10 +934,12 @@ describe('Viewer Notes Integration - Error Handling', () => {
 
   it('shows error toast when file write fails on add', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    mockUpdateItemNotes.mockRejectedValue(new Error('Write failed: disk full'));
+    (mockDocStore.write as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new Error('Write failed: disk full')
+    );
 
     const item = createMockItem({ notes: [] });
-    const { user } = renderViewerWithNotes({ item });
+    const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
     // Try to add note
     await openAddNoteModal(user);
@@ -887,7 +959,9 @@ describe('Viewer Notes Integration - Error Handling', () => {
 
   it('shows error toast when file write fails on edit', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    mockUpdateItemNotes.mockRejectedValue(new Error('Permission denied'));
+    (mockDocStore.write as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new Error('Permission denied')
+    );
 
     const existingNote = createMockNote({
       id: 'NOTE-01',
@@ -895,13 +969,13 @@ describe('Viewer Notes Integration - Error Handling', () => {
     });
     const item = createMockItem({ notes: [existingNote] });
 
-    const { user } = renderViewerWithNotes({ item });
+    const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
     // Try to edit note
     await openEditNoteModal(user, 'Existing note');
 
     const modal = screen.getByRole('dialog');
-    const textarea = within(modal).getByRole('textbox', { name: /markdown content/i });
+    const textarea = within(modal).getByRole('textbox', { name: /^content$/i });
     await user.clear(textarea);
     await user.type(textarea, 'Updated content');
     await user.click(within(modal).getByRole('button', { name: /save/i }));
@@ -916,7 +990,7 @@ describe('Viewer Notes Integration - Error Handling', () => {
 
   it('shows error toast when file write fails on delete', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    mockUpdateItemNotes.mockRejectedValue(new Error('File locked'));
+    (mockDocStore.write as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('File locked'));
 
     const noteToDelete = createMockNote({
       id: 'NOTE-01',
@@ -924,7 +998,7 @@ describe('Viewer Notes Integration - Error Handling', () => {
     });
     const item = createMockItem({ notes: [noteToDelete] });
 
-    const { user } = renderViewerWithNotes({ item });
+    const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
     // Try to delete note
     await deleteNoteWithConfirm(user, 'Note to delete');
@@ -943,9 +1017,11 @@ describe('Viewer Notes Integration - Error Handling', () => {
 // ============================================================================
 
 describe('Viewer Notes Integration - Full Lifecycle E2E', () => {
+  let mockDocStore: DocStore;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUpdateItemNotes.mockResolvedValue(undefined as never);
+    mockDocStore = createMockDocStore();
   });
 
   afterEach(() => {
@@ -957,12 +1033,14 @@ describe('Viewer Notes Integration - Full Lifecycle E2E', () => {
     const fileState: Note[][] = [];
 
     // Track all file updates
-    mockUpdateItemNotes.mockImplementation(async (_path, _itemId, notes) => {
-      fileState.push([...(notes as Note[])]);
-      return undefined as never;
-    });
+    (mockDocStore.write as ReturnType<typeof vi.fn>).mockImplementation(
+      async (_path: string, doc: RequestLogDoc) => {
+        fileState.push([...(doc.items[0]?.notes ?? [])]);
+        return undefined;
+      }
+    );
 
-    const { user } = renderViewerWithNotes({ item });
+    const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
     // ========== Phase 1: Add Notes ==========
 
@@ -1000,7 +1078,7 @@ describe('Viewer Notes Integration - Full Lifecycle E2E', () => {
     await openEditNoteModal(user, 'Tried fix A');
 
     const modal = screen.getByRole('dialog');
-    const textarea = within(modal).getByRole('textbox', { name: /markdown content/i });
+    const textarea = within(modal).getByRole('textbox', { name: /^content$/i });
     await user.clear(textarea);
     await user.type(textarea, 'Tried fix A - worked!');
     await user.click(within(modal).getByRole('button', { name: /save/i }));
@@ -1065,7 +1143,7 @@ describe('Viewer Notes Integration - Full Lifecycle E2E', () => {
     expect(screen.getByText('Tried fix A - worked!')).toBeInTheDocument();
 
     // File operations count
-    expect(mockUpdateItemNotes).toHaveBeenCalledTimes(5);
+    expect(mockDocStore.write).toHaveBeenCalledTimes(5);
   });
 
   it('handles concurrent viewing and editing without data loss', async () => {
@@ -1086,12 +1164,14 @@ describe('Viewer Notes Integration - Full Lifecycle E2E', () => {
     const item = createMockItem({ notes: initialNotes });
     const operationsLog: string[] = [];
 
-    mockUpdateItemNotes.mockImplementation(async (_path, _itemId, notes) => {
-      operationsLog.push(`Update with ${(notes as Note[]).length} notes`);
-      return undefined as never;
-    });
+    (mockDocStore.write as ReturnType<typeof vi.fn>).mockImplementation(
+      async (_path: string, doc: RequestLogDoc) => {
+        operationsLog.push(`Update with ${doc.items[0]?.notes?.length ?? 0} notes`);
+        return undefined;
+      }
+    );
 
-    const { user } = renderViewerWithNotes({ item });
+    const { user } = renderViewerWithNotes({ item, docStore: mockDocStore });
 
     // Verify initial state
     expect(screen.getByText('Shared note 1')).toBeInTheDocument();
@@ -1100,8 +1180,8 @@ describe('Viewer Notes Integration - Full Lifecycle E2E', () => {
     // Edit note 1
     await openEditNoteModal(user, 'Shared note 1');
 
-    let modal = screen.getByRole('dialog');
-    let textarea = within(modal).getByRole('textbox', { name: /markdown content/i });
+    const modal = screen.getByRole('dialog');
+    const textarea = within(modal).getByRole('textbox', { name: /^content$/i });
     await user.clear(textarea);
     await user.type(textarea, 'Modified shared note 1');
     await user.click(within(modal).getByRole('button', { name: /save/i }));

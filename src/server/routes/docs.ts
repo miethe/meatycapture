@@ -50,6 +50,12 @@ function serializeDoc(doc: RequestLogDoc): object {
     items: doc.items.map((item) => ({
       ...item,
       created_at: item.created_at.toISOString(),
+      modified_at: item.modified_at?.toISOString(),
+      notes: item.notes?.map((note) => ({
+        ...note,
+        created_at: note.created_at.toISOString(),
+        updated_at: note.updated_at.toISOString(),
+      })),
     })),
   };
 }
