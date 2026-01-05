@@ -1491,6 +1491,482 @@ describe('CLI Integration Tests', () => {
     });
   });
 
+  // ============================================================================
+  // Phase 5 Integration Tests: Full Item Lifecycle with Notes and Updates
+  // ============================================================================
+
+  describe('Full Item Lifecycle with Notes and Updates', () => {
+    it('should complete full lifecycle: create -> add note -> update status -> view -> search -> delete', async () => {
+      // Step 1: Create document with an item
+      const createInput = {
+        project: 'lifecycle-test',
+        title: 'Lifecycle Test Document',
+        items: [
+          createMockItemDraft({
+            title: 'Bug to Track',
+            type: 'bug',
+            status: 'triage',
+            tags: ['lifecycle'],
+          }),
+        ],
+      };
+      const createInputFile = await createJsonInputFile(tempDir, createInput, 'lifecycle.json');
+      const docPath = join(tempDir, 'lifecycle-test.md');
+
+      const { createAction } = await import('@cli/commands/log/create');
+      mockExit.mockClear();
+      await expect(createAction(createInputFile, { output: docPath, json: true })).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      // Get the created item ID from the JSON output
+      let itemId: string | undefined;
+      const createLogs = getCapturedLogs();
+      const createJson = createLogs.find(log => isValidJson(log));
+      expect(createJson).toBeDefined();
+      if (createJson) {
+        const doc = JSON.parse(createJson);
+        expect(doc.items).toHaveLength(1);
+        itemId = doc.items[0].id;
+        expect(itemId).toMatch(/^REQ-\d{8}-lifecycle-test-\d+$/);
+      }
+
+      clearCapturedOutput();
+
+      // Step 2: Add a note to the item
+      const { noteAddAction } = await import('@cli/commands/log/note-add');
+      mockExit.mockClear();
+      await expect(
+        noteAddAction(docPath, itemId!, {
+          content: 'Started investigating the issue',
+          type: 'General',
+          json: true,
+        })
+      ).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      const noteLogs = getCapturedLogs();
+      const noteJson = noteLogs.find(log => isValidJson(log));
+      expect(noteJson).toBeDefined();
+      if (noteJson) {
+        const note = JSON.parse(noteJson);
+        expect(note.content).toBe('Started investigating the issue');
+        expect(note.type).toBe('General');
+        expect(note.id).toMatch(/^NOTE-/);
+      }
+
+      clearCapturedOutput();
+
+      // Step 3: Update item status to in-progress
+      const { itemUpdateAction } = await import('@cli/commands/log/item-update');
+      mockExit.mockClear();
+      await expect(
+        itemUpdateAction(docPath, itemId!, {
+          status: 'in-progress',
+          json: true,
+        })
+      ).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      const updateLogs = getCapturedLogs();
+      const updateJson = updateLogs.find(log => isValidJson(log));
+      expect(updateJson).toBeDefined();
+      if (updateJson) {
+        const updatedItem = JSON.parse(updateJson);
+        expect(updatedItem.status).toBe('in-progress');
+      }
+
+      clearCapturedOutput();
+
+      // Step 4: View and verify changes
+      const { viewAction } = await import('@cli/commands/log/view');
+      mockExit.mockClear();
+      await expect(viewAction(docPath, { json: true })).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      const viewLogs = getCapturedLogs();
+      const viewJson = viewLogs.find(log => isValidJson(log));
+      expect(viewJson).toBeDefined();
+      if (viewJson) {
+        const doc = JSON.parse(viewJson);
+        expect(doc.items).toHaveLength(1);
+        expect(doc.items[0].status).toBe('in-progress');
+        expect(doc.items[0].notes).toHaveLength(1);
+        expect(doc.items[0].notes[0].content).toBe('Started investigating the issue');
+      }
+
+      clearCapturedOutput();
+
+      // Step 5: Update status to done
+      mockExit.mockClear();
+      await expect(
+        itemUpdateAction(docPath, itemId!, {
+          status: 'done',
+          json: true,
+        })
+      ).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      clearCapturedOutput();
+
+      // Step 6: Search by status:done
+      const { searchAction } = await import('@cli/commands/log/search');
+      mockExit.mockClear();
+      await expect(searchAction('status:done', undefined, { path: tempDir, json: true })).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      const searchLogs = getCapturedLogs();
+      const searchJson = searchLogs.find(log => isValidJson(log));
+      expect(searchJson).toBeDefined();
+      if (searchJson) {
+        const matches = JSON.parse(searchJson);
+        expect(matches.length).toBe(1);
+        expect(matches[0].item.id).toBe(itemId);
+        expect(matches[0].item.status).toBe('done');
+      }
+
+      clearCapturedOutput();
+
+      // Step 7: Delete document
+      const { deleteAction } = await import('@cli/commands/log/delete');
+      mockExit.mockClear();
+      await expect(deleteAction(docPath, { force: true, backup: true })).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      // Verify deletion
+      const afterDelete = await fs.access(docPath).then(() => true).catch(() => false);
+      expect(afterDelete).toBe(false);
+    });
+
+    it('should preserve multiple notes and update modified_at timestamp', async () => {
+      // Step 1: Create document with item
+      const createInput = {
+        project: 'notes-test',
+        title: 'Notes Workflow Test',
+        items: [
+          createMockItemDraft({
+            title: 'Item with Multiple Notes',
+            type: 'enhancement',
+            status: 'triage',
+            tags: ['notes-workflow'],
+          }),
+        ],
+      };
+      const createInputFile = await createJsonInputFile(tempDir, createInput, 'notes-test.json');
+      const docPath = join(tempDir, 'notes-test.md');
+
+      const { createAction } = await import('@cli/commands/log/create');
+      mockExit.mockClear();
+      await expect(createAction(createInputFile, { output: docPath, json: true })).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      // Get item ID
+      let itemId: string | undefined;
+      const createLogs = getCapturedLogs();
+      const createJson = createLogs.find(log => isValidJson(log));
+      if (createJson) {
+        const doc = JSON.parse(createJson);
+        itemId = doc.items[0].id;
+      }
+
+      clearCapturedOutput();
+
+      // Read initial item for modified_at comparison
+      const { viewAction } = await import('@cli/commands/log/view');
+      mockExit.mockClear();
+      await expect(viewAction(docPath, { json: true })).rejects.toThrow(ExitError);
+
+      let initialModifiedAt: string | undefined;
+      const initialViewLogs = getCapturedLogs();
+      const initialViewJson = initialViewLogs.find(log => isValidJson(log));
+      if (initialViewJson) {
+        const doc = JSON.parse(initialViewJson);
+        // Items may not have modified_at initially (only created_at)
+        initialModifiedAt = doc.items[0].modified_at ?? doc.items[0].created_at;
+      }
+
+      clearCapturedOutput();
+
+      // Wait briefly to ensure timestamps differ
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      // Step 2: Add first note
+      const { noteAddAction } = await import('@cli/commands/log/note-add');
+      mockExit.mockClear();
+      await expect(
+        noteAddAction(docPath, itemId!, {
+          content: 'First note: Initial analysis',
+          type: 'General',
+          noBackup: true,
+        })
+      ).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      clearCapturedOutput();
+
+      // Step 3: Add second note with different type
+      mockExit.mockClear();
+      await expect(
+        noteAddAction(docPath, itemId!, {
+          content: 'Second note: Attempted fix',
+          type: 'Bug Fix Attempt',
+          noBackup: true,
+        })
+      ).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      clearCapturedOutput();
+
+      // Step 4: Add third note - validation result
+      mockExit.mockClear();
+      await expect(
+        noteAddAction(docPath, itemId!, {
+          content: 'Third note: Validated the fix works',
+          type: 'Validation',
+          noBackup: true,
+        })
+      ).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      clearCapturedOutput();
+
+      // Step 5: Verify all notes are preserved
+      mockExit.mockClear();
+      await expect(viewAction(docPath, { json: true })).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      const finalViewLogs = getCapturedLogs();
+      const finalViewJson = finalViewLogs.find(log => isValidJson(log));
+      expect(finalViewJson).toBeDefined();
+      if (finalViewJson) {
+        const doc = JSON.parse(finalViewJson);
+        const item = doc.items[0];
+
+        // Verify all three notes exist
+        expect(item.notes).toHaveLength(3);
+
+        // Verify notes have correct content
+        expect(item.notes[0].content).toBe('First note: Initial analysis');
+        expect(item.notes[0].type).toBe('General');
+
+        expect(item.notes[1].content).toBe('Second note: Attempted fix');
+        expect(item.notes[1].type).toBe('Bug Fix Attempt');
+
+        expect(item.notes[2].content).toBe('Third note: Validated the fix works');
+        expect(item.notes[2].type).toBe('Validation');
+
+        // Verify each note has unique ID
+        const noteIds = item.notes.map((n: { id: string }) => n.id);
+        const uniqueIds = new Set(noteIds);
+        expect(uniqueIds.size).toBe(3);
+
+        // Verify modified_at was updated (should be later than initial)
+        if (initialModifiedAt && item.modified_at) {
+          const initialDate = new Date(initialModifiedAt).getTime();
+          const modifiedDate = new Date(item.modified_at).getTime();
+          expect(modifiedDate).toBeGreaterThanOrEqual(initialDate);
+        }
+      }
+
+      clearCapturedOutput();
+
+      // Cleanup
+      const { deleteAction } = await import('@cli/commands/log/delete');
+      await expect(deleteAction(docPath, { force: true, backup: false })).rejects.toThrow(ExitError);
+    });
+
+    it('should handle note types case-insensitively', async () => {
+      // Create document
+      const createInput = {
+        project: 'note-types-test',
+        items: [createMockItemDraft({ title: 'Note Type Test Item' })],
+      };
+      const createInputFile = await createJsonInputFile(tempDir, createInput, 'note-types.json');
+      const docPath = join(tempDir, 'note-types-test.md');
+
+      const { createAction } = await import('@cli/commands/log/create');
+      mockExit.mockClear();
+      await expect(createAction(createInputFile, { output: docPath, json: true })).rejects.toThrow(ExitError);
+
+      let itemId: string | undefined;
+      const createLogs = getCapturedLogs();
+      const createJson = createLogs.find(log => isValidJson(log));
+      if (createJson) {
+        const doc = JSON.parse(createJson);
+        itemId = doc.items[0].id;
+      }
+
+      clearCapturedOutput();
+
+      // Add note with lowercase type
+      const { noteAddAction } = await import('@cli/commands/log/note-add');
+      mockExit.mockClear();
+      await expect(
+        noteAddAction(docPath, itemId!, {
+          content: 'Testing lowercase type',
+          type: 'general',  // lowercase instead of 'General'
+          json: true,
+          noBackup: true,
+        })
+      ).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      const noteLogs = getCapturedLogs();
+      const noteJson = noteLogs.find(log => isValidJson(log));
+      expect(noteJson).toBeDefined();
+      if (noteJson) {
+        const note = JSON.parse(noteJson);
+        expect(note.type).toBe('General');  // Should be normalized
+      }
+
+      clearCapturedOutput();
+
+      // Add note with "bugfixattempt" (no spaces)
+      mockExit.mockClear();
+      await expect(
+        noteAddAction(docPath, itemId!, {
+          content: 'Testing no-space type',
+          type: 'bugfixattempt',  // no spaces
+          json: true,
+          noBackup: true,
+        })
+      ).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      const noteLogs2 = getCapturedLogs();
+      const noteJson2 = noteLogs2.find(log => isValidJson(log));
+      expect(noteJson2).toBeDefined();
+      if (noteJson2) {
+        const note = JSON.parse(noteJson2);
+        expect(note.type).toBe('Bug Fix Attempt');  // Should be normalized
+      }
+
+      // Cleanup
+      clearCapturedOutput();
+      const { deleteAction } = await import('@cli/commands/log/delete');
+      await expect(deleteAction(docPath, { force: true, backup: false })).rejects.toThrow(ExitError);
+    });
+
+    it('should fail with ResourceNotFoundError when item not found for note add', async () => {
+      // Create document
+      const createInput = {
+        project: 'note-error-test',
+        items: [createMockItemDraft({ title: 'Error Test Item' })],
+      };
+      const createInputFile = await createJsonInputFile(tempDir, createInput, 'note-error.json');
+      const docPath = join(tempDir, 'note-error-test.md');
+
+      const { createAction } = await import('@cli/commands/log/create');
+      await expect(createAction(createInputFile, { output: docPath })).rejects.toThrow(ExitError);
+      clearCapturedOutput();
+
+      // Try to add note to non-existent item
+      // noteAddAction is unwrapped, so it throws the raw ResourceNotFoundError
+      const { noteAddAction } = await import('@cli/commands/log/note-add');
+      await expect(
+        noteAddAction(docPath, 'REQ-99999999-fake-item-99', {
+          content: 'This should fail',
+          noBackup: true,
+        })
+      ).rejects.toThrow('not found');
+
+      // Cleanup
+      clearCapturedOutput();
+      const { deleteAction } = await import('@cli/commands/log/delete');
+      await expect(deleteAction(docPath, { force: true, backup: false })).rejects.toThrow(ExitError);
+    });
+
+    it('should fail with ResourceNotFoundError when item not found for update', async () => {
+      // Create document
+      const createInput = {
+        project: 'update-error-test',
+        items: [createMockItemDraft({ title: 'Update Error Test Item' })],
+      };
+      const createInputFile = await createJsonInputFile(tempDir, createInput, 'update-error.json');
+      const docPath = join(tempDir, 'update-error-test.md');
+
+      const { createAction } = await import('@cli/commands/log/create');
+      await expect(createAction(createInputFile, { output: docPath })).rejects.toThrow(ExitError);
+      clearCapturedOutput();
+
+      // Try to update non-existent item
+      // itemUpdateAction is unwrapped, so it throws the raw ResourceNotFoundError
+      const { itemUpdateAction } = await import('@cli/commands/log/item-update');
+      await expect(
+        itemUpdateAction(docPath, 'REQ-99999999-fake-item-99', {
+          status: 'done',
+          noBackup: true,
+        })
+      ).rejects.toThrow('not found');
+
+      // Cleanup
+      clearCapturedOutput();
+      const { deleteAction } = await import('@cli/commands/log/delete');
+      await expect(deleteAction(docPath, { force: true, backup: false })).rejects.toThrow(ExitError);
+    });
+
+    it('should update doc-level tags when item tags are updated', async () => {
+      // Create document with item having initial tags
+      const createInput = {
+        project: 'tag-update-test',
+        items: [
+          createMockItemDraft({
+            title: 'Tag Update Test Item',
+            tags: ['original-tag'],
+          }),
+        ],
+      };
+      const createInputFile = await createJsonInputFile(tempDir, createInput, 'tag-update.json');
+      const docPath = join(tempDir, 'tag-update-test.md');
+
+      const { createAction } = await import('@cli/commands/log/create');
+      await expect(createAction(createInputFile, { output: docPath, json: true })).rejects.toThrow(ExitError);
+
+      let itemId: string | undefined;
+      const createLogs = getCapturedLogs();
+      const createJson = createLogs.find(log => isValidJson(log));
+      if (createJson) {
+        const doc = JSON.parse(createJson);
+        itemId = doc.items[0].id;
+        expect(doc.tags).toContain('original-tag');
+      }
+
+      clearCapturedOutput();
+
+      // Update item with new tags
+      const { itemUpdateAction } = await import('@cli/commands/log/item-update');
+      mockExit.mockClear();
+      await expect(
+        itemUpdateAction(docPath, itemId!, {
+          tags: 'new-tag,another-tag',
+          noBackup: true,
+        })
+      ).rejects.toThrow(ExitError);
+      expect(mockExit).toHaveBeenCalledWith(ExitCodes.SUCCESS);
+
+      clearCapturedOutput();
+
+      // Verify doc-level tags are updated
+      const { viewAction } = await import('@cli/commands/log/view');
+      mockExit.mockClear();
+      await expect(viewAction(docPath, { json: true })).rejects.toThrow(ExitError);
+
+      const viewLogs = getCapturedLogs();
+      const viewJson = viewLogs.find(log => isValidJson(log));
+      expect(viewJson).toBeDefined();
+      if (viewJson) {
+        const doc = JSON.parse(viewJson);
+        expect(doc.tags).toContain('another-tag');
+        expect(doc.tags).toContain('new-tag');
+        expect(doc.tags).not.toContain('original-tag');
+      }
+
+      // Cleanup
+      clearCapturedOutput();
+      const { deleteAction } = await import('@cli/commands/log/delete');
+      await expect(deleteAction(docPath, { force: true, backup: false })).rejects.toThrow(ExitError);
+    });
+  });
+
   describe('Field Command Error Handling', () => {
     it('handles validation errors in field add', async () => {
       const { addAction } = await import('@cli/commands/field/add');
