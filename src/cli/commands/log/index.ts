@@ -50,6 +50,8 @@ Examples:
   meatycapture log search "bug"                Search for items with "bug"
   meatycapture log search "tag:ux"             Search by tag
   meatycapture log search "type:enhancement"   Search by type
+  meatycapture log note add doc.md ITEM-01 -c "Note text"  Add note to item
+  meatycapture log item update doc.md ITEM-01 --status done  Update item status
 `
   );
 

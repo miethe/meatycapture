@@ -3,7 +3,7 @@ title: CLI Usage Guide
 type: documentation
 category: user-guide
 created: 2025-12-07
-updated: 2026-01-03
+updated: 2026-01-05
 ---
 
 # MeatyCapture CLI
@@ -320,6 +320,109 @@ REQ-20251207-my-project-01 | authentication bug | bug | api | in-progress
 REQ-20251206-my-project-02 | login flow issue | bug | web | triage
 REQ-20251205-my-project-03 | token refresh | enhancement | api | backlog
 ```
+
+---
+
+#### log note add
+
+Add a structured note to an existing item.
+
+**Usage:**
+```bash
+meatycapture log note add <doc-path> <item-id> --content <text> [options]
+```
+
+**Options:**
+- `-c, --content <text>` - Note content (required)
+- `-t, --type <type>` - Note type: General, Bug Fix Attempt, Validation, Other (default: General)
+- `--json` - Output as JSON
+- `--yaml` - Output as YAML
+- `-q, --quiet` - Suppress output
+- `--no-backup` - Skip backup creation before modification
+
+**Examples:**
+```bash
+# Add a general note
+meatycapture log note add /path/to/doc.md REQ-20260105-project-01 -c "Investigation notes..."
+
+# Add a bug fix attempt note
+meatycapture log note add doc.md REQ-20260105-project-01 -c "Tried increasing timeout" -t "Bug Fix Attempt"
+
+# Add note with JSON output
+meatycapture log note add doc.md REQ-20260105-project-01 -c "Quick note" --json
+```
+
+**Output:**
+```
+✓ Note added to item REQ-20260105-project-01
+  Note ID: NOTE-20260105-project-01-01
+  Type: General
+  Content: Investigation notes...
+```
+
+**Features:**
+- Automatically generates sequential note IDs
+- Sets created_at and updated_at timestamps
+- Updates item.modified_at timestamp
+- Creates backup (`.bak`) before modification
+
+---
+
+#### log item update
+
+Update fields on an existing item.
+
+**Usage:**
+```bash
+meatycapture log item update <doc-path> <item-id> [options]
+```
+
+**Options:**
+- `--status <status>` - Update status field
+- `--priority <priority>` - Update priority field
+- `--type <type>` - Update type field
+- `--title <title>` - Update title field
+- `--tags <tags>` - Replace tags (comma-separated)
+- `--add-tags <tags>` - Add to existing tags (comma-separated)
+- `--remove-tags <tags>` - Remove from existing tags (comma-separated)
+- `--domain <domains>` - Update domains (comma-separated)
+- `--context <contexts>` - Update contexts (comma-separated)
+- `--json` - Output as JSON
+- `--yaml` - Output as YAML
+- `-q, --quiet` - Suppress output
+- `--no-backup` - Skip backup creation
+
+**Examples:**
+```bash
+# Update status
+meatycapture log item update doc.md REQ-20260105-project-01 --status done
+
+# Update priority and add tags
+meatycapture log item update doc.md REQ-20260105-project-01 --priority critical --add-tags urgent,security
+
+# Replace all tags
+meatycapture log item update doc.md REQ-20260105-project-01 --tags frontend,mobile
+
+# Remove specific tags
+meatycapture log item update doc.md REQ-20260105-project-01 --remove-tags deprecated
+
+# Update multiple fields at once
+meatycapture log item update doc.md REQ-20260105-project-01 --status in-progress --priority high --add-tags active
+```
+
+**Output:**
+```
+✓ Updated item: REQ-20260105-project-01
+  Status: in-progress
+  Priority: high
+  Tags: active, api, web
+```
+
+**Features:**
+- Updates item.modified_at timestamp automatically
+- Recalculates document-level tags when item tags change
+- Supports multiple update options in a single command
+- Creates backup (`.bak`) before modification
 
 ---
 
@@ -802,15 +905,6 @@ meatycapture config set auto-backup true
 ## Known Limitations
 
 The following features are not yet supported in the CLI but are planned for upcoming releases:
-
-### Item-Level Updates
-
-Direct updates to individual items within existing documents are not yet supported. Planned for **CLI Item Management v1**.
-
-**Workaround:**
-- View the document with `log view`
-- Manually edit the markdown file
-- Use `log view --json` to export as JSON, modify, then use `append` with a new document
 
 ### Document Archive/Unarchive
 
