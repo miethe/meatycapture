@@ -117,3 +117,17 @@
   2. Updated `validateRequestLogItem()` to preserve `modified_at` using conditional assignment (exactOptionalPropertyTypes compatible)
 - **Commit(s)**: 696472f
 - **Status**: RESOLVED
+
+---
+
+### CLI View Command Using Wrong Filepath
+
+**Issue**: `/mc view REQ-20260104-meatycapture.md` looked for document at project directory instead of configured project path
+- **Location**: `src/cli/commands/log/view.ts:208`
+- **Root Cause**: The `view` command used Node's `resolve(docPath)` directly, which resolves relative paths against CWD. Unlike `list` and `search` commands, `view` lacked the `getProjectDocPath()` helper that looks up the project's configured `default_path`.
+- **Fix**: Added `getProjectDocPath()` helper (matching list/search commands) and intelligent path resolution that:
+  1. Uses absolute paths directly
+  2. For `REQ-YYYYMMDD-<slug>` patterns, extracts project slug and resolves against project's configured path
+  3. Falls back to CWD resolution for other relative paths
+- **Commit(s)**: e65c1e9
+- **Status**: RESOLVED
