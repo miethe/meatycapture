@@ -102,3 +102,18 @@
 - **Fix**: Same fix as above - the `validateNote` helper now ensures all Note date fields are properly converted to Date objects during both read and write operations.
 - **Commit(s)**: dbe88af
 - **Status**: RESOLVED
+
+---
+
+### Notes and Items Missing modified_at in API Response
+
+**Issue**: Notes and item `modified_at` fields not being serialized in API responses, causing Notes to not display and item timestamps to be lost
+- **Location**: `src/server/routes/docs.ts:45-55`, `src/server/schemas/docs.ts:41-56`
+- **Root Cause**: Two issues in the server layer:
+  1. `serializeDoc()` only serialized `created_at` on items, missing `modified_at` and all Note date fields (`created_at`, `updated_at`)
+  2. `validateRequestLogItem()` didn't preserve the optional `modified_at` field during validation, losing it on round-trips
+- **Fix**:
+  1. Updated `serializeDoc()` to serialize `modified_at?.toISOString()` on items and map Notes with their date fields serialized
+  2. Updated `validateRequestLogItem()` to preserve `modified_at` using conditional assignment (exactOptionalPropertyTypes compatible)
+- **Commit(s)**: 696472f
+- **Status**: RESOLVED
