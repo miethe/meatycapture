@@ -129,5 +129,7 @@
   1. Uses absolute paths directly
   2. For `REQ-YYYYMMDD-<slug>` patterns, extracts project slug and resolves against project's configured path
   3. Falls back to CWD resolution for other relative paths
-- **Commit(s)**: e65c1e9
+- **Commit(s)**: e65c1e9, 1152d0a
 - **Status**: RESOLVED
+
+**Follow-up Issue**: Regex `[^-]+` captured `.md` extension as part of slug, creating paths like `~/.meatycapture/docs/meatycapture.md/`. Fixed regex to `([^-]+?)(?:-\d+)?\.md$` to properly extract slug without extension.
