@@ -18,7 +18,8 @@
  */
 
 import type { Command } from 'commander';
-import { resolve } from 'node:path';
+import path, { join, resolve } from 'node:path';
+import { homedir } from 'node:os';
 import { createAdapters } from '@adapters/factory';
 import { serialize } from '@core/serializer';
 import type { RequestLogDoc, RequestLogItem } from '@core/models';
@@ -114,6 +115,30 @@ function filterItems(items: RequestLogItem[], options: ViewOptions): RequestLogI
 }
 
 /**
+ * Gets the default document path for a project.
+ *
+ * Resolution order:
+ * 1. Project's configured default_path
+ * 2. MEATYCAPTURE_DEFAULT_PROJECT_PATH environment variable
+ * 3. ~/.meatycapture/docs/<project-id>/
+ */
+async function getProjectDocPath(projectSlug: string): Promise<string> {
+  const { projectStore } = await createAdapters();
+  const project = await projectStore.get(projectSlug);
+
+  if (project) {
+    return project.default_path;
+  }
+
+  const envPath = process.env['MEATYCAPTURE_DEFAULT_PROJECT_PATH'];
+  if (envPath) {
+    return join(envPath, projectSlug);
+  }
+
+  return join(homedir(), '.meatycapture', 'docs', projectSlug);
+}
+
+/**
  * Formats items array based on output format.
  *
  * For items-only mode, we format just the items array rather than
@@ -205,7 +230,25 @@ export async function viewAction(docPath: string, options: ViewOptions): Promise
   }
 
   try {
-    const resolvedPath = resolve(docPath);
+    // Resolve the document path intelligently:
+    // 1. Absolute paths are used directly
+    // 2. REQ-YYYYMMDD-<slug> patterns extract the project slug for proper resolution
+    // 3. Other relative paths resolve against CWD (fallback)
+    let resolvedPath: string;
+    if (path.isAbsolute(docPath)) {
+      resolvedPath = docPath;
+    } else {
+      // Extract project slug from filename if it matches REQ pattern
+      const match = docPath.match(/^REQ-\d{8}-([^-]+)/);
+      if (match && match[1]) {
+        const projectSlug = match[1];
+        const projectPath = await getProjectDocPath(projectSlug);
+        resolvedPath = join(projectPath, docPath);
+      } else {
+        resolvedPath = resolve(docPath);
+      }
+    }
+
     const { docStore } = await createAdapters();
 
     // Read the document - may throw on file not found or parse error
