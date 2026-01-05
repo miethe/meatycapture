@@ -239,7 +239,8 @@ export async function viewAction(docPath: string, options: ViewOptions): Promise
       resolvedPath = docPath;
     } else {
       // Extract project slug from filename if it matches REQ pattern
-      const match = docPath.match(/^REQ-\d{8}-([^-]+)/);
+      // Pattern: REQ-YYYYMMDD-<slug>.md or REQ-YYYYMMDD-<slug>-NN.md
+      const match = docPath.match(/^REQ-\d{8}-([^-]+?)(?:-\d+)?\.md$/);
       if (match && match[1]) {
         const projectSlug = match[1];
         const projectPath = await getProjectDocPath(projectSlug);
