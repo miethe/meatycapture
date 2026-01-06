@@ -6,162 +6,69 @@ allowed-tools: Read, Grep, Glob, Edit, MultiEdit, Write,
   Bash(uv:*), Bash(pre-commit:*)
 ---
 
-# /implement-story
+# Implement Story
 
-You are Claude Code executing an approved implementation plan for story `$ARGUMENTS`.
+Execute approved implementation plan for story `$ARGUMENTS`.
 
-## Prerequisites
+## Execution Mode
 
-- Plan must exist at `.claude/plans/${story_id}-plan.md`
-- Progress tracker initialized at `.claude/progress/${story_id}.json`
+Load story execution guidance: [.claude/skills/dev-execution/modes/story-execution.md]
 
-## Process
+## Prerequisite
+
+Plan **must exist** at `.claude/plans/${story_id}-plan.md`
+
+If no plan exists, use `/dev:complete-user-story` instead.
+
+## Actions
 
 ### 1. Load Plan and Progress
 
 ```bash
-story_id="${1}"
+story_id="${ARGUMENTS%.md}"
 plan_file=".claude/plans/${story_id}-plan.md"
-progress_file=".claude/progress/${story_id}.json"
+progress_file=".claude/progress/${story_id}.md"
 
+# Error if no plan
 if [ ! -f "$plan_file" ]; then
   echo "ERROR: No plan found. Run /plan-story ${story_id} first"
-  exit 1
-fi
-
-# Check current progress
-if [ -f "$progress_file" ]; then
-  current_phase=$(jq -r '.phase' "$progress_file")
-  echo "Resuming from phase: $current_phase"
-else
-  echo "Starting fresh implementation"
 fi
 ```
 
 ### 2. Execute Plan Systematically
 
-For each file in the plan:
+For each phase/section in plan:
+- Identify required expertise
+- Delegate to appropriate agents
+- Track completion
+- Commit after each file
 
-#### 2.1 Backend Files
+Agent assignments: [.claude/skills/dev-execution/orchestration/agent-assignments.md]
 
-```bash
-for file in $(grep -A 100 "### Backend Files" "$plan_file" | grep "^- \[ \]" | cut -d' ' -f3); do
-  echo "Implementing: $file"
+### 3. Continuous Testing
 
-  # Use appropriate subagent
-  if [[ $file == *"schemas"* ]]; then
-    @backend-developer implement-schema $file --story ${story_id}
-  elif [[ $file == *"repositories"* ]]; then
-    @backend-developer implement-repository $file --story ${story_id}
-  elif [[ $file == *"services"* ]]; then
-    @backend-developer implement-service $file --story ${story_id}
-  elif [[ $file == *"endpoints"* ]]; then
-    @backend-developer implement-endpoint $file --story ${story_id}
-  fi
-
-  # Verify and commit
-  if uv run --project services/api mypy "$file"; then
-    git add "$file"
-    git commit -m "feat(${story_id}): implement $(basename $file .py)"
-  else
-    echo "Type check failed for $file - fixing..."
-    # Fix and retry
-  fi
-done
-```
-
-#### 2.2 Frontend Files
+After each component:
 
 ```bash
-for file in $(grep -A 100 "### Frontend Files" "$plan_file" | grep "^- \[ \]" | cut -d' ' -f3); do
-  echo "Implementing: $file"
-
-  # Use appropriate subagent
-  if [[ $file == *"components"* ]]; then
-    @ui-designer create-component $(basename $file .tsx) --story ${story_id}
-  elif [[ $file == *"hooks"* ]]; then
-    @frontend-developer implement-hook $file --story ${story_id}
-  elif [[ $file == *"pages"* ]] || [[ $file == *"app/"* ]]; then
-    @frontend-developer implement-page $file --story ${story_id}
-  fi
-
-  # Verify and commit
-  if pnpm typecheck "$file"; then
-    git add "$file"
-    git commit -m "feat(${story_id}): implement $(basename $file .tsx)"
-  fi
-done
+pnpm test && pnpm typecheck && pnpm lint
 ```
 
-### 3. Run Tests Continuously
+### 4. Update Progress
 
-After each component implementation:
-
-```bash
-# Run relevant tests
-if [[ $last_file == *"service"* ]]; then
-  uv run --project services/api pytest -xvs app/tests/test_$(basename $last_file .py).py
-elif [[ $last_file == *"component"* ]]; then
-  pnpm --filter "./packages/ui" test $(basename $last_file .tsx)
-fi
-```
-
-### 4. Update Progress After Each File
-
-```bash
-update_progress() {
-  local file="$1"
-  local status="$2"
-
-  jq --arg file "$file" --arg status "$status" \
-    '.files_modified += [$file] | .last_update = now | .status = $status' \
-    "$progress_file" > "$progress_file.tmp" && mv "$progress_file.tmp" "$progress_file"
-}
-```
+Track completion in progress file after each task.
 
 ### 5. Final Validation
 
-```bash
-# Run full test suite
-echo "Running full validation..."
+Load completion criteria: [.claude/skills/dev-execution/validation/completion-criteria.md]
 
-# Backend
-uv run --project services/api pytest
-uv run --project services/api mypy app
-uv run --project services/api ruff check
-
-# Frontend
-pnpm -r typecheck
-pnpm -r lint
-pnpm -r test
-
-# A11y check for UI components
-pnpm --filter "./packages/ui" test:a11y
-
-# If all passes
-update_progress "complete" "validated"
-echo "✅ Implementation complete and validated"
-```
-
-## Rollback Protocol
-
-If implementation fails at any point:
+### 6. Update Request-Log
 
 ```bash
-rollback_implementation() {
-  local story_id="$1"
-  local checkpoint="$2"
-
-  echo "⚠️ Rolling back to checkpoint: $checkpoint"
-
-  # Git rollback
-  git reset --hard "$checkpoint"
-
-  # Update progress
-  jq --arg status "rolled_back" \
-    '.status = $status | .rolled_back_at = now' \
-    "$progress_file" > "$progress_file.tmp" && mv "$progress_file.tmp" "$progress_file"
-
-  echo "Rollback complete. Review errors in progress file."
-}
+meatycapture log item update DOC ${story_id} --status done
 ```
+
+## Skill References
+
+- Story execution: [.claude/skills/dev-execution/modes/story-execution.md]
+- Orchestration: [.claude/skills/dev-execution/orchestration/]
+- Completion criteria: [.claude/skills/dev-execution/validation/completion-criteria.md]
