@@ -10,7 +10,7 @@ MeatyCapture provides two entry points optimized for different use cases:
 
 | Entry Point | Use Case | Tokens | When to Use |
 |-------------|----------|-------:|-------------|
-| `/mc` command | list, view, search, quick capture | ~150 | Simple operations (95% of use cases) |
+| `/mc` command | list, view, search, capture, note add, update | ~150 | Simple operations (95% of use cases) |
 | `meatycapture-capture` skill | batch capture, complex workflows | ~400 | Batch operations, validation, templates |
 
 **Default to `/mc`** for all simple operations. Only invoke the full skill when you need:
@@ -45,14 +45,15 @@ MeatyCapture provides two entry points optimized for different use cases:
 
 ## Integration Points
 
-| Trigger | Action | Status Update |
-|---------|--------|---------------|
-| Bug discovered during development | Capture as type:bug | triage |
-| Enhancement identified | Capture as type:enhancement | backlog |
-| Technical debt noted | Capture as type:task | backlog |
-| Work started on logged item | Update status | in-progress |
-| Work completed | Update status | done |
-| Item won't be fixed | Update status + note reason | wontfix |
+| Trigger | Action | Command |
+|---------|--------|---------|
+| Bug discovered | Capture as type:bug | `/mc capture {...}` |
+| Enhancement identified | Capture as type:enhancement | `/mc capture {...}` |
+| Technical debt noted | Capture as type:task | `/mc capture {...}` |
+| Work started | Update status to in-progress | `meatycapture log item update DOC ITEM --status in-progress` |
+| Work completed | Update status to done | `meatycapture log item update DOC ITEM --status done` |
+| Item won't be fixed | Update + add note | `meatycapture log item update DOC ITEM --status wontfix` + `log note add` |
+| Progress update | Add note to item | `meatycapture log note add DOC ITEM -c "..."` |
 
 ---
 
@@ -71,6 +72,8 @@ Use `/mc` command for quick request-log operations (token-efficient):
 | View log | `/mc view PATH` | `/mc view ~/.meatycapture/meatycapture/REQ-20251231.md` |
 | Search | `/mc search "query" PROJECT` | `/mc search "auth bug" meatycapture` |
 | Quick capture | `/mc capture {...}` | `/mc capture {"title": "Fix auth", "type": "bug"}` |
+| Add note | `/mc note DOC ITEM -c "text"` | `/mc note doc.md ITEM-01 -c "Fixed in PR #123"` |
+| Update item | `/mc update DOC ITEM [opts]` | `/mc update doc.md ITEM-01 --status done` |
 
 For batch capture or complex workflows, use `/meatycapture-capture` skill instead.
 
@@ -79,8 +82,9 @@ For batch capture or complex workflows, use `/meatycapture-capture` skill instea
 | Bug found | `/mc capture {"title": "...", "type": "bug", "domain": "..."}` |
 | Enhancement idea | `/mc capture {"title": "...", "type": "enhancement"}` |
 | TODO needed | Capture instead of code comment (searchable, trackable) |
-| Starting logged work | Edit markdown: change `**Status:** triage` to `in-progress` |
-| Work complete | Edit markdown: change `**Status:**` to `done` |
+| Starting logged work | `/mc update DOC ITEM --status in-progress` |
+| Work complete | `/mc update DOC ITEM --status done` |
+| Add context | `/mc note DOC ITEM -c "progress update..."` |
 
 Search existing logs before creating duplicates: `/mc search "keyword" PROJECT`
 ```
@@ -120,7 +124,8 @@ Reference existing items when relevant to current work.
 ## Post-Implementation
 
 Update status of any request-log items addressed by this work:
-- Edit markdown file: change `**Status:** triage` to `**Status:** done`
+- `/mc update DOC ITEM --status done`
+- Add resolution note: `/mc note DOC ITEM -c "Fixed in PR #XXX"`
 - For workflow docs, see `./workflows/updating.md`
 ```
 
@@ -197,8 +202,9 @@ For batch capture of multiple items, invoke the full skill:
 ### Update (during/after work)
 
 Update item status as work progresses:
-- Edit markdown file directly
-- Change `**Status:** triage` to `**Status:** in-progress` or `done`
+- `/mc update DOC ITEM --status in-progress` (when starting)
+- `/mc update DOC ITEM --status done` (when complete)
+- `/mc note DOC ITEM -c "progress update"` (add context)
 ```
 
 ---
