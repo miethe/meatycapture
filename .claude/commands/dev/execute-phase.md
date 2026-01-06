@@ -674,4 +674,42 @@ This command integrates with the **artifact-tracking skill** for:
 
 ---
 
+## Request-Log Integration
+
+When tasks are sourced from request-log items (REQ-YYYYMMDD-*), update their status using `/mc`:
+
+### Starting Phase Work
+
+If any task references a request-log item:
+```bash
+# Mark item as in-progress when starting its task
+meatycapture log item update DOC ITEM --status in-progress
+
+# Add note for context
+meatycapture log note add DOC ITEM -c "Starting work in Phase ${phase_num}, ${task_id}"
+```
+
+### During Phase Execution
+
+Add progress notes for significant milestones:
+```bash
+# Document progress on linked items
+meatycapture log note add DOC ITEM -c "API endpoint complete, starting frontend integration"
+```
+
+### Completing Phase Work
+
+When completing tasks linked to request-log items:
+```bash
+# Mark item as done
+meatycapture log item update DOC ITEM --status done
+
+# Add completion note with commit reference
+meatycapture log note add DOC ITEM -c "Completed in Phase ${phase_num}. Commits: abc123, def456"
+```
+
+**Note**: Use `/mc` command for quick single operations, or `meatycapture log` for more verbose output.
+
+---
+
 Remember: **Follow the orchestration plan, delegate in batches, validate continuously, commit frequently, and track everything efficiently.**

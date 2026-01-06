@@ -104,3 +104,28 @@ Pass the full input to the skills - they will parse appropriately.
 - **Commit after changes** - don't batch commits
 
 Use Task() commands from progress file Quick Reference sections for maximum efficiency.
+
+---
+
+## Request-Log Integration
+
+If the feature request came from a request-log item (REQ-YYYYMMDD-*), update its status:
+
+### When Planning Begins
+
+```bash
+# Mark item as planned when creating implementation plan
+meatycapture log item update DOC ITEM --status planned
+
+# Add note linking to the PRD/implementation plan
+meatycapture log note add DOC ITEM -c "Implementation plan created: docs/project_plans/..."
+```
+
+### When Planning Completes
+
+Add a note with plan details:
+```bash
+meatycapture log note add DOC ITEM -c "PRD: [path]. Implementation plan: [path]. Estimated phases: N"
+```
+
+**Note**: Use `/mc update` and `/mc note` commands for token-efficient operations.

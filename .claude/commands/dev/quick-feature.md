@@ -39,7 +39,7 @@ Parse `$ARGUMENTS` to determine input type:
 Use `/mc` command (token-efficient) for quick operations:
 
 1. `/mc search "REQ-ID" PROJECT` - Get full details (title, type, domain, context, notes)
-2. Edit markdown file directly: change `**Status:** triage` to `**Status:** in-progress`
+2. `/mc update DOC ITEM --status in-progress` - Mark as in-progress when starting
 3. Use extracted details as feature requirements
 
 For batch operations or complex workflows, use **meatycapture-capture** skill instead.
@@ -162,7 +162,14 @@ Edit `.claude/progress/quick-features/{feature-slug}.md`:
 
 ### 4.2 Update Request Log (if applicable)
 
-If input was a REQ ID, edit the markdown file directly: change `**Status:** in-progress` to `**Status:** done`.
+If input was a REQ ID:
+```bash
+# Mark item as done
+/mc update DOC ITEM --status done
+
+# Optionally add completion note
+/mc note DOC ITEM -c "Completed in quick-feature/{feature-slug}"
+```
 
 ### 4.3 Capture Issues (if any)
 
@@ -202,7 +209,7 @@ If blocked:
 
 | Resource | Type | Purpose |
 |----------|------|---------|
-| `/mc` | Command | Quick list/view/search/capture (token-efficient) |
+| `/mc` | Command | Quick list/view/search/capture/note/update (token-efficient) |
 | `meatycapture-capture` | Skill | Batch operations, complex workflows |
 | `codebase-explorer` | Agent | Pattern discovery before implementation |
 | `ui-engineer-enhanced` | Agent | React/UI component implementation |

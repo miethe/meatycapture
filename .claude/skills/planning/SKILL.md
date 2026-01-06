@@ -181,10 +181,27 @@ See [./references/optimization-patterns.md](./references/optimization-patterns.m
 
 ---
 
+## Request-Log Integration
+
+When feature requests come from request-log items (REQ-YYYYMMDD-*), update their status:
+
+```bash
+# Mark item as planned when implementation plan is created
+meatycapture log item update DOC ITEM --status planned
+
+# Add note linking to the plan
+meatycapture log note add DOC ITEM -c "PRD: docs/project_plans/PRDs/... Implementation plan: docs/project_plans/implementation_plans/..."
+```
+
+Use `/mc update` and `/mc note` for token-efficient operations.
+
+---
+
 ## Version History
 
 | Date | Changes |
 |------|---------|
+| 2026-01-06 | Added request-log integration for status updates via `/mc` commands |
 | 2025-12-30 | Optimized for progressive disclosure; broke workflows into separate files |
 | 2025-12-01 | Removed Tracking Creation; delegated to artifact-tracking skill |
 | 2025-11-11 | Initial skill creation with 4 workflows |
