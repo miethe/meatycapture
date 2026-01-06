@@ -167,30 +167,40 @@ When blocked on any task:
 
 ## Architecture Compliance
 
-All implementations must follow project architecture patterns:
+All implementations must follow the project's established patterns. Check `CLAUDE.md` for project-specific conventions.
 
-### Backend (if applicable)
+### General Principles
 
-- Layered: router → service → repository → DB
-- DTOs separate from ORM models
-- ErrorResponse envelope for errors
-- Cursor pagination for lists
-- Telemetry spans and JSON logs
+- **Follow existing patterns**: Match conventions already in the codebase
+- **Separation of concerns**: Keep layers distinct (API, business logic, data access)
+- **Type safety**: Use TypeScript/Python types; avoid `any` or untyped code
+- **Error handling**: Consistent error responses and proper exception handling
+- **Observability**: Logging, metrics, and tracing where appropriate
 
-### Frontend (if applicable)
+### Backend Standards
 
-- Import from @meaty/ui only (no direct Radix)
-- React Query for data fetching
-- Error boundaries and loading states
-- Accessibility (keyboard nav, ARIA)
-- TypeScript strict mode, no `any`
+- **Layered architecture**: Controllers/routers → services → repositories → data store
+- **DTOs/schemas**: Separate API contracts from internal models
+- **Validation**: Input validation at API boundaries
+- **Pagination**: Use cursor or offset pagination for list endpoints
+- **Documentation**: OpenAPI/Swagger specs for APIs
 
-### Testing
+### Frontend Standards
 
-- Unit tests for business logic
-- Integration tests for API flows
-- E2E tests for critical paths
-- A11y tests for UI components
+- **Component library**: Use project's designated UI library consistently
+- **State management**: Follow project's chosen pattern (React Query, Redux, etc.)
+- **Error boundaries**: Graceful error handling in UI
+- **Loading states**: Proper feedback during async operations
+- **Accessibility**: WCAG compliance, keyboard navigation, ARIA labels
+- **Responsive design**: Support required viewport sizes
+
+### Testing Standards
+
+- **Unit tests**: Business logic and utility functions
+- **Integration tests**: API endpoints and service interactions
+- **E2E tests**: Critical user flows
+- **Accessibility tests**: Automated a11y checks for UI
+- **Coverage**: Meet project's minimum coverage requirements
 
 ## Phase Completion Definition
 
