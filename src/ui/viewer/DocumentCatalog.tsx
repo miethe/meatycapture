@@ -20,7 +20,7 @@
  * - Glass/x-morphism styling for visual consistency
  */
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -131,23 +131,6 @@ export function DocumentCatalog({
 
   /** Loading states for document rows */
   const [loadingPaths, setLoadingPaths] = useState<Set<string>>(new Set());
-
-  /** Track cache size to trigger re-renders when documents are preloaded */
-  const [cacheSize, setCacheSize] = useState(documentCache.size);
-
-  /**
-   * Poll for cache updates to trigger re-render
-   * This ensures ProjectProgressIndicator updates when documents are preloaded
-   */
-  useEffect(() => {
-    const checkCache = () => {
-      if (documentCache.size !== cacheSize) {
-        setCacheSize(documentCache.size);
-      }
-    };
-    const interval = setInterval(checkCache, 100);
-    return () => clearInterval(interval);
-  }, [documentCache, cacheSize]);
 
   // ============================================================================
   // Column Definitions

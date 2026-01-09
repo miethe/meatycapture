@@ -16,7 +16,7 @@
  * - DocumentDetail (TASK-2.5) - Expanded document view
  */
 
-import React, { useState, useEffect, useCallback, useMemo, useId } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useId, useRef } from 'react';
 import type { RequestLogDoc, Project } from '@core/models';
 import type { CatalogEntry, FilterState, CatalogSort, FilterOptions } from '@core/catalog';
 import {
@@ -200,38 +200,68 @@ export function ViewerContainer({
   }, [loadCatalog]);
 
   /**
+   * Ref to track if document preloading has been initiated
+   * Prevents re-running preload when cache updates trigger re-renders
+   */
+  const preloadingRef = useRef<boolean>(false);
+  const preloadedPathsRef = useRef<Set<string>>(new Set());
+
+  /**
    * Preload all documents after catalog loads
    *
    * This enables indicators (TypeDistributionIndicator, ProjectProgressIndicator)
    * to display immediately without waiting for user to expand each row.
    * Runs in background after initial catalog load completes.
+   *
+   * Uses refs to prevent infinite loops from cache updates triggering re-renders.
+   * Processes documents sequentially to avoid overwhelming the server.
    */
   useEffect(() => {
     if (loading || catalog.length === 0) {
       return;
     }
 
+    // Skip if already preloading or all documents already preloaded
+    if (preloadingRef.current) {
+      return;
+    }
+
     const preloadDocuments = async () => {
+      preloadingRef.current = true;
       console.info('[ViewerContainer] Preloading all documents for indicators...');
       let preloadedCount = 0;
 
       for (const entry of catalog) {
-        if (!documentCache.has(entry.path)) {
-          try {
-            const doc = await docStore.read(entry.path);
-            documentCache.set(entry.path, doc);
-            preloadedCount++;
-          } catch (err) {
-            console.warn(`[ViewerContainer] Failed to preload: ${entry.path}`, err);
-          }
+        // Skip if already preloaded in this session
+        if (preloadedPathsRef.current.has(entry.path)) {
+          continue;
+        }
+
+        // Skip if already in cache
+        if (documentCache.has(entry.path)) {
+          preloadedPathsRef.current.add(entry.path);
+          continue;
+        }
+
+        try {
+          const doc = await docStore.read(entry.path);
+          documentCache.set(entry.path, doc);
+          preloadedPathsRef.current.add(entry.path);
+          preloadedCount++;
+        } catch (err) {
+          console.warn(`[ViewerContainer] Failed to preload: ${entry.path}`, err);
+          // Mark as attempted to avoid retrying failed paths
+          preloadedPathsRef.current.add(entry.path);
         }
       }
 
       console.info(`[ViewerContainer] Preloaded ${preloadedCount} documents`);
+      preloadingRef.current = false;
     };
 
     preloadDocuments();
-  }, [loading, catalog, documentCache, docStore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, catalog.length, docStore]);
 
   /**
    * Handle manual refresh button
@@ -242,6 +272,9 @@ export function ViewerContainer({
   const handleRefresh = useCallback(() => {
     documentCache.invalidate(); // Clear cache
     setExpandedPaths(new Set()); // Collapse all expanded rows
+    // Reset preload tracking so documents will be preloaded again
+    preloadingRef.current = false;
+    preloadedPathsRef.current = new Set();
     loadCatalog();
   }, [documentCache, loadCatalog]);
 
