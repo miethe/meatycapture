@@ -244,6 +244,15 @@ export const DocumentRow = React.memo(function DocumentRow({
           </button>
         </td>
 
+        {/* Type Distribution Indicator */}
+        <td className="viewer-document-cell viewer-type-indicator-cell" role="cell">
+          {document?.items && document.items.length > 0 ? (
+            <TypeDistributionIndicator items={document.items} maxTypes={3} />
+          ) : (
+            <div className="viewer-type-indicator-placeholder" aria-hidden="true" />
+          )}
+        </td>
+
         {/* Document ID */}
         <td className="viewer-document-cell" role="cell">
           <div className="doc-id-container">
@@ -292,10 +301,6 @@ export const DocumentRow = React.memo(function DocumentRow({
                 )}
               </div>
             )}
-            {/* Type distribution indicator when document loaded */}
-            {document?.items && document.items.length > 0 && (
-              <TypeDistributionIndicator items={document.items} maxTypes={3} />
-            )}
             <div
               className="doc-row-actions"
               onClick={(e) => e.stopPropagation()}
@@ -317,7 +322,7 @@ export const DocumentRow = React.memo(function DocumentRow({
       {/* Expanded Detail Row */}
       {isExpanded && (
         <tr className="viewer-detail-row" role="row">
-          <td colSpan={4} className="viewer-detail-cell" role="cell">
+          <td colSpan={5} className="viewer-detail-cell" role="cell">
             <div className="viewer-detail-content">
               {document ? (
                 <DocumentDetail

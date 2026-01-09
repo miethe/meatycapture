@@ -51,9 +51,9 @@
   color: var(--color-text);
   font-size: 0.8125rem;
   line-height: 1.4;
-  white-space: normal;
+  white-space: nowrap;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-  max-width: 16rem;
+  max-width: none;
 }
 
 /* Arrow indicators (optional) */
@@ -155,8 +155,8 @@
   }
 }
 
-/* Responsive: Allow wrapping on narrow screens */
-@media (max-width: 768px) {
+/* Mobile: allow wrapping only on very small screens */
+@media (max-width: 480px) {
   .tooltip-content {
     white-space: normal;
     max-width: 12rem;

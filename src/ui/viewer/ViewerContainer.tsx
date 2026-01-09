@@ -16,7 +16,7 @@
  * - DocumentDetail (TASK-2.5) - Expanded document view
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useId } from 'react';
 import type { RequestLogDoc, Project } from '@core/models';
 import type { CatalogEntry, FilterState, CatalogSort, FilterOptions } from '@core/catalog';
 import {
@@ -26,10 +26,15 @@ import {
   createGroupedCatalog,
 } from '@core/catalog';
 import { listAllDocuments, extractFilterOptions } from '@core/catalog/utils';
+import { applyItemUpdate } from '@core/serializer';
 import type { ViewerContainerProps } from './types';
 import type { CaptureContext } from '../wizard';
+import { useFocusTrap, useToast } from '@ui/shared';
 import { DocumentCatalog } from './DocumentCatalog';
 import { DocumentFilters } from './DocumentFilters';
+import { DocumentArchiveConfirm, type ArchiveMode } from './DocumentArchiveConfirm';
+import { DocumentDeleteConfirm } from './DocumentDeleteConfirm';
+import { DocumentEditForm } from './DocumentEditForm';
 import { useDocumentCache } from './hooks/useDocumentCache';
 import { useMobileViewport } from './hooks/useMobileViewport';
 import { MobileViewerContainer } from './mobile/MobileViewerContainer';
@@ -114,6 +119,40 @@ export function ViewerContainer({
   const [error, setError] = useState<string | null>(null);
 
   // ============================================================================
+  // Document Action State
+  // ============================================================================
+
+  /** Document currently targeted by a menu action */
+  const [activeDocPath, setActiveDocPath] = useState<string | null>(null);
+  const [activeDoc, setActiveDoc] = useState<RequestLogDoc | null>(null);
+
+  /** Dialog visibility flags */
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
+  const [archiveMode, setArchiveMode] = useState<ArchiveMode>('archive');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  /** Action loading states */
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [updatingItemIds, setUpdatingItemIds] = useState<Set<string>>(new Set());
+
+  /** Toast helper */
+  const { addToast } = useToast();
+
+  /** Edit modal accessibility */
+  const editModalTitleId = useId();
+  const editModalRef = useFocusTrap<HTMLDivElement>(isEditModalOpen);
+
+  /**
+   * Build a stable key for tracking item update state.
+   */
+  const getItemUpdateKey = useCallback((path: string, itemId: string) => {
+    return `${path}::${itemId}`;
+  }, []);
+
+  // ============================================================================
   // Catalog Loading
   // ============================================================================
 
@@ -159,6 +198,40 @@ export function ViewerContainer({
   useEffect(() => {
     loadCatalog();
   }, [loadCatalog]);
+
+  /**
+   * Preload all documents after catalog loads
+   *
+   * This enables indicators (TypeDistributionIndicator, ProjectProgressIndicator)
+   * to display immediately without waiting for user to expand each row.
+   * Runs in background after initial catalog load completes.
+   */
+  useEffect(() => {
+    if (loading || catalog.length === 0) {
+      return;
+    }
+
+    const preloadDocuments = async () => {
+      console.info('[ViewerContainer] Preloading all documents for indicators...');
+      let preloadedCount = 0;
+
+      for (const entry of catalog) {
+        if (!documentCache.has(entry.path)) {
+          try {
+            const doc = await docStore.read(entry.path);
+            documentCache.set(entry.path, doc);
+            preloadedCount++;
+          } catch (err) {
+            console.warn(`[ViewerContainer] Failed to preload: ${entry.path}`, err);
+          }
+        }
+      }
+
+      console.info(`[ViewerContainer] Preloaded ${preloadedCount} documents`);
+    };
+
+    preloadDocuments();
+  }, [loading, catalog, documentCache, docStore]);
 
   /**
    * Handle manual refresh button
@@ -319,6 +392,382 @@ export function ViewerContainer({
   );
 
   // ============================================================================
+  // Document Action Handlers (Edit/Archive/Delete)
+  // ============================================================================
+
+  /**
+   * Set the active document context for menu actions
+   */
+  const setActiveDocument = useCallback((path: string, doc: RequestLogDoc) => {
+    setActiveDocPath(path);
+    setActiveDoc(doc);
+  }, []);
+
+  /**
+   * Clear active document context
+   */
+  const clearActiveDocument = useCallback(() => {
+    setActiveDocPath(null);
+    setActiveDoc(null);
+  }, []);
+
+  /**
+   * Request edit flow for a document
+   */
+  const handleRequestEditDocument = useCallback(
+    (path: string, doc: RequestLogDoc) => {
+      setActiveDocument(path, doc);
+      setIsEditModalOpen(true);
+    },
+    [setActiveDocument]
+  );
+
+  /**
+   * Request archive flow for a document
+   */
+  const handleRequestArchiveDocument = useCallback(
+    (path: string, doc: RequestLogDoc) => {
+      setActiveDocument(path, doc);
+      setArchiveMode('archive');
+      setIsArchiveConfirmOpen(true);
+    },
+    [setActiveDocument]
+  );
+
+  /**
+   * Request unarchive flow for a document
+   */
+  const handleRequestUnarchiveDocument = useCallback(
+    (path: string, doc: RequestLogDoc) => {
+      setActiveDocument(path, doc);
+      setArchiveMode('unarchive');
+      setIsArchiveConfirmOpen(true);
+    },
+    [setActiveDocument]
+  );
+
+  /**
+   * Request delete flow for a document
+   */
+  const handleRequestDeleteDocument = useCallback(
+    (path: string, doc: RequestLogDoc) => {
+      setActiveDocument(path, doc);
+      setIsDeleteConfirmOpen(true);
+    },
+    [setActiveDocument]
+  );
+
+  /**
+   * Update a single catalog entry by path
+   */
+  const updateCatalogEntry = useCallback((path: string, updates: Partial<CatalogEntry>) => {
+    setCatalog((prev) =>
+      prev.map((entry) => (entry.path === path ? { ...entry, ...updates } : entry))
+    );
+  }, []);
+
+  /**
+   * Remove a catalog entry by path
+   */
+  const removeCatalogEntry = useCallback((path: string) => {
+    setCatalog((prev) => prev.filter((entry) => entry.path !== path));
+  }, []);
+
+  /**
+   * Close edit modal and clear state
+   */
+  const handleCloseEditModal = useCallback(() => {
+    if (!isSavingEdit) {
+      setIsEditModalOpen(false);
+      clearActiveDocument();
+    }
+  }, [isSavingEdit, clearActiveDocument]);
+
+  /**
+   * Handle edit modal overlay clicks
+   */
+  const handleEditOverlayClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.target === event.currentTarget && !isSavingEdit) {
+        handleCloseEditModal();
+      }
+    },
+    [isSavingEdit, handleCloseEditModal]
+  );
+
+  /**
+   * Save document edits
+   */
+  const handleSaveEdit = useCallback(
+    async (updatedDoc: RequestLogDoc) => {
+      if (!activeDocPath || isSavingEdit) return;
+
+      setIsSavingEdit(true);
+
+      try {
+        await docStore.write(activeDocPath, updatedDoc);
+        documentCache.set(activeDocPath, updatedDoc);
+        updateCatalogEntry(activeDocPath, {
+          title: updatedDoc.title,
+          updated_at: updatedDoc.updated_at,
+          archived: updatedDoc.archived,
+        });
+        setIsEditModalOpen(false);
+        clearActiveDocument();
+        addToast({
+          type: 'success',
+          message: 'Document updated',
+        });
+      } catch (error) {
+        console.error('Failed to update document:', error);
+        addToast({
+          type: 'error',
+          message: error instanceof Error ? error.message : 'Failed to update document',
+          duration: 7000,
+        });
+      } finally {
+        setIsSavingEdit(false);
+      }
+    },
+    [
+      activeDocPath,
+      isSavingEdit,
+      docStore,
+      documentCache,
+      updateCatalogEntry,
+      clearActiveDocument,
+      addToast,
+    ]
+  );
+
+  /**
+   * Confirm archive/unarchive action
+   */
+  const handleConfirmArchive = useCallback(async () => {
+    if (!activeDocPath || !activeDoc || isArchiving) return;
+
+    setIsArchiving(true);
+
+    try {
+      const updatedDoc: RequestLogDoc = {
+        ...activeDoc,
+        archived: archiveMode === 'archive',
+        updated_at: new Date(),
+      };
+
+      await docStore.write(activeDocPath, updatedDoc);
+      documentCache.set(activeDocPath, updatedDoc);
+      updateCatalogEntry(activeDocPath, {
+        archived: updatedDoc.archived,
+        updated_at: updatedDoc.updated_at,
+      });
+      setIsArchiveConfirmOpen(false);
+      clearActiveDocument();
+      addToast({
+        type: 'success',
+        message: updatedDoc.archived ? 'Document archived' : 'Document restored',
+      });
+    } catch (error) {
+      console.error('Failed to archive/unarchive document:', error);
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to archive document',
+        duration: 7000,
+      });
+    } finally {
+      setIsArchiving(false);
+    }
+  }, [
+    activeDocPath,
+    activeDoc,
+    archiveMode,
+    isArchiving,
+    docStore,
+    documentCache,
+    updateCatalogEntry,
+    clearActiveDocument,
+    addToast,
+  ]);
+
+  /**
+   * Cancel archive/unarchive action
+   */
+  const handleCancelArchive = useCallback(() => {
+    if (!isArchiving) {
+      setIsArchiveConfirmOpen(false);
+      clearActiveDocument();
+    }
+  }, [isArchiving, clearActiveDocument]);
+
+  /**
+   * Confirm delete action
+   */
+  const handleConfirmDelete = useCallback(async () => {
+    if (!activeDocPath || !activeDoc || isDeleting) return;
+
+    const deleteDocument = docStore.delete;
+    if (!deleteDocument) {
+      addToast({
+        type: 'error',
+        message: 'Delete not supported by the current storage adapter',
+        duration: 7000,
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      await deleteDocument.call(docStore, activeDocPath);
+      removeCatalogEntry(activeDocPath);
+      documentCache.remove(activeDocPath);
+      setExpandedPaths((prev) => {
+        const next = new Set(prev);
+        next.delete(activeDocPath);
+        return next;
+      });
+      setIsDeleteConfirmOpen(false);
+      clearActiveDocument();
+      addToast({
+        type: 'success',
+        message: 'Document deleted',
+      });
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to delete document',
+        duration: 7000,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [
+    activeDocPath,
+    activeDoc,
+    isDeleting,
+    docStore,
+    removeCatalogEntry,
+    documentCache,
+    addToast,
+    clearActiveDocument,
+  ]);
+
+  /**
+   * Cancel delete action
+   */
+  const handleCancelDelete = useCallback(() => {
+    if (!isDeleting) {
+      setIsDeleteConfirmOpen(false);
+      clearActiveDocument();
+    }
+  }, [isDeleting, clearActiveDocument]);
+
+  /**
+   * Handle inline item updates from the document detail view.
+   */
+  const handleItemUpdate = useCallback(
+    async (
+      path: string,
+      itemId: string,
+      updates: {
+        title?: string;
+        type?: string;
+        domain?: string[];
+        subdomain?: string[];
+        context?: string;
+        priority?: string;
+        status?: string;
+        tags?: string[];
+      }
+    ) => {
+      const updateKey = getItemUpdateKey(path, itemId);
+
+      if (updatingItemIds.has(updateKey)) {
+        return;
+      }
+
+      const currentDoc = documentCache.get(path);
+      if (!currentDoc) {
+        return;
+      }
+
+      setUpdatingItemIds((prev) => new Set(prev).add(updateKey));
+
+      try {
+        const { updatedDoc, changed } = applyItemUpdate(currentDoc, itemId, updates);
+
+        if (!changed) {
+          return;
+        }
+
+        await docStore.write(path, updatedDoc);
+        documentCache.set(path, updatedDoc);
+
+        if (activeDocPath === path) {
+          setActiveDoc(updatedDoc);
+        }
+
+        setCatalog((prev) =>
+          prev.map((entry) =>
+            entry.path === path
+              ? {
+                  ...entry,
+                  updated_at: updatedDoc.updated_at,
+                }
+              : entry
+          )
+        );
+      } catch (error) {
+        console.error('Failed to update item:', error);
+        addToast({
+          type: 'error',
+          message: error instanceof Error ? error.message : 'Failed to update item',
+          duration: 7000,
+        });
+      } finally {
+        setUpdatingItemIds((prev) => {
+          const next = new Set(prev);
+          next.delete(updateKey);
+          return next;
+        });
+      }
+    },
+    [
+      activeDocPath,
+      addToast,
+      documentCache,
+      docStore,
+      getItemUpdateKey,
+      updatingItemIds,
+    ]
+  );
+
+  const isItemUpdating = useCallback(
+    (path: string, itemId: string): boolean => {
+      return updatingItemIds.has(getItemUpdateKey(path, itemId));
+    },
+    [getItemUpdateKey, updatingItemIds]
+  );
+
+  /**
+   * Close edit modal on Escape key
+   */
+  useEffect(() => {
+    if (!isEditModalOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !isSavingEdit) {
+        event.preventDefault();
+        handleCloseEditModal();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isEditModalOpen, isSavingEdit, handleCloseEditModal]);
+
+  // ============================================================================
   // Derived State (Filtering & Sorting)
   // ============================================================================
 
@@ -437,7 +886,72 @@ export function ViewerContainer({
             onToggleExpand={handleToggleExpand}
             documentCache={documentCache.cache}
             onAddItemToDocument={handleAddItemToDocument}
+            onEditDocument={handleRequestEditDocument}
+            onArchiveDocument={handleRequestArchiveDocument}
+            onUnarchiveDocument={handleRequestUnarchiveDocument}
+            onDeleteDocument={handleRequestDeleteDocument}
+            onItemUpdate={handleItemUpdate}
+            isItemUpdating={isItemUpdating}
           />
+
+          {activeDoc && (
+            <DocumentDeleteConfirm
+              doc={activeDoc}
+              isOpen={isDeleteConfirmOpen}
+              onConfirm={handleConfirmDelete}
+              onCancel={handleCancelDelete}
+            />
+          )}
+
+          {activeDoc && (
+            <DocumentArchiveConfirm
+              doc={activeDoc}
+              isOpen={isArchiveConfirmOpen}
+              mode={archiveMode}
+              onConfirm={handleConfirmArchive}
+              onCancel={handleCancelArchive}
+              isLoading={isArchiving}
+            />
+          )}
+
+          {activeDoc && isEditModalOpen && (
+            <div
+              className="modal-overlay edit-modal-overlay"
+              onClick={handleEditOverlayClick}
+              role="presentation"
+            >
+              <div
+                ref={editModalRef}
+                className="edit-modal glass"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={editModalTitleId}
+              >
+                <div className="edit-modal-header">
+                  <h2 id={editModalTitleId} className="edit-modal-title">
+                    Edit Document
+                  </h2>
+                  <button
+                    type="button"
+                    className="edit-modal-close"
+                    onClick={handleCloseEditModal}
+                    disabled={isSavingEdit}
+                    aria-label="Close modal"
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div className="edit-modal-content">
+                  <DocumentEditForm
+                    doc={activeDoc}
+                    onSave={handleSaveEdit}
+                    onCancel={handleCloseEditModal}
+                    isSaving={isSavingEdit}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

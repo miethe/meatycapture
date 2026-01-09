@@ -20,7 +20,7 @@
  * - Glass/x-morphism styling for visual consistency
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -132,6 +132,23 @@ export function DocumentCatalog({
   /** Loading states for document rows */
   const [loadingPaths, setLoadingPaths] = useState<Set<string>>(new Set());
 
+  /** Track cache size to trigger re-renders when documents are preloaded */
+  const [cacheSize, setCacheSize] = useState(documentCache.size);
+
+  /**
+   * Poll for cache updates to trigger re-render
+   * This ensures ProjectProgressIndicator updates when documents are preloaded
+   */
+  useEffect(() => {
+    const checkCache = () => {
+      if (documentCache.size !== cacheSize) {
+        setCacheSize(documentCache.size);
+      }
+    };
+    const interval = setInterval(checkCache, 100);
+    return () => clearInterval(interval);
+  }, [documentCache, cacheSize]);
+
   // ============================================================================
   // Column Definitions
   // ============================================================================
@@ -147,6 +164,12 @@ export function DocumentCatalog({
         header: '',
         cell: () => null, // Rendered manually in DocumentRow
         size: 50,
+      },
+      {
+        id: 'types',
+        header: 'Types',
+        cell: () => null, // Rendered manually in DocumentRow (TypeDistributionIndicator)
+        size: 80,
       },
       {
         accessorKey: 'doc_id',
@@ -438,11 +461,12 @@ export function DocumentCatalog({
               {table.getHeaderGroups().map((headerGroup) =>
                 headerGroup.headers.map((header) => {
                   const isSortable = ['doc_id', 'title'].includes(header.id);
+                  const isTypesHeader = header.id === 'types';
 
                   return (
                     <th
                       key={header.id}
-                      className={`viewer-catalog-header-cell ${isSortable ? 'sortable' : ''}`}
+                      className={`viewer-catalog-header-cell ${isSortable ? 'sortable' : ''} ${isTypesHeader ? 'viewer-type-indicator-cell' : ''}`}
                       role="columnheader"
                       aria-sort={
                         sort.field === header.id
