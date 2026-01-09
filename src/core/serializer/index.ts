@@ -15,11 +15,13 @@ import { NOTE_TYPE_LABELS, isNoteType } from '@core/models';
 
 // Re-export item update utilities
 export {
+  applyItemUpdate,
   applyNoteUpdate,
   findItem,
   getItemNotes,
   ItemNotFoundError,
   type ItemUpdateResult,
+  type ItemFieldUpdates,
 } from './item-update';
 
 /**
@@ -271,9 +273,10 @@ function serializeNotes(notes: Note[] | undefined): string {
  * ## REQ-20251203-capture-app-01 - Add dark mode toggle
  *
  * **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
+ * **Subdomain:** auth, database
+ * **Context:** This bug occurs when users try to login with expired sessions
  * **Tags:** ux, enhancement
  * **Modified:** 2025-12-03T14:30:00Z
- * **Context:** Settings page redesign
  *
  * #### Notes
  *
@@ -283,6 +286,9 @@ function serializeNotes(notes: Note[] | undefined): string {
  *
  * ```
  *
+ * Note: **Subdomain:** line is only included when subdomain array is non-empty.
+ * Note: **Context:** line is only included when context string is non-empty.
+ * Note: **Tags:** line is only included when tags array is non-empty.
  * Note: **Modified:** line is only included when modified_at is present (optional field).
  * Notes section is only included if there are notes attached to the item.
  *
@@ -294,15 +300,27 @@ function serializeItem(item: RequestLogItem): string {
     `## ${item.id} - ${item.title}`,
     '',
     `**Type:** ${item.type} | **Domain:** ${item.domain.join(', ')} | **Priority:** ${item.priority} | **Status:** ${item.status}`,
-    `**Tags:** ${item.tags.join(', ')}`,
   ];
+
+  // Include subdomain if non-empty array
+  if (item.subdomain.length > 0) {
+    lines.push(`**Subdomain:** ${item.subdomain.join(', ')}`);
+  }
+
+  // Include context if non-empty string
+  if (item.context && item.context.trim().length > 0) {
+    lines.push(`**Context:** ${item.context}`);
+  }
+
+  // Include tags if non-empty array
+  if (item.tags.length > 0) {
+    lines.push(`**Tags:** ${item.tags.join(', ')}`);
+  }
 
   // Include modified_at if present (optional field for backward compatibility)
   if (item.modified_at) {
     lines.push(`**Modified:** ${item.modified_at.toISOString()}`);
   }
-
-  lines.push(`**Context:** ${item.context.join(', ')}`);
 
   // Serialize notes section (only if notes exist)
   const notesSection = serializeNotes(item.notes);
@@ -420,6 +438,20 @@ function parseYaml(yamlContent: string): Record<string, unknown> {
         if (listLine.trim().startsWith('-')) {
           // Start of new list item
           listItems.push({});
+
+          // Also extract property if present on same line (e.g., "- id: value")
+          const restOfLine = listLine.trim().substring(1).trim(); // Remove leading "-"
+          if (restOfLine) {
+            const propColonIndex = restOfLine.indexOf(':');
+            if (propColonIndex !== -1) {
+              const propKey = restOfLine.substring(0, propColonIndex).trim();
+              const propValue = restOfLine.substring(propColonIndex + 1).trim();
+              const lastItem = listItems[listItems.length - 1];
+              if (lastItem) {
+                lastItem[propKey] = propValue;
+              }
+            }
+          }
         } else if (listLine.startsWith('  ') && listItems.length > 0) {
           // Property of current list item
           const propLine = listLine.trim();
@@ -532,15 +564,21 @@ function parseItems(body: string): RequestLogItem[] {
     const modifiedMatch = content.match(/\*\*Modified:\*\*\s*([^\n]+)/);
     const modifiedStr = modifiedMatch?.[1]?.trim();
 
-    // Parse context line
-    const contextMatch = content.match(/\*\*Context:\*\*\s*([^\n]+)/);
-    const contextStr = contextMatch?.[1]?.trim() || '';
-    const context = contextStr
-      ? contextStr
+    // Parse subdomain line (array of comma-separated values)
+    const subdomainMatch = content.match(/\*\*Subdomain:\*\*\s*([^\n]+)/);
+    const subdomainStr = subdomainMatch?.[1]?.trim() || '';
+    const subdomain = subdomainStr
+      ? subdomainStr
           .split(',')
-          .map((c) => c.trim())
-          .filter((c) => c.length > 0)
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0)
       : [];
+
+    // Parse context line (free-form text string, optional)
+    const contextMatch = content.match(/\*\*Context:\*\*\s*([^\n]+)/);
+    const contextStr = contextMatch?.[1]?.trim();
+    // context is optional string - only set if non-empty
+    const context = contextStr && contextStr.length > 0 ? contextStr : undefined;
 
     // Extract created_at from item ID (REQ-YYYYMMDD-...)
     // For MVP, use a default timestamp if not parseable
@@ -555,19 +593,24 @@ function parseItems(body: string): RequestLogItem[] {
     // Returns empty array if no notes section exists (backward compatibility)
     const parsedNotes = parseNotes(content, id);
 
-    // Build item object - only include notes if present (exactOptionalPropertyTypes)
+    // Build item object - only include optional fields if present (exactOptionalPropertyTypes)
     const item: RequestLogItem = {
       id,
       title,
       type,
       domain,
-      context,
+      subdomain,
       priority,
       status,
       tags,
       created_at,
       modified_at,
     };
+
+    // Add context only if present (avoids undefined assignment with exactOptionalPropertyTypes)
+    if (context !== undefined) {
+      item.context = context;
+    }
 
     // Add notes only if present (avoids undefined assignment with exactOptionalPropertyTypes)
     if (parsedNotes.length > 0) {
