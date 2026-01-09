@@ -2,11 +2,12 @@
  * ProjectGroupRow Component
  *
  * Collapsible header row for project groups in the catalog table.
- * Displays project name and document count with expand/collapse control.
+ * Displays project name, document count, and progress indicator with expand/collapse control.
  *
  * Features:
  * - Collapsible project section
  * - Document count badge
+ * - Progress indicator showing done/total items
  * - Chevron indicator for expand/collapse state
  * - Keyboard accessible (Enter to toggle)
  * - Glass/x-morphism styling for visual hierarchy
@@ -14,6 +15,8 @@
 
 import React from 'react';
 import type { ProjectInfo } from '@core/catalog';
+import type { RequestLogDoc } from '@core/models';
+import { ProjectProgressIndicator } from './components';
 
 export interface ProjectGroupRowProps {
   /** Project metadata */
@@ -21,6 +24,9 @@ export interface ProjectGroupRowProps {
 
   /** Number of documents in this project */
   documentCount: number;
+
+  /** Array of loaded documents for progress calculation */
+  documents: RequestLogDoc[];
 
   /** Whether this project group is expanded */
   isExpanded: boolean;
@@ -44,6 +50,7 @@ export interface ProjectGroupRowProps {
 export const ProjectGroupRow = React.memo(function ProjectGroupRow({
   project,
   documentCount,
+  documents,
   isExpanded,
   onToggle,
 }: ProjectGroupRowProps): React.JSX.Element {
@@ -82,6 +89,9 @@ export const ProjectGroupRow = React.memo(function ProjectGroupRow({
           <span className="project-count-badge" aria-label={`${documentCount} documents`}>
             {documentCount}
           </span>
+
+          {/* Project Progress Indicator */}
+          {documents.length > 0 && <ProjectProgressIndicator documents={documents} />}
         </div>
       </td>
     </tr>

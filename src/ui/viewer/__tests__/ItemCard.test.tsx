@@ -13,7 +13,7 @@ const createMockItem = (overrides: Partial<RequestLogItem> = {}): RequestLogItem
   title: 'Test Item Title',
   type: 'enhancement',
   domain: ['web'],
-  context: ['frontend'],
+  subdomain: ['frontend'],
   priority: 'medium',
   status: 'triage',
   tags: ['ux', 'api'],
@@ -21,6 +21,15 @@ const createMockItem = (overrides: Partial<RequestLogItem> = {}): RequestLogItem
   created_at: new Date('2025-12-31T10:00:00Z'),
   ...overrides,
 });
+
+/**
+ * Helper to expand the ItemCard by clicking the collapse toggle.
+ * ItemCard defaults to collapsed state, so many tests need to expand first.
+ */
+async function expandItemCard(user: ReturnType<typeof userEvent.setup>): Promise<void> {
+  const expandButton = screen.getByRole('button', { name: /expand item details/i });
+  await user.click(expandButton);
+}
 
 describe('ItemCard', () => {
   const defaultProps = {
@@ -40,8 +49,10 @@ describe('ItemCard', () => {
       expect(screen.getByRole('heading', { name: 'Test Item Title' })).toBeInTheDocument();
     });
 
-    it('renders item metadata fields', () => {
+    it('renders item metadata fields when expanded', async () => {
+      const user = userEvent.setup({ delay: null });
       render(<ItemCard {...defaultProps} />);
+      await expandItemCard(user);
 
       expect(screen.getByText('Type')).toBeInTheDocument();
       expect(screen.getByText('enhancement')).toBeInTheDocument();
@@ -53,8 +64,10 @@ describe('ItemCard', () => {
       expect(screen.getByText('triage')).toBeInTheDocument();
     });
 
-    it('renders tags as chips', () => {
+    it('renders tags as chips when expanded', async () => {
+      const user = userEvent.setup({ delay: null });
       render(<ItemCard {...defaultProps} />);
+      await expandItemCard(user);
 
       expect(screen.getByText('ux')).toBeInTheDocument();
       expect(screen.getByText('api')).toBeInTheDocument();
@@ -65,6 +78,46 @@ describe('ItemCard', () => {
 
       const copyButton = screen.getByRole('button', { name: /copy item id/i });
       expect(copyButton).toBeInTheDocument();
+    });
+
+    it('renders collapse toggle button', () => {
+      render(<ItemCard {...defaultProps} />);
+
+      const collapseToggle = screen.getByRole('button', { name: /expand item details/i });
+      expect(collapseToggle).toBeInTheDocument();
+    });
+
+    it('starts in collapsed state by default', () => {
+      const { container } = render(<ItemCard {...defaultProps} />);
+
+      const collapsible = container.querySelector('.viewer-item-collapsible');
+      expect(collapsible).toHaveClass('collapsed');
+    });
+
+    it('expands when toggle is clicked', async () => {
+      const user = userEvent.setup({ delay: null });
+      const { container } = render(<ItemCard {...defaultProps} />);
+      await expandItemCard(user);
+
+      const collapsible = container.querySelector('.viewer-item-collapsible');
+      expect(collapsible).toHaveClass('expanded');
+      // Button should now show "Collapse" label
+      expect(screen.getByRole('button', { name: /collapse item details/i })).toBeInTheDocument();
+    });
+
+    it('collapses when toggle is clicked again', async () => {
+      const user = userEvent.setup({ delay: null });
+      const { container } = render(<ItemCard {...defaultProps} />);
+
+      // Expand first
+      await expandItemCard(user);
+
+      // Click again to collapse
+      const collapseButton = screen.getByRole('button', { name: /collapse item details/i });
+      await user.click(collapseButton);
+
+      const collapsible = container.querySelector('.viewer-item-collapsible');
+      expect(collapsible).toHaveClass('collapsed');
     });
   });
 
@@ -269,113 +322,9 @@ describe('ItemCard', () => {
     });
   });
 
-  describe('priority styling', () => {
-    it('applies priority-critical class for critical priority', () => {
-      const item = createMockItem({ priority: 'critical' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const priorityBadge = container.querySelector('.priority-badge');
-      expect(priorityBadge).toHaveClass('priority-critical');
-    });
-
-    it('applies priority-high class for high priority', () => {
-      const item = createMockItem({ priority: 'high' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const priorityBadge = container.querySelector('.priority-badge');
-      expect(priorityBadge).toHaveClass('priority-high');
-    });
-
-    it('applies priority-medium class for medium priority', () => {
-      const item = createMockItem({ priority: 'medium' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const priorityBadge = container.querySelector('.priority-badge');
-      expect(priorityBadge).toHaveClass('priority-medium');
-    });
-
-    it('applies priority-low class for low priority', () => {
-      const item = createMockItem({ priority: 'low' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const priorityBadge = container.querySelector('.priority-badge');
-      expect(priorityBadge).toHaveClass('priority-low');
-    });
-
-    it('applies no extra priority class for unknown priority', () => {
-      const item = createMockItem({ priority: 'unknown' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const priorityBadge = container.querySelector('.priority-badge');
-      expect(priorityBadge).not.toHaveClass('priority-critical');
-      expect(priorityBadge).not.toHaveClass('priority-high');
-      expect(priorityBadge).not.toHaveClass('priority-medium');
-      expect(priorityBadge).not.toHaveClass('priority-low');
-    });
-  });
-
-  describe('status styling', () => {
-    it('applies status-done class for done status', () => {
-      const item = createMockItem({ status: 'done' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const statusBadge = container.querySelector('.status-badge');
-      expect(statusBadge).toHaveClass('status-done');
-    });
-
-    it('applies status-in-progress class for in-progress status', () => {
-      const item = createMockItem({ status: 'in-progress' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const statusBadge = container.querySelector('.status-badge');
-      expect(statusBadge).toHaveClass('status-in-progress');
-    });
-
-    it('applies status-planned class for planned status', () => {
-      const item = createMockItem({ status: 'planned' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const statusBadge = container.querySelector('.status-badge');
-      expect(statusBadge).toHaveClass('status-planned');
-    });
-
-    it('applies status-backlog class for backlog status', () => {
-      const item = createMockItem({ status: 'backlog' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const statusBadge = container.querySelector('.status-badge');
-      expect(statusBadge).toHaveClass('status-backlog');
-    });
-
-    it('applies status-triage class for triage status', () => {
-      const item = createMockItem({ status: 'triage' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const statusBadge = container.querySelector('.status-badge');
-      expect(statusBadge).toHaveClass('status-triage');
-    });
-
-    it('applies status-wontfix class for wontfix status', () => {
-      const item = createMockItem({ status: 'wontfix' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const statusBadge = container.querySelector('.status-badge');
-      expect(statusBadge).toHaveClass('status-wontfix');
-    });
-
-    it('applies no extra status class for unknown status', () => {
-      const item = createMockItem({ status: 'unknown' });
-      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
-
-      const statusBadge = container.querySelector('.status-badge');
-      expect(statusBadge).not.toHaveClass('status-done');
-      expect(statusBadge).not.toHaveClass('status-in-progress');
-      expect(statusBadge).not.toHaveClass('status-planned');
-      expect(statusBadge).not.toHaveClass('status-backlog');
-      expect(statusBadge).not.toHaveClass('status-triage');
-      expect(statusBadge).not.toHaveClass('status-wontfix');
-    });
-  });
+  // Note: priority-badge and status-badge tests removed since ItemCard now uses
+  // DropdownWithAdd components for inline editing instead of static badges.
+  // Priority and status values are displayed in dropdowns, not styled badges.
 
   describe('copy ID functionality', () => {
     it('copies ID to clipboard and shows success feedback', async () => {
@@ -429,25 +378,31 @@ describe('ItemCard', () => {
   });
 
   describe('empty tags', () => {
-    it('does not render tags section when tags array is empty', () => {
+    it('renders tags section with empty state when tags array is empty', async () => {
+      const user = userEvent.setup({ delay: null });
       const item = createMockItem({ tags: [] });
       const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
-      expect(container.querySelector('.viewer-item-tags')).not.toBeInTheDocument();
+      // Tags section is always rendered for inline editing capability
+      expect(container.querySelector('.viewer-item-tags')).toBeInTheDocument();
     });
   });
 
   describe('notes section', () => {
-    it('renders notes section with empty state when notes is empty array', () => {
+    it('renders notes section with empty state when notes is empty array', async () => {
+      const user = userEvent.setup({ delay: null });
       const item = createMockItem({ notes: [] });
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // NotesList renders with empty state and "Add Note" button
       expect(screen.getByText('No notes yet')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /add note/i })).toBeInTheDocument();
     });
 
-    it('renders notes section with NotesList when notes exist', () => {
+    it('renders notes section with NotesList when notes exist', async () => {
+      const user = userEvent.setup({ delay: null });
       const item = createMockItem({
         notes: [
           {
@@ -460,6 +415,7 @@ describe('ItemCard', () => {
         ],
       });
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // Should render NotesList with the note
       expect(screen.getByText('Notes (1)')).toBeInTheDocument();
@@ -470,6 +426,7 @@ describe('ItemCard', () => {
       const user = userEvent.setup({ delay: null });
       const item = createMockItem({ notes: [] });
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       const addButton = screen.getByRole('button', { name: /add note/i });
       await user.click(addButton);
@@ -494,6 +451,7 @@ describe('ItemCard', () => {
         ],
       });
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // Click edit on the note - use aria-label which includes "General" for the note type
       const noteEditButton = screen.getByRole('button', { name: /edit general note/i });
@@ -518,6 +476,7 @@ describe('ItemCard', () => {
         ],
       });
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // Click delete on the note - use aria-label which includes "General" for the note type
       const noteDeleteButton = screen.getByRole('button', { name: /delete general note/i });
@@ -539,6 +498,7 @@ describe('ItemCard', () => {
       );
 
       render(<ItemCard item={item} onCopyId={vi.fn()} onNoteAdd={onNoteAdd} />);
+      await expandItemCard(user);
 
       // Open modal
       await user.click(screen.getByRole('button', { name: /add note/i }));
@@ -574,6 +534,7 @@ describe('ItemCard', () => {
         ],
       });
       render(<ItemCard item={item} onCopyId={vi.fn()} onNoteDelete={onNoteDelete} />);
+      await expandItemCard(user);
 
       // Click delete on the note - use aria-label which includes "General" for the note type
       const noteDeleteButton = screen.getByRole('button', { name: /delete general note/i });
@@ -589,7 +550,8 @@ describe('ItemCard', () => {
   });
 
   describe('modified date display', () => {
-    it('shows Modified date when modified_at differs from created_at', () => {
+    it('shows Modified date when modified_at differs from created_at', async () => {
+      const user = userEvent.setup({ delay: null });
       const createdAt = new Date('2025-12-31T10:00:00Z');
       const modifiedAt = new Date('2025-12-31T14:30:00Z');
 
@@ -599,13 +561,15 @@ describe('ItemCard', () => {
       });
 
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // Should show both Created and Modified labels
       expect(screen.getByText('Created')).toBeInTheDocument();
       expect(screen.getByText('Modified')).toBeInTheDocument();
     });
 
-    it('does NOT show Modified date when modified_at equals created_at', () => {
+    it('does NOT show Modified date when modified_at equals created_at', async () => {
+      const user = userEvent.setup({ delay: null });
       const sameDate = new Date('2025-12-31T10:00:00Z');
 
       const item = createMockItem({
@@ -614,33 +578,37 @@ describe('ItemCard', () => {
       });
 
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // Should only show Created label, not Modified
       expect(screen.getByText('Created')).toBeInTheDocument();
       expect(screen.queryByText('Modified')).not.toBeInTheDocument();
     });
 
-    it('does NOT show Modified date when modified_at is undefined (backward compatibility)', () => {
+    it('does NOT show Modified date when modified_at is undefined (backward compatibility)', async () => {
+      const user = userEvent.setup({ delay: null });
       const item = createMockItem({
         created_at: new Date('2025-12-31T10:00:00Z'),
         // No modified_at field - simulates old format
       });
 
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // Should only show Created label, not Modified
       expect(screen.getByText('Created')).toBeInTheDocument();
       expect(screen.queryByText('Modified')).not.toBeInTheDocument();
     });
 
-    it('handles items with modified_at as undefined explicitly', () => {
+    it('handles items with modified_at as undefined explicitly', async () => {
+      const user = userEvent.setup({ delay: null });
       // Create item without modified_at field to simulate legacy items
       const item = createMockItem({
         id: 'REQ-20251231-legacy-01',
         title: 'Legacy Item',
         type: 'bug',
         domain: ['api'],
-        context: ['Legacy context'],
+        subdomain: ['Legacy context'],
         priority: 'high',
         status: 'backlog',
         tags: ['legacy'],
@@ -651,12 +619,14 @@ describe('ItemCard', () => {
       delete (item as Partial<RequestLogItem>).modified_at;
 
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       expect(screen.getByText('Created')).toBeInTheDocument();
       expect(screen.queryByText('Modified')).not.toBeInTheDocument();
     });
 
-    it('shows different dates when item was modified on different day', () => {
+    it('shows different dates when item was modified on different day', async () => {
+      const user = userEvent.setup({ delay: null });
       const createdAt = new Date('2025-12-01T10:00:00Z');
       const modifiedAt = new Date('2025-12-15T14:30:00Z');
 
@@ -666,6 +636,7 @@ describe('ItemCard', () => {
       });
 
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // Should show both dates
       expect(screen.getByText('Modified')).toBeInTheDocument();
@@ -675,7 +646,8 @@ describe('ItemCard', () => {
   });
 
   describe('note type filter', () => {
-    it('renders the note type filter dropdown', () => {
+    it('renders the note type filter dropdown when expanded', async () => {
+      const user = userEvent.setup({ delay: null });
       const item = createMockItem({
         notes: [
           {
@@ -688,6 +660,7 @@ describe('ItemCard', () => {
         ],
       });
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // NoteTypeFilter button should be present with "All Types" label by default
       const filterButton = screen.getByRole('button', { name: /filter by note type/i });
@@ -695,7 +668,8 @@ describe('ItemCard', () => {
       expect(filterButton).toHaveTextContent('All Types');
     });
 
-    it('shows all note types by default (empty filter = show all)', () => {
+    it('shows all note types by default (empty filter = show all)', async () => {
+      const user = userEvent.setup({ delay: null });
       const item = createMockItem({
         notes: [
           {
@@ -722,6 +696,7 @@ describe('ItemCard', () => {
         ],
       });
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // All notes should be visible
       expect(screen.getByText('General note content')).toBeInTheDocument();
@@ -759,6 +734,7 @@ describe('ItemCard', () => {
         ],
       });
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // Open filter dropdown
       const filterButton = screen.getByRole('button', { name: /filter by note type/i });
@@ -804,6 +780,7 @@ describe('ItemCard', () => {
         ],
       });
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // Focus the filter button and open with Enter
       const filterButton = screen.getByRole('button', { name: /filter by note type/i });
@@ -823,13 +800,224 @@ describe('ItemCard', () => {
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 
-    it('renders filter dropdown even when notes list is empty', () => {
+    it('renders filter dropdown even when notes list is empty', async () => {
+      const user = userEvent.setup({ delay: null });
       const item = createMockItem({ notes: [] });
       render(<ItemCard item={item} onCopyId={vi.fn()} />);
+      await expandItemCard(user);
 
       // Filter should still be present in empty state
       const filterButton = screen.getByRole('button', { name: /filter by note type/i });
       expect(filterButton).toBeInTheDocument();
+    });
+  });
+
+  describe('note count badge', () => {
+    it('does not show note count badge when there are no notes', () => {
+      const item = createMockItem({ notes: [] });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      expect(container.querySelector('.note-count-badge')).not.toBeInTheDocument();
+    });
+
+    it('shows note count badge with correct count when notes exist', () => {
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'General',
+            content: 'Note 1',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+          {
+            id: 'NOTE-02',
+            type: 'General',
+            content: 'Note 2',
+            created_at: new Date('2025-12-31T11:00:00Z'),
+            updated_at: new Date('2025-12-31T11:00:00Z'),
+          },
+          {
+            id: 'NOTE-03',
+            type: 'Bug Fix Attempt',
+            content: 'Note 3',
+            created_at: new Date('2025-12-31T12:00:00Z'),
+            updated_at: new Date('2025-12-31T12:00:00Z'),
+          },
+        ],
+      });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const badge = container.querySelector('.note-count-badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveTextContent('3');
+    });
+
+    it('shows note count badge with singular note for 1 note', () => {
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'General',
+            content: 'Single note',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+        ],
+      });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const badge = container.querySelector('.note-count-badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveTextContent('1');
+    });
+
+    it('note count badge has accessible aria-label describing note count and types', () => {
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'General',
+            content: 'Note 1',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+          {
+            id: 'NOTE-02',
+            type: 'General',
+            content: 'Note 2',
+            created_at: new Date('2025-12-31T11:00:00Z'),
+            updated_at: new Date('2025-12-31T11:00:00Z'),
+          },
+          {
+            id: 'NOTE-03',
+            type: 'Bug Fix Attempt',
+            content: 'Note 3',
+            created_at: new Date('2025-12-31T12:00:00Z'),
+            updated_at: new Date('2025-12-31T12:00:00Z'),
+          },
+        ],
+      });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const badge = container.querySelector('.note-count-badge');
+      expect(badge).toHaveAttribute('aria-label');
+      // aria-label should contain both "3 notes" and type breakdown
+      expect(badge?.getAttribute('aria-label')).toContain('3 notes');
+      expect(badge?.getAttribute('aria-label')).toContain('General');
+      expect(badge?.getAttribute('aria-label')).toContain('Bug Fix Attempt');
+    });
+
+    it('note count badge aria-label handles single type correctly', () => {
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'General',
+            content: 'Note 1',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+          {
+            id: 'NOTE-02',
+            type: 'General',
+            content: 'Note 2',
+            created_at: new Date('2025-12-31T11:00:00Z'),
+            updated_at: new Date('2025-12-31T11:00:00Z'),
+          },
+          {
+            id: 'NOTE-03',
+            type: 'General',
+            content: 'Note 3',
+            created_at: new Date('2025-12-31T12:00:00Z'),
+            updated_at: new Date('2025-12-31T12:00:00Z'),
+          },
+        ],
+      });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const badge = container.querySelector('.note-count-badge');
+      expect(badge).toHaveAttribute('aria-label');
+      // For single type, it should say "3 General notes"
+      expect(badge?.getAttribute('aria-label')).toMatch(/3 General notes/);
+    });
+
+    it('note count badge aria-label handles single note correctly', () => {
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'Validation',
+            content: 'Single note',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+        ],
+      });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const badge = container.querySelector('.note-count-badge');
+      expect(badge).toHaveAttribute('aria-label');
+      // For single note, it should be "1 Validation note" (singular)
+      expect(badge?.getAttribute('aria-label')).toMatch(/1 Validation note$/);
+    });
+
+    it('note count badge has correct CSS class', () => {
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'General',
+            content: 'Note 1',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+        ],
+      });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const badge = container.querySelector('.note-count-badge');
+      expect(badge).toHaveClass('note-count-badge');
+    });
+
+    it('note count badge contains an SVG note icon', () => {
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'General',
+            content: 'Note 1',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+        ],
+      });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      const badge = container.querySelector('.note-count-badge');
+      const svg = badge?.querySelector('svg');
+      expect(svg).toBeInTheDocument();
+      expect(svg).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('note count badge is positioned in the header row', () => {
+      const item = createMockItem({
+        notes: [
+          {
+            id: 'NOTE-01',
+            type: 'General',
+            content: 'Note 1',
+            created_at: new Date('2025-12-31T10:00:00Z'),
+            updated_at: new Date('2025-12-31T10:00:00Z'),
+          },
+        ],
+      });
+      const { container } = render(<ItemCard item={item} onCopyId={vi.fn()} />);
+
+      // Badge should be inside the viewer-item-id-row
+      const idRow = container.querySelector('.viewer-item-id-row');
+      const badge = idRow?.querySelector('.note-count-badge');
+      expect(badge).toBeInTheDocument();
     });
   });
 });

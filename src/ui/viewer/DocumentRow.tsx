@@ -20,6 +20,7 @@ import type { CatalogEntry } from '@core/catalog';
 import type { RequestLogDoc } from '@core/models';
 import { DocumentDetail } from './DocumentDetail';
 import { DocumentKebabMenu } from './DocumentKebabMenu';
+import { ItemCountIndicator, TypeDistributionIndicator } from './components';
 
 export interface DocumentRowProps {
   /** Catalog entry metadata */
@@ -42,6 +43,37 @@ export interface DocumentRowProps {
 
   /** Callback when "Add Item" is clicked */
   onAddItem?: (() => void) | undefined;
+
+  /** Callback when "Edit Document" is clicked */
+  onEdit?: (() => void) | undefined;
+
+  /** Callback when "Archive Document" is clicked */
+  onArchive?: (() => void) | undefined;
+
+  /** Callback when "Unarchive Document" is clicked */
+  onUnarchive?: (() => void) | undefined;
+
+  /** Callback when "Delete Document" is clicked */
+  onDelete?: (() => void) | undefined;
+
+  /** Callback when an item is updated inline */
+  onItemUpdate?: (
+    path: string,
+    itemId: string,
+    updates: {
+      title?: string;
+      type?: string;
+      domain?: string[];
+      subdomain?: string[];
+      context?: string;
+      priority?: string;
+      status?: string;
+      tags?: string[];
+    }
+  ) => void;
+
+  /** Whether a specific item is updating */
+  isItemUpdating?: (path: string, itemId: string) => boolean;
 }
 
 /**
@@ -64,6 +96,12 @@ export const DocumentRow = React.memo(function DocumentRow({
   isLoading,
   document,
   onAddItem,
+  onEdit,
+  onArchive,
+  onUnarchive,
+  onDelete,
+  onItemUpdate,
+  isItemUpdating,
 }: DocumentRowProps): React.JSX.Element {
   /**
    * Handle row click for expansion
@@ -108,23 +146,38 @@ export const DocumentRow = React.memo(function DocumentRow({
   };
 
   /**
-   * Placeholder handlers for document actions
-   * These will be wired up in future tasks
+   * Document action handlers
    */
   const handleEdit = () => {
-    console.log('Edit clicked for:', entry.doc_id);
+    if (onEdit) {
+      onEdit();
+    } else {
+      console.log('Edit clicked for:', entry.doc_id);
+    }
   };
 
   const handleArchive = () => {
-    console.log('Archive clicked for:', entry.doc_id);
+    if (onArchive) {
+      onArchive();
+    } else {
+      console.log('Archive clicked for:', entry.doc_id);
+    }
   };
 
   const handleUnarchive = () => {
-    console.log('Unarchive clicked for:', entry.doc_id);
+    if (onUnarchive) {
+      onUnarchive();
+    } else {
+      console.log('Unarchive clicked for:', entry.doc_id);
+    }
   };
 
   const handleDelete = () => {
-    console.log('Delete clicked for:', entry.doc_id);
+    if (onDelete) {
+      onDelete();
+    } else {
+      console.log('Delete clicked for:', entry.doc_id);
+    }
   };
 
   const handleAddItem = () => {
@@ -212,10 +265,15 @@ export const DocumentRow = React.memo(function DocumentRow({
         {/* Inline Metadata Display */}
         <td className="viewer-document-cell viewer-metadata-cell" role="cell">
           <div className="doc-row-metadata">
-            <span className="doc-meta-item">
-              <FileTextIcon className="doc-meta-icon" aria-hidden="true" />
-              <span className="doc-meta-value">{entry.item_count}</span>
-            </span>
+            {/* Item count with status breakdown tooltip when document loaded */}
+            {document?.items && document.items.length > 0 ? (
+              <ItemCountIndicator items={document.items} size="sm" />
+            ) : (
+              <span className="doc-meta-item">
+                <FileTextIcon className="doc-meta-icon" aria-hidden="true" />
+                <span className="doc-meta-value">{entry.item_count}</span>
+              </span>
+            )}
             <span className="doc-meta-item">
               <CalendarIcon className="doc-meta-icon" aria-hidden="true" />
               <time className="doc-meta-value" dateTime={entry.updated_at.toISOString()}>
@@ -233,6 +291,10 @@ export const DocumentRow = React.memo(function DocumentRow({
                   <span className="doc-tag-more">+{document.tags.length - 3}</span>
                 )}
               </div>
+            )}
+            {/* Type distribution indicator when document loaded */}
+            {document?.items && document.items.length > 0 && (
+              <TypeDistributionIndicator items={document.items} maxTypes={3} />
             )}
             <div
               className="doc-row-actions"
@@ -258,7 +320,15 @@ export const DocumentRow = React.memo(function DocumentRow({
           <td colSpan={4} className="viewer-detail-cell" role="cell">
             <div className="viewer-detail-content">
               {document ? (
-                <DocumentDetail document={document} isLoading={isLoading} />
+                <DocumentDetail
+                  document={document}
+                  isLoading={isLoading}
+                  docPath={entry.path}
+                  {...(onItemUpdate ? { onItemUpdate } : {})}
+                  isItemUpdating={(itemId) =>
+                    isItemUpdating ? isItemUpdating(entry.path, itemId) : false
+                  }
+                />
               ) : (
                 <div className="detail-placeholder glass">
                   <p>

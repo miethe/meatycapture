@@ -61,6 +61,37 @@ export interface DocumentCatalogProps {
 
   /** Callback when "Add Item" is clicked for a document */
   onAddItemToDocument?: (path: string, doc: RequestLogDoc) => void;
+
+  /** Callback when "Edit Document" is clicked for a document */
+  onEditDocument?: (path: string, doc: RequestLogDoc) => void;
+
+  /** Callback when "Archive Document" is clicked for a document */
+  onArchiveDocument?: (path: string, doc: RequestLogDoc) => void;
+
+  /** Callback when "Unarchive Document" is clicked for a document */
+  onUnarchiveDocument?: (path: string, doc: RequestLogDoc) => void;
+
+  /** Callback when "Delete Document" is clicked for a document */
+  onDeleteDocument?: (path: string, doc: RequestLogDoc) => void;
+
+  /** Callback when an item is updated inline */
+  onItemUpdate?: (
+    path: string,
+    itemId: string,
+    updates: {
+      title?: string;
+      type?: string;
+      domain?: string[];
+      subdomain?: string[];
+      context?: string;
+      priority?: string;
+      status?: string;
+      tags?: string[];
+    }
+  ) => void;
+
+  /** Whether a specific item is updating */
+  isItemUpdating?: (path: string, itemId: string) => boolean;
 }
 
 /**
@@ -82,6 +113,12 @@ export function DocumentCatalog({
   onToggleExpand,
   documentCache,
   onAddItemToDocument,
+  onEditDocument,
+  onArchiveDocument,
+  onUnarchiveDocument,
+  onDeleteDocument,
+  onItemUpdate,
+  isItemUpdating,
 }: DocumentCatalogProps): React.JSX.Element {
   // ============================================================================
   // State Management
@@ -220,6 +257,20 @@ export function DocumentCatalog({
   );
 
   /**
+   * Load document for menu actions (edit/archive/delete/add)
+   */
+  const loadDocumentForAction = useCallback(
+    async (path: string): Promise<RequestLogDoc | undefined> => {
+      let doc = documentCache.get(path);
+      if (!doc) {
+        doc = (await onLoadDocument(path)) ?? undefined;
+      }
+      return doc;
+    },
+    [documentCache, onLoadDocument]
+  );
+
+  /**
    * Handle "Add Item" action for a document
    * Loads document if not cached, then triggers callback
    */
@@ -227,21 +278,105 @@ export function DocumentCatalog({
     async (path: string) => {
       if (!onAddItemToDocument) return;
 
-      // Check cache first
-      let doc = documentCache.get(path);
+      const doc = await loadDocumentForAction(path);
 
-      // If not cached, load it
-      if (!doc) {
-        doc = (await onLoadDocument(path)) ?? undefined;
-      }
-
-      if (doc) {
+      if (doc && onAddItemToDocument) {
         onAddItemToDocument(path, doc);
       } else {
         console.error(`[DocumentCatalog] Failed to load document for Add Item: ${path}`);
       }
     },
-    [documentCache, onLoadDocument, onAddItemToDocument]
+    [loadDocumentForAction, onAddItemToDocument]
+  );
+
+  /**
+   * Handle "Edit Document" action for a document
+   */
+  const handleEditDocument = useCallback(
+    async (path: string) => {
+      if (!onEditDocument) return;
+
+      const doc = await loadDocumentForAction(path);
+
+      if (doc) {
+        onEditDocument(path, doc);
+      } else {
+        console.error(`[DocumentCatalog] Failed to load document for Edit: ${path}`);
+      }
+    },
+    [loadDocumentForAction, onEditDocument]
+  );
+
+  /**
+   * Handle "Archive Document" action for a document
+   */
+  const handleArchiveDocument = useCallback(
+    async (path: string) => {
+      if (!onArchiveDocument) return;
+
+      const doc = await loadDocumentForAction(path);
+
+      if (doc) {
+        onArchiveDocument(path, doc);
+      } else {
+        console.error(`[DocumentCatalog] Failed to load document for Archive: ${path}`);
+      }
+    },
+    [loadDocumentForAction, onArchiveDocument]
+  );
+
+  /**
+   * Handle "Unarchive Document" action for a document
+   */
+  const handleUnarchiveDocument = useCallback(
+    async (path: string) => {
+      if (!onUnarchiveDocument) return;
+
+      const doc = await loadDocumentForAction(path);
+
+      if (doc) {
+        onUnarchiveDocument(path, doc);
+      } else {
+        console.error(`[DocumentCatalog] Failed to load document for Unarchive: ${path}`);
+      }
+    },
+    [loadDocumentForAction, onUnarchiveDocument]
+  );
+
+  /**
+   * Handle "Delete Document" action for a document
+   */
+  const handleDeleteDocument = useCallback(
+    async (path: string) => {
+      if (!onDeleteDocument) return;
+
+      const doc = await loadDocumentForAction(path);
+
+      if (doc) {
+        onDeleteDocument(path, doc);
+      } else {
+        console.error(`[DocumentCatalog] Failed to load document for Delete: ${path}`);
+      }
+    },
+    [loadDocumentForAction, onDeleteDocument]
+  );
+
+  /**
+   * Get cached documents for a list of catalog entries
+   * Returns only the documents that have been loaded into the cache
+   */
+  const getProjectDocuments = useCallback(
+    (projectEntries: CatalogEntry[]): RequestLogDoc[] => {
+      const docs: RequestLogDoc[] = [];
+      for (const entry of projectEntries) {
+        const doc = documentCache.get(entry.path);
+        if (doc) {
+          docs.push(doc);
+        }
+      }
+      return docs;
+    },
+    [documentCache]
   );
 
   // ============================================================================
@@ -344,6 +479,7 @@ export function DocumentCatalog({
             {Array.from(groupedCatalog.groups.entries()).map(
               ([projectId, { project, entries: projectEntries }]) => {
                 const isProjectExpanded = expandedProjects.has(projectId);
+                const projectDocuments = getProjectDocuments(projectEntries);
 
                 return (
                   <React.Fragment key={projectId}>
@@ -351,6 +487,7 @@ export function DocumentCatalog({
                     <ProjectGroupRow
                       project={project}
                       documentCount={projectEntries.length}
+                      documents={projectDocuments}
                       isExpanded={isProjectExpanded}
                       onToggle={() => handleToggleProject(projectId)}
                     />
@@ -369,6 +506,22 @@ export function DocumentCatalog({
                           onAddItem={
                             onAddItemToDocument ? () => handleAddItem(entry.path) : undefined
                           }
+                          onEdit={
+                            onEditDocument ? () => handleEditDocument(entry.path) : undefined
+                          }
+                          onArchive={
+                            onArchiveDocument ? () => handleArchiveDocument(entry.path) : undefined
+                          }
+                          onUnarchive={
+                            onUnarchiveDocument
+                              ? () => handleUnarchiveDocument(entry.path)
+                              : undefined
+                          }
+                          onDelete={
+                            onDeleteDocument ? () => handleDeleteDocument(entry.path) : undefined
+                          }
+                          {...(onItemUpdate ? { onItemUpdate } : {})}
+                          {...(isItemUpdating ? { isItemUpdating } : {})}
                         />
                       ))}
                   </React.Fragment>

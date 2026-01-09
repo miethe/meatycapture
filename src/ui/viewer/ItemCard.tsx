@@ -9,17 +9,26 @@
  * - Display all item fields (type, domain, context, priority, status)
  * - Tags as chips
  * - Structured notes with NotesList component (grouped by type)
+ * - Note count badge with type breakdown tooltip
  * - Add/Edit/Delete notes with modal and confirmation dialog
  * - Accessible copy feedback
  * - Edit and Delete action buttons
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { ChevronRightIcon, ChevronDownIcon } from '@radix-ui/react-icons';
 import type { RequestLogItem, Note, NoteType } from '@core/models';
+import { DEFAULT_FIELD_OPTIONS, NOTE_TYPE_LABELS } from '@core/models';
 import { NotesList } from '@ui/shared/NotesList';
 import { NoteTypeFilter } from '@ui/shared/NoteTypeFilter';
 import { NoteModal } from '@ui/shared/NoteModal';
 import { ConfirmationDialog } from '@ui/shared/ConfirmationDialog';
+import { DropdownWithAdd } from '@ui/shared/DropdownWithAdd';
+import { MultiSelectCombobox } from '@ui/shared/MultiSelectCombobox';
+import { MultiSelectWithAdd } from '@ui/shared/MultiSelectWithAdd';
+import { Tooltip } from '@ui/shared/Tooltip';
+import { aggregateNoteTypeCounts } from './utils/indicators';
+import { StatusIndicator } from './components';
 
 /**
  * Edit icon SVG component (pencil)
@@ -67,6 +76,31 @@ function DeleteIcon(): React.JSX.Element {
   );
 }
 
+/**
+ * Note icon SVG component for the note count badge
+ */
+function NoteIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <polyline points="10 9 9 9 8 9" />
+    </svg>
+  );
+}
+
 export interface ItemCardProps {
   /** Request log item to display */
   item: RequestLogItem;
@@ -88,6 +122,92 @@ export interface ItemCardProps {
 
   /** Callback when a note is deleted (optional - for persistence) */
   onNoteDelete?: (noteId: string) => void;
+
+  /** Field options for inline editing */
+  fieldOptions?: {
+    type: string[];
+    domain: string[];
+    subdomain: string[];
+    priority: string[];
+    status: string[];
+    tags: string[];
+  };
+
+  /** Called when an inline field update occurs */
+  onItemUpdate?: (updates: {
+    title?: string;
+    type?: string;
+    domain?: string[];
+    subdomain?: string[];
+    context?: string;
+    priority?: string;
+    status?: string;
+    tags?: string[];
+  }) => void;
+
+  /** Whether inline field updates are currently saving */
+  isUpdating?: boolean;
+}
+
+/**
+ * NoteCountBadge Component
+ *
+ * Displays a badge showing the total note count with a tooltip
+ * showing the breakdown by note type.
+ */
+interface NoteCountBadgeProps {
+  /** Array of notes to count */
+  notes: Note[];
+}
+
+function NoteCountBadge({ notes }: NoteCountBadgeProps): React.JSX.Element | null {
+  // All hooks must be called unconditionally before any early returns
+  // Memoize the aggregation to avoid unnecessary recalculations
+  const noteTypeCounts = useMemo(() => aggregateNoteTypeCounts(notes), [notes]);
+
+  // Build the tooltip content showing type breakdown
+  const tooltipContent = useMemo(() => {
+    if (notes.length === 0) {
+      return '';
+    }
+
+    const typesWithCounts = Object.entries(noteTypeCounts)
+      .filter(([, count]) => count > 0)
+      .map(([type, count]) => {
+        const label = NOTE_TYPE_LABELS[type as NoteType] || type;
+        return `${count} ${label}`;
+      });
+
+    // Single type case: "3 General notes"
+    if (typesWithCounts.length === 1) {
+      return `${typesWithCounts[0]} note${notes.length === 1 ? '' : 's'}`;
+    }
+
+    // Mixed types: "2 General, 1 Validation"
+    return typesWithCounts.join(', ');
+  }, [noteTypeCounts, notes.length]);
+
+  const badgeLabel = useMemo(
+    () => `${notes.length} note${notes.length === 1 ? '' : 's'}`,
+    [notes.length]
+  );
+
+  // Now we can safely do the early return after all hooks are called
+  if (notes.length === 0) {
+    return null;
+  }
+
+  return (
+    <Tooltip content={tooltipContent} position="top" delay={200}>
+      <span
+        className="note-count-badge"
+        aria-label={`${badgeLabel}: ${tooltipContent}`}
+      >
+        <NoteIcon />
+        <span>{notes.length}</span>
+      </span>
+    </Tooltip>
+  );
 }
 
 /**
@@ -107,8 +227,14 @@ export function ItemCard({
   onNoteAdd,
   onNoteEdit,
   onNoteDelete,
+  fieldOptions,
+  onItemUpdate,
+  isUpdating = false,
 }: ItemCardProps): React.JSX.Element {
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+
+  // Collapse state - default to collapsed
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   // Note type filter state (empty array = show all types)
   const [noteTypeFilter, setNoteTypeFilter] = useState<NoteType[]>([]);
@@ -119,6 +245,71 @@ export function ItemCard({
   const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
+
+  const isEditable = !!onItemUpdate;
+  const isFieldDisabled = !isEditable || isUpdating;
+
+  const resolvedFieldOptions = useMemo(() => {
+    if (fieldOptions) {
+      return fieldOptions;
+    }
+
+    const unique = (values: string[]) => Array.from(new Set(values)).sort();
+
+    return {
+      type: unique([...DEFAULT_FIELD_OPTIONS.type, item.type]),
+      domain: unique(item.domain),
+      subdomain: unique(item.subdomain),
+      priority: unique([...DEFAULT_FIELD_OPTIONS.priority, item.priority]),
+      status: unique([...DEFAULT_FIELD_OPTIONS.status, item.status]),
+      tags: unique(item.tags),
+    };
+  }, [fieldOptions, item]);
+
+  const mergeOptions = useCallback((prev: string[], next: string[]) => {
+    return Array.from(new Set([...prev, ...next])).sort();
+  }, []);
+
+  const [localTypeOptions, setLocalTypeOptions] = useState<string[]>(resolvedFieldOptions.type);
+  const [localDomainOptions, setLocalDomainOptions] = useState<string[]>(
+    resolvedFieldOptions.domain
+  );
+  const [localSubdomainOptions, setLocalSubdomainOptions] = useState<string[]>(
+    resolvedFieldOptions.subdomain
+  );
+  const [localPriorityOptions, setLocalPriorityOptions] = useState<string[]>(
+    resolvedFieldOptions.priority
+  );
+  const [localStatusOptions, setLocalStatusOptions] = useState<string[]>(
+    resolvedFieldOptions.status
+  );
+  const [localTagOptions, setLocalTagOptions] = useState<string[]>(resolvedFieldOptions.tags);
+
+  useEffect(() => {
+    setLocalTypeOptions((prev) => mergeOptions(prev, resolvedFieldOptions.type));
+    setLocalDomainOptions((prev) => mergeOptions(prev, resolvedFieldOptions.domain));
+    setLocalSubdomainOptions((prev) => mergeOptions(prev, resolvedFieldOptions.subdomain));
+    setLocalPriorityOptions((prev) => mergeOptions(prev, resolvedFieldOptions.priority));
+    setLocalStatusOptions((prev) => mergeOptions(prev, resolvedFieldOptions.status));
+    setLocalTagOptions((prev) => mergeOptions(prev, resolvedFieldOptions.tags));
+  }, [mergeOptions, resolvedFieldOptions]);
+
+  const typeOptions = useMemo(
+    () => localTypeOptions.map((value) => ({ id: value, label: value })),
+    [localTypeOptions]
+  );
+  const priorityOptions = useMemo(
+    () => localPriorityOptions.map((value) => ({ id: value, label: value })),
+    [localPriorityOptions]
+  );
+  const statusOptions = useMemo(
+    () => localStatusOptions.map((value) => ({ id: value, label: value })),
+    [localStatusOptions]
+  );
+  const tagOptions = useMemo(
+    () => localTagOptions.map((value) => ({ id: value, label: value })),
+    [localTagOptions]
+  );
 
   // Sync local notes when item.notes changes from parent
   useEffect(() => {
@@ -292,51 +483,119 @@ export function ItemCard({
     });
   };
 
-  /**
-   * Get color class for priority
-   */
-  const getPriorityClass = (priority: string): string => {
-    switch (priority.toLowerCase()) {
-      case 'critical':
-        return 'priority-critical';
-      case 'high':
-        return 'priority-high';
-      case 'medium':
-        return 'priority-medium';
-      case 'low':
-        return 'priority-low';
-      default:
-        return '';
-    }
-  };
+  const handleFieldUpdate = useCallback(
+    (updates: {
+      title?: string;
+      type?: string;
+      domain?: string[];
+      subdomain?: string[];
+      context?: string;
+      priority?: string;
+      status?: string;
+      tags?: string[];
+    }) => {
+      if (!onItemUpdate) return;
+      onItemUpdate(updates);
+    },
+    [onItemUpdate]
+  );
 
-  /**
-   * Get color class for status
-   */
-  const getStatusClass = (status: string): string => {
-    switch (status.toLowerCase()) {
-      case 'done':
-        return 'status-done';
-      case 'in-progress':
-        return 'status-in-progress';
-      case 'planned':
-        return 'status-planned';
-      case 'backlog':
-        return 'status-backlog';
-      case 'triage':
-        return 'status-triage';
-      case 'wontfix':
-        return 'status-wontfix';
-      default:
-        return '';
-    }
-  };
+  const handleDomainSelect = useCallback(
+    (value: string) => handleFieldUpdate({ domain: [value] }),
+    [handleFieldUpdate]
+  );
+
+  const handleDomainRemove = useCallback(() => handleFieldUpdate({ domain: [] }), [handleFieldUpdate]);
+
+  const handleDomainAdd = useCallback(
+    (value: string) => {
+      setLocalDomainOptions((prev) => mergeOptions(prev, [value]));
+      handleFieldUpdate({ domain: [value] });
+    },
+    [handleFieldUpdate, mergeOptions]
+  );
+
+  const handleSubdomainSelect = useCallback(
+    (value: string) => handleFieldUpdate({ subdomain: [value] }),
+    [handleFieldUpdate]
+  );
+
+  const handleSubdomainRemove = useCallback(
+    () => handleFieldUpdate({ subdomain: [] }),
+    [handleFieldUpdate]
+  );
+
+  const handleSubdomainAdd = useCallback(
+    (value: string) => {
+      setLocalSubdomainOptions((prev) => mergeOptions(prev, [value]));
+      handleFieldUpdate({ subdomain: [value] });
+    },
+    [handleFieldUpdate, mergeOptions]
+  );
+
+  const handleContextChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      handleFieldUpdate({ context: event.target.value });
+    },
+    [handleFieldUpdate]
+  );
+
+  const handleTagsChange = useCallback(
+    (values: string[]) => handleFieldUpdate({ tags: values }),
+    [handleFieldUpdate]
+  );
+
+  const handleAddTag = useCallback(
+    async (value: string) => {
+      setLocalTagOptions((prev) => mergeOptions(prev, [value]));
+      const nextTags = item.tags.includes(value) ? item.tags : [...item.tags, value];
+      handleFieldUpdate({ tags: nextTags });
+    },
+    [item.tags, handleFieldUpdate, mergeOptions]
+  );
+
+  const handleTypeAdd = useCallback(
+    async (value: string) => {
+      setLocalTypeOptions((prev) => mergeOptions(prev, [value]));
+      handleFieldUpdate({ type: value });
+    },
+    [handleFieldUpdate, mergeOptions]
+  );
+
+  const handlePriorityAdd = useCallback(
+    async (value: string) => {
+      setLocalPriorityOptions((prev) => mergeOptions(prev, [value]));
+      handleFieldUpdate({ priority: value });
+    },
+    [handleFieldUpdate, mergeOptions]
+  );
+
+  const handleStatusAdd = useCallback(
+    async (value: string) => {
+      setLocalStatusOptions((prev) => mergeOptions(prev, [value]));
+      handleFieldUpdate({ status: value });
+    },
+    [handleFieldUpdate, mergeOptions]
+  );
 
   return (
     <div className="viewer-item-card glass">
       {/* Item Header */}
       <div className="viewer-item-header">
         <div className="viewer-item-id-row">
+          <button
+            type="button"
+            className="viewer-item-collapse-toggle"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            aria-expanded={!isCollapsed}
+            aria-label={isCollapsed ? 'Expand item details' : 'Collapse item details'}
+          >
+            {isCollapsed ? (
+              <ChevronRightIcon aria-hidden="true" />
+            ) : (
+              <ChevronDownIcon aria-hidden="true" />
+            )}
+          </button>
           <code className="viewer-item-id">{item.id}</code>
           <button
             type="button"
@@ -354,6 +613,12 @@ export function ItemCard({
               {copyFeedback}
             </span>
           )}
+
+          {/* Status indicator */}
+          <StatusIndicator status={item.status} size="sm" showTooltip={true} />
+
+          {/* Note count badge */}
+          <NoteCountBadge notes={localNotes} />
 
           {/* Action buttons - only show if callbacks are provided */}
           {(onEdit || onDelete) && (
@@ -386,84 +651,139 @@ export function ItemCard({
         <h3 className="viewer-item-title">{item.title}</h3>
       </div>
 
-      {/* Item Metadata */}
-      <div className="viewer-item-meta">
-        <div className="viewer-item-meta-row">
-          <div className="viewer-meta-field">
-            <span className="meta-label">Type</span>
-            <span className="meta-value type-badge">{item.type}</span>
-          </div>
+      {/* Collapsible content */}
+      <div
+        className={`viewer-item-collapsible ${isCollapsed ? 'collapsed' : 'expanded'}`}
+        aria-hidden={isCollapsed}
+      >
+        <div className="viewer-item-collapsible-inner">
+          {/* Item Metadata */}
+          <div className="viewer-item-meta">
+            <div className="viewer-item-meta-row">
+              <DropdownWithAdd
+                label="Type"
+                options={typeOptions}
+                value={item.type}
+                onChange={(value) => handleFieldUpdate({ type: value })}
+                onAddNew={handleTypeAdd}
+                placeholder="Select type..."
+                disabled={isFieldDisabled}
+                idBase={`item-${item.id}-type`}
+              />
 
-          <div className="viewer-meta-field">
-            <span className="meta-label">Domain</span>
-            <span className="meta-value">{item.domain}</span>
-          </div>
+              <MultiSelectCombobox
+                label="Domain"
+                options={localDomainOptions}
+                selected={item.domain}
+                onSelect={handleDomainSelect}
+                onRemove={handleDomainRemove}
+                onAdd={handleDomainAdd}
+                placeholder="Select or type domain..."
+                disabled={isFieldDisabled}
+                idBase={`item-${item.id}-domain`}
+              />
 
-          <div className="viewer-meta-field">
-            <span className="meta-label">Context</span>
-            <span className="meta-value">{item.context}</span>
-          </div>
-        </div>
-
-        <div className="viewer-item-meta-row">
-          <div className="viewer-meta-field">
-            <span className="meta-label">Priority</span>
-            <span className={`meta-value priority-badge ${getPriorityClass(item.priority)}`}>
-              {item.priority}
-            </span>
-          </div>
-
-          <div className="viewer-meta-field">
-            <span className="meta-label">Status</span>
-            <span className={`meta-value status-badge ${getStatusClass(item.status)}`}>
-              {item.status}
-            </span>
-          </div>
-
-          <div className="viewer-meta-field">
-            <span className="meta-label">Created</span>
-            <span className="meta-value viewer-item-date">{formatDate(item.created_at)}</span>
-          </div>
-
-          {/* Show Modified date only when item has been modified after creation */}
-          {item.modified_at && item.modified_at.getTime() !== item.created_at.getTime() && (
-            <div className="viewer-meta-field">
-              <span className="meta-label">Modified</span>
-              <span className="meta-value viewer-item-date">{formatDate(item.modified_at)}</span>
+              <MultiSelectCombobox
+                label="Subdomain"
+                options={localSubdomainOptions}
+                selected={item.subdomain}
+                onSelect={handleSubdomainSelect}
+                onRemove={handleSubdomainRemove}
+                onAdd={handleSubdomainAdd}
+                placeholder="Select or type subdomain..."
+                disabled={isFieldDisabled}
+                idBase={`item-${item.id}-subdomain`}
+              />
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* Item Tags */}
-      {item.tags.length > 0 && (
-        <div className="viewer-item-tags">
-          <span className="meta-label">Tags</span>
-          <div className="viewer-item-tags-list">
-            {item.tags.map((tag) => (
-              <span key={tag} className="chip viewer-item-tag">
-                {tag}
-              </span>
-            ))}
+            <div className="viewer-item-meta-row">
+              <DropdownWithAdd
+                label="Priority"
+                options={priorityOptions}
+                value={item.priority}
+                onChange={(value) => handleFieldUpdate({ priority: value })}
+                onAddNew={handlePriorityAdd}
+                placeholder="Select priority..."
+                disabled={isFieldDisabled}
+                idBase={`item-${item.id}-priority`}
+              />
+
+              <DropdownWithAdd
+                label="Status"
+                options={statusOptions}
+                value={item.status}
+                onChange={(value) => handleFieldUpdate({ status: value })}
+                onAddNew={handleStatusAdd}
+                placeholder="Select status..."
+                disabled={isFieldDisabled}
+                idBase={`item-${item.id}-status`}
+              />
+
+              <div className="viewer-meta-field">
+                <span className="meta-label">Created</span>
+                <span className="meta-value viewer-item-date">{formatDate(item.created_at)}</span>
+              </div>
+
+              {/* Show Modified date only when item has been modified after creation */}
+              {item.modified_at && item.modified_at.getTime() !== item.created_at.getTime() && (
+                <div className="viewer-meta-field">
+                  <span className="meta-label">Modified</span>
+                  <span className="meta-value viewer-item-date">{formatDate(item.modified_at)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Context - Optional free-form text */}
+            <div className="viewer-item-meta-row">
+              <div className="viewer-meta-field viewer-meta-field-wide">
+                <label className="meta-label" htmlFor={`item-${item.id}-context`}>
+                  Context
+                </label>
+                <input
+                  id={`item-${item.id}-context`}
+                  type="text"
+                  className="input-base"
+                  value={item.context || ''}
+                  onChange={handleContextChange}
+                  placeholder="Optional background/context..."
+                  disabled={isFieldDisabled}
+                  aria-label="Item context"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Item Tags */}
+          <div className="viewer-item-tags">
+            <MultiSelectWithAdd
+              label="Tags"
+              options={tagOptions}
+              values={item.tags}
+              onChange={handleTagsChange}
+              onAddNew={handleAddTag}
+              placeholder="Add tags..."
+              disabled={isFieldDisabled}
+              idBase={`item-${item.id}-tags`}
+            />
+          </div>
+
+          {/* Item Notes - Structured Notes with NotesList */}
+          <div className="viewer-item-notes">
+            <NotesList
+              notes={localNotes}
+              activeFilter={noteTypeFilter}
+              filterSlot={
+                <NoteTypeFilter
+                  value={noteTypeFilter}
+                  onChange={setNoteTypeFilter}
+                />
+              }
+              onAddNote={handleAddNote}
+              onEditNote={handleEditNote}
+              onDeleteNote={handleDeleteNoteClick}
+            />
           </div>
         </div>
-      )}
-
-      {/* Item Notes - Structured Notes with NotesList */}
-      <div className="viewer-item-notes">
-        <NotesList
-          notes={localNotes}
-          activeFilter={noteTypeFilter}
-          filterSlot={
-            <NoteTypeFilter
-              value={noteTypeFilter}
-              onChange={setNoteTypeFilter}
-            />
-          }
-          onAddNote={handleAddNote}
-          onEditNote={handleEditNote}
-          onDeleteNote={handleDeleteNoteClick}
-        />
       </div>
 
       {/* NoteModal for add/edit operations */}
