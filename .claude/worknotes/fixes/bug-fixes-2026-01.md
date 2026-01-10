@@ -164,3 +164,28 @@ if (fieldArray) {
 **Commit(s)**: 7a3b43d
 
 **Status**: RESOLVED
+
+---
+
+### CLI Stdin Buffer Handling Error
+
+**Date Fixed**: 2026-01-10
+**Severity**: high
+**Component**: cli/stdin
+
+**Issue**: Piping JSON to CLI via stdin fails with error: `Failed to decode stdin content: The "list[0]" argument must be an instance of Buffer or Uint8Array. Received type string`
+
+**Root Cause**: In `src/cli/handlers/stdin.ts`, line 269 called `process.stdin.setEncoding(encoding)` after event listeners were already registered. When `setEncoding()` is called on a Node.js stream, it causes the stream to emit strings instead of Buffers. However, the data handler at line 204 was typed to expect `Buffer` chunks, and line 188 called `Buffer.concat(chunks)` which requires an array of Buffers. This mismatch caused the crash.
+
+The encoding was already being handled correctly at line 189 with `buffer.toString(encoding)` after concatenation, making the `setEncoding()` call redundant and harmful.
+
+**Fix**: Removed the `process.stdin.setEncoding(encoding)` call entirely and added a clarifying comment explaining why this must not be done. The encoding is correctly applied when converting the concatenated buffer to string in the `finalize()` function.
+
+**Files Modified**:
+- `src/cli/handlers/stdin.ts:269` - Removed `setEncoding()` call, added explanatory comment
+
+**Testing**: 92 handler tests pass, 96 log command tests pass, typecheck passes
+
+**Commit(s)**: 32842ff
+
+**Status**: RESOLVED

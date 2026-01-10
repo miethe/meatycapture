@@ -265,8 +265,10 @@ export async function readStdin(options: ReadInputOptions = {}): Promise<string>
       process.stdin.resume();
     }
 
-    // Set encoding on the stream for proper string handling
-    process.stdin.setEncoding(encoding);
+    // NOTE: Do NOT call process.stdin.setEncoding() here.
+    // Calling setEncoding() on a stream causes it to emit strings instead of Buffers,
+    // which breaks Buffer.concat() in finalize(). The encoding is correctly applied
+    // when converting the concatenated buffer to string in finalize().
   });
 }
 
