@@ -133,3 +133,34 @@
 - **Status**: RESOLVED
 
 **Follow-up Issue**: Regex `[^-]+` captured `.md` extension as part of slug, creating paths like `~/.meatycapture/docs/meatycapture.md/`. Fixed regex to `([^-]+?)(?:-\d+)?\.md$` to properly extract slug without extension.
+
+---
+
+### WizardFlow Crashes on Step 3 with "Cannot Read Push of Undefined"
+
+**Date Fixed**: 2026-01-10
+**Severity**: high
+**Component**: wizard
+
+**Issue**: When progressing to step 3 (item capture) in the wizard, the app crashed with `TypeError: Cannot read properties of undefined (reading 'push')` at `WizardFlow.tsx:263`.
+
+**Root Cause**: After the `context → subdomain` refactor (commit b9da82e), localStorage may contain stale field options with `field="context"`. The `loadFieldOptions` effect groups options by field name, but only initializes arrays for valid `FieldName` values (`type`, `domain`, `subdomain`, `priority`, `status`, `tags`). When an option with an unknown field (like the legacy `context`) was encountered, `grouped["context"]` was `undefined`, causing `.push()` to throw.
+
+**Fix**: Added defensive check before pushing to field array:
+```typescript
+const fieldArray = grouped[option.field];
+if (fieldArray) {
+  fieldArray.push(option);
+} else if (import.meta.env.DEV) {
+  console.warn(`[WizardFlow] Skipping option with unknown field: ${option.field}`);
+}
+```
+
+**Files Modified**:
+- `src/ui/wizard/WizardFlow.tsx` - Added defensive check for unknown field names
+
+**Testing**: All 39 wizard tests pass, typecheck passes
+
+**Commit(s)**: 7a3b43d
+
+**Status**: RESOLVED
