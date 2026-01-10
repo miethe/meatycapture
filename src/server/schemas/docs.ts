@@ -29,7 +29,8 @@ import { ValidationError } from '../middleware/error-handler.js';
  * - id: non-empty string
  * - title: non-empty string
  * - type, priority, status: non-empty strings
- * - domain, context: string (may be empty)
+ * - domain, subdomain: string arrays (may be empty)
+ * - context: optional string (free-form text)
  * - tags: array of strings
  * - notes: string (may be empty)
  * - created_at: valid Date or ISO string
@@ -46,13 +47,18 @@ function validateRequestLogItem(obj: unknown): RequestLogItem {
     title: validateString(item.title, 'title'),
     type: validateString(item.type, 'type'),
     domain: Array.isArray(item.domain) ? validateStringArray(item.domain, 'domain') : [],
-    context: Array.isArray(item.context) ? validateStringArray(item.context, 'context') : [],
+    subdomain: Array.isArray(item.subdomain) ? validateStringArray(item.subdomain, 'subdomain') : [],
     priority: validateString(item.priority, 'priority'),
     status: validateString(item.status, 'status'),
     tags: validateStringArray(item.tags, 'tags'),
     notes: Array.isArray(item.notes) ? item.notes.map(validateNote) : [],
     created_at: validateDate(item.created_at, 'created_at'),
   };
+
+  // Preserve optional context if present (exactOptionalPropertyTypes compatible)
+  if (typeof item.context === 'string' && item.context.length > 0) {
+    result.context = item.context;
+  }
 
   // Preserve optional modified_at if present (exactOptionalPropertyTypes compatible)
   if (item.modified_at !== undefined && item.modified_at !== null) {
@@ -263,9 +269,10 @@ export function validateDocWriteBody(body: unknown): RequestLogDoc {
  * - tags: Array of tag strings
  *
  * Optional fields (may be empty):
- * - domain: Domain/area (web, api, etc.)
- * - context: Additional context
- * - notes: Freeform notes/description
+ * - domain: Domain/area array (web, api, etc.)
+ * - subdomain: Sub-domain categories array
+ * - context: Free-form context string
+ * - notes: Structured notes array
  *
  * @param body - Raw request body
  * @returns Validated ItemDraft
@@ -280,16 +287,23 @@ export function validateDocWriteBody(body: unknown): RequestLogDoc {
 export function validateItemDraftBody(body: unknown): ItemDraft {
   const obj = validateObject(body, 'body');
 
-  return {
+  const result: ItemDraft = {
     title: validateString(obj.title, 'title'),
     type: validateString(obj.type, 'type'),
     domain: Array.isArray(obj.domain) ? validateStringArray(obj.domain, 'domain') : [],
-    context: Array.isArray(obj.context) ? validateStringArray(obj.context, 'context') : [],
+    subdomain: Array.isArray(obj.subdomain) ? validateStringArray(obj.subdomain, 'subdomain') : [],
     priority: validateString(obj.priority, 'priority'),
     status: validateString(obj.status, 'status'),
     tags: validateStringArray(obj.tags, 'tags'),
     notes: Array.isArray(obj.notes) ? obj.notes.map(validateNote) : [],
   };
+
+  // Preserve optional context if present (exactOptionalPropertyTypes compatible)
+  if (typeof obj.context === 'string' && obj.context.length > 0) {
+    result.context = obj.context;
+  }
+
+  return result;
 }
 
 /**

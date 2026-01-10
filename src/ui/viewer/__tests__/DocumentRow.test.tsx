@@ -13,7 +13,14 @@ import type { RequestLogDoc } from '@core/models';
 
 // Mock DocumentDetail component to simplify testing
 vi.mock('../DocumentDetail', () => ({
-  DocumentDetail: ({ document, isLoading }: { document: RequestLogDoc; isLoading: boolean }) => (
+  DocumentDetail: ({
+    document,
+    isLoading,
+  }: {
+    document: RequestLogDoc;
+    isLoading: boolean;
+    docPath?: string;
+  }) => (
     <div data-testid="document-detail" data-loading={isLoading}>
       Document Detail: {document.doc_id}
     </div>

@@ -44,7 +44,13 @@ import { loadEnvFile } from './env-loader.js';
 loadEnvFile();
 
 // Command group factories
-import { createLogCommand, createAction, appendAction, listAction } from './commands/log';
+import {
+  createLogCommand,
+  createAction,
+  appendAction,
+  listAction,
+  indexAction,
+} from './commands/log';
 import { createProjectCommand } from './commands/project';
 import { createFieldCommand } from './commands/field';
 import { createConfigCommand } from './commands/config';
@@ -139,6 +145,19 @@ program
   .argument('[project]', 'Project identifier (optional)')
   .option('-p, --path <path>', 'Custom path to search for documents')
   .action(listAction);
+
+program
+  .command('index')
+  .description('Build or update the catalog index (alias for: log index)')
+  .argument('[project]', 'Project identifier (optional)')
+  .option('-p, --path <path>', 'Custom path to index')
+  .option('--rebuild', 'Force full rebuild of the catalog')
+  .option('--update', 'Incrementally update the catalog (default: rebuild)')
+  .option('--text', 'Build or rebuild the BM25 text index')
+  .option('--json', 'Output summary as JSON')
+  .option('--yaml', 'Output summary as YAML')
+  .option('-q, --quiet', 'Suppress non-error output')
+  .action(indexAction);
 
 // ============================================================================
 // Parse and Execute

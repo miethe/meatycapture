@@ -67,7 +67,7 @@ export function createTestItem(overrides?: Partial<RequestLogItem>): RequestLogI
     title: 'Test Item Title',
     type: 'enhancement',
     domain: ['web'],
-    context: ['Test context'],
+    subdomain: ['test'],
     priority: 'medium',
     status: 'triage',
     tags: ['test', 'example'],

@@ -3,13 +3,16 @@
  *
  * Provides query parsing and matching logic for the log search command.
  * Supports text search across title/notes and special prefix syntax
- * for tags, type, and status filtering.
+ * for tags, type, status, domain, subdomain, and context filtering.
  *
  * Query Syntax:
  * - Plain text: searches in title and notes (case-insensitive)
  * - tag:<name>: matches items with the specified tag
  * - type:<type>: matches items with the specified type
  * - status:<status>: matches items with the specified status
+ * - domain:<domain>: matches items with domain value
+ * - subdomain:<subdomain>: matches items with subdomain value
+ * - context:<text>: matches items with context text
  *
  * Multiple query terms are combined with AND logic.
  *
@@ -39,7 +42,7 @@ export type MatchMode = 'full' | 'starts' | 'contains';
  */
 export interface QueryComponent {
   /** Type of query component */
-  type: 'text' | 'tag' | 'item_type' | 'status';
+  type: 'text' | 'tag' | 'item_type' | 'status' | 'domain' | 'subdomain' | 'context';
   /** Value to search for */
   value: string;
 }
@@ -73,6 +76,9 @@ export const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
  * - tag: or tags: - search tags
  * - type: - search item type
  * - status: - search item status
+ * - domain: - search domain values
+ * - subdomain: - search subdomain values
+ * - context: - search context text
  *
  * All other text is treated as plain text search.
  * Quoted strings preserve spaces within queries.
@@ -121,6 +127,21 @@ export function parseQuery(query: string): QueryComponent[] {
       const value = token.slice(7);
       if (value) {
         components.push({ type: 'status', value });
+      }
+    } else if (lowerToken.startsWith('domain:')) {
+      const value = token.slice(7);
+      if (value) {
+        components.push({ type: 'domain', value });
+      }
+    } else if (lowerToken.startsWith('subdomain:')) {
+      const value = token.slice(10);
+      if (value) {
+        components.push({ type: 'subdomain', value });
+      }
+    } else if (lowerToken.startsWith('context:')) {
+      const value = token.slice(8);
+      if (value) {
+        components.push({ type: 'context', value });
       }
     } else {
       // Plain text search
@@ -318,6 +339,43 @@ function matchComponent(
         return {
           field: 'status',
           match_text: item.status,
+        };
+      }
+      return null;
+    }
+
+    case 'domain': {
+      const matchedDomain = item.domain.find((entry) => matchString(entry, component.value, mode));
+      if (matchedDomain) {
+        return {
+          field: 'domain',
+          match_text: matchedDomain,
+        };
+      }
+      return null;
+    }
+
+    case 'subdomain': {
+      const matchedSubdomain = item.subdomain.find((entry) =>
+        matchString(entry, component.value, mode)
+      );
+      if (matchedSubdomain) {
+        return {
+          field: 'subdomain',
+          match_text: matchedSubdomain,
+        };
+      }
+      return null;
+    }
+
+    case 'context': {
+      if (!item.context) {
+        return null;
+      }
+      if (matchString(item.context, component.value, mode)) {
+        return {
+          field: 'context',
+          match_text: item.context,
         };
       }
       return null;

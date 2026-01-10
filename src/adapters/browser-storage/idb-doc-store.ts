@@ -330,6 +330,7 @@ export class BrowserDocStore implements DocStore {
         item_count: doc.item_count,
         created_at: doc.created_at.toISOString(),
         updated_at: doc.updated_at.toISOString(),
+        archived: doc.archived,
         content,
       };
 
@@ -365,6 +366,65 @@ export class BrowserDocStore implements DocStore {
 
       throw new Error(
         `Failed to write document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Deletes a request-log document from IndexedDB.
+   *
+   * Also removes any backups associated with the document.
+   *
+   * @param path - Document ID (treated as doc_id, not filesystem path)
+   * @throws Error if delete fails
+   */
+  async delete(path: string): Promise<void> {
+    logger.debug('Deleting document (browser)', { doc_id: path });
+
+    try {
+      const db = await this.getDatabase();
+      const transaction = db.transaction([STORE_DOCUMENTS, STORE_BACKUPS], 'readwrite');
+      const docStore = transaction.objectStore(STORE_DOCUMENTS);
+      const backupStore = transaction.objectStore(STORE_BACKUPS);
+
+      docStore.delete(path);
+
+      const backupIndex = backupStore.index('doc_id');
+      const cursorRequest = backupIndex.openCursor(IDBKeyRange.only(path));
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+        if (cursor) {
+          cursor.delete();
+          cursor.continue();
+        }
+      };
+
+      return new Promise<void>((resolve, reject) => {
+        transaction.oncomplete = () => {
+          logger.info('Document deleted successfully (browser)', { doc_id: path });
+          resolve();
+        };
+
+        transaction.onerror = () => {
+          const error = transaction.error?.message || 'Unknown error';
+          logger.error('Failed to delete document (browser)', { doc_id: path, error });
+          reject(new Error(`Failed to delete document ${path}: ${error}`));
+        };
+
+        transaction.onabort = () => {
+          const error = transaction.error?.message || 'Unknown error';
+          logger.error('Delete transaction aborted (browser)', { doc_id: path, error });
+          reject(new Error(`Failed to delete document ${path}: ${error}`));
+        };
+      });
+    } catch (error) {
+      logger.error('Failed to delete document (browser)', {
+        doc_id: path,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      throw new Error(
+        `Failed to delete document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }

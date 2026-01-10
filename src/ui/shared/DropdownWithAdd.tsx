@@ -38,6 +38,8 @@ interface DropdownWithAddProps {
   helperText?: string;
   /** Tooltip content for contextual help */
   tooltip?: string;
+  /** Base ID for label/input associations (helps avoid duplicate IDs) */
+  idBase?: string;
 }
 
 const ADD_NEW_ID = '__add_new__';
@@ -54,7 +56,10 @@ export function DropdownWithAdd({
   error,
   helperText,
   tooltip,
+  idBase,
 }: DropdownWithAddProps): React.JSX.Element {
+  const fieldIdBase = (idBase ?? label).replace(/\s+/g, '-');
+  const fieldId = `dropdown-${fieldIdBase}`;
   const [isAdding, setIsAdding] = useState(false);
   const [newValue, setNewValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -122,7 +127,7 @@ export function DropdownWithAdd({
       <div className="form-field-label-row">
         <label
           className={`field-label ${required ? 'required' : ''}`}
-          htmlFor={`dropdown-${label}`}
+          htmlFor={fieldId}
         >
           {label}
         </label>
@@ -142,14 +147,14 @@ export function DropdownWithAdd({
 
       {/* Helper text */}
       {helperText && !error && (
-        <div className="form-field-helper" id={`dropdown-${label}-helper`}>
+        <div className="form-field-helper" id={`${fieldId}-helper`}>
           {helperText}
         </div>
       )}
 
       <div className="dropdown-container">
         <select
-          id={`dropdown-${label}`}
+          id={fieldId}
           className={`input-base select-base ${error ? 'error' : ''}`}
           value={isAdding ? ADD_NEW_ID : value || ''}
           onChange={handleSelectChange}
@@ -157,7 +162,7 @@ export function DropdownWithAdd({
           required={required}
           aria-label={label}
           aria-invalid={!!error}
-          aria-describedby={error ? `dropdown-${label}-error` : undefined}
+          aria-describedby={error ? `${fieldId}-error` : undefined}
         >
           <option value="" disabled>
             {placeholder}
@@ -206,7 +211,7 @@ export function DropdownWithAdd({
       </div>
 
       {error && (
-        <div className="error-message" id={`dropdown-${label}-error`} role="alert">
+        <div className="error-message" id={`${fieldId}-error`} role="alert">
           {error}
         </div>
       )}

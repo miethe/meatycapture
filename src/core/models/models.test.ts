@@ -259,7 +259,7 @@ describe('isFieldOption', () => {
   });
 
   it('should return true for all valid field names', () => {
-    const fieldNames = ['type', 'domain', 'context', 'priority', 'status', 'tags'];
+    const fieldNames = ['type', 'domain', 'subdomain', 'priority', 'status', 'tags'];
 
     for (const field of fieldNames) {
       const option = {
@@ -280,7 +280,7 @@ describe('isItemDraft', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test', 'example'],
@@ -295,7 +295,7 @@ describe('isItemDraft', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test', 'example'],
@@ -310,7 +310,7 @@ describe('isItemDraft', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: [],
@@ -328,7 +328,7 @@ describe('isItemDraft', () => {
     const draft = {
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test'],
@@ -343,7 +343,7 @@ describe('isItemDraft', () => {
       title: 'Test Item',
       type: 123,
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test'],
@@ -358,7 +358,7 @@ describe('isItemDraft', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: 'not-an-array',
@@ -373,7 +373,7 @@ describe('isItemDraft', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test', 123, 'example'],
@@ -388,7 +388,7 @@ describe('isItemDraft', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test'],
@@ -403,7 +403,7 @@ describe('isItemDraft', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test'],
@@ -434,7 +434,7 @@ describe('isRequestLogItem', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test'],
@@ -450,7 +450,7 @@ describe('isRequestLogItem', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test'],
@@ -465,7 +465,7 @@ describe('isRequestLogItem', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test'],
@@ -482,7 +482,7 @@ describe('isRequestLogItem', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test'],
@@ -498,7 +498,7 @@ describe('isRequestLogItem', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test'],
@@ -515,7 +515,7 @@ describe('isRequestLogItem', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test'],
@@ -532,7 +532,7 @@ describe('isRequestLogItem', () => {
       title: 'Test Item',
       type: 'enhancement',
       domain: ['web'],
-      context: ['Test context'],
+      subdomain: ['test'],
       priority: 'medium',
       status: 'triage',
       tags: ['test'],
@@ -606,7 +606,7 @@ describe('isRequestLogDoc', () => {
           title: 'Valid Item',
           type: 'enhancement',
           domain: 'web',
-          context: 'Test',
+          subdomain: 'test',
           priority: 'medium',
           status: 'triage',
           tags: [],
@@ -775,10 +775,10 @@ describe('DEFAULT_FIELD_OPTIONS', () => {
     expect(typeof DEFAULT_FIELD_OPTIONS).toBe('object');
   });
 
-  it('should not contain domain or context or tags options', () => {
+  it('should not contain domain or subdomain or tags options', () => {
     // These fields don't have defaults - they're dynamic per project
     expect('domain' in DEFAULT_FIELD_OPTIONS).toBe(false);
-    expect('context' in DEFAULT_FIELD_OPTIONS).toBe(false);
+    expect('subdomain' in DEFAULT_FIELD_OPTIONS).toBe(false);
     expect('tags' in DEFAULT_FIELD_OPTIONS).toBe(false);
   });
 });

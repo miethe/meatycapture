@@ -8,6 +8,7 @@
  * - GET    /api/docs?directory={path}              - List documents in directory
  * - GET    /api/docs/:doc_id?path={path}           - Read document
  * - POST   /api/docs/:doc_id?path={path}           - Write document
+ * - DELETE /api/docs/:doc_id?path={path}           - Delete document
  * - PATCH  /api/docs/:doc_id/items?path={path}     - Append item to document
  * - POST   /api/docs/:doc_id/backup?path={path}    - Create backup
  * - HEAD   /api/docs/:doc_id?path={path}           - Check writability
@@ -255,6 +256,67 @@ export function createDocsRouter(docStore: DocStore, clock: Clock) {
           });
         },
         { method: 'POST', path: req.url }
+      );
+    },
+
+    /**
+     * DELETE /api/docs/:doc_id?path={filepath}
+     *
+     * Deletes a request-log document from storage.
+     *
+     * Path Parameters:
+     * - doc_id: Document identifier
+     *
+     * Query Parameters:
+     * - path: Absolute file path to the document (required)
+     *
+     * Response:
+     * - 200: {success: true, doc_id: string, path: string}
+     * - 400: Missing or invalid path parameter
+     * - 404: Document not found at path
+     * - 500: Delete error
+     *
+     * @param req - HTTP request
+     * @returns Response with success indicator
+     */
+    delete: async (req: Request): Promise<Response> => {
+      return withErrorHandling(
+        async () => {
+          const deleteDocument = docStore.delete;
+          if (!deleteDocument) {
+            throw new Error('Document deletion is not supported by the current storage adapter.');
+          }
+
+          const url = new URL(req.url);
+
+          // Extract doc_id from path (for logging/validation)
+          const docId = extractPathParam(url.pathname, /^\/api\/docs\/([^/?]+)$/, 1);
+
+          // Extract file path from query parameter
+          const filePath = extractQueryParam(url, 'path', true);
+          const validatedPath = validatePathParam(filePath);
+
+          logger.debug('DocStore route: delete', {
+            doc_id: docId,
+            path: validatedPath,
+          });
+
+          try {
+            await deleteDocument(validatedPath);
+          } catch (error) {
+            if (error instanceof Error && error.message.includes('not found')) {
+              throw new NotFoundError(`Document not found: ${validatedPath}`);
+            }
+            throw error;
+          }
+
+          return Response.json({
+            success: true,
+            doc_id: docId,
+            path: validatedPath,
+          });
+        },
+        { method: 'DELETE', path: req.url }
       );
     },
 

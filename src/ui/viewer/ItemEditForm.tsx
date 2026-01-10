@@ -30,7 +30,7 @@ export interface ItemEditFormProps {
   fieldOptions: {
     type: string[];
     domain: string[];
-    context: string[];
+    subdomain: string[];
     priority: string[];
     status: string[];
     tags: string[];
@@ -78,7 +78,8 @@ export function ItemEditForm({
   const [title, setTitle] = useState(item.title);
   const [type, setType] = useState(item.type);
   const [domain, setDomain] = useState<string[]>(item.domain || []);
-  const [context, setContext] = useState<string[]>(item.context || []);
+  const [subdomain, setSubdomain] = useState<string[]>(item.subdomain || []);
+  const [context, setContext] = useState<string>(item.context || '');
   const [priority, setPriority] = useState(item.priority);
   const [status, setStatus] = useState(item.status);
   const [tags, setTags] = useState<string[]>(item.tags);
@@ -90,7 +91,7 @@ export function ItemEditForm({
 
   // Track local field options for add-new functionality
   const [localDomainOptions, setLocalDomainOptions] = useState<string[]>(fieldOptions.domain);
-  const [localContextOptions, setLocalContextOptions] = useState<string[]>(fieldOptions.context);
+  const [localSubdomainOptions, setLocalSubdomainOptions] = useState<string[]>(fieldOptions.subdomain);
   const [localTagOptions, setLocalTagOptions] = useState<string[]>(fieldOptions.tags);
 
   // Convert field options to dropdown format
@@ -146,7 +147,8 @@ export function ItemEditForm({
         title: title.trim(),
         type,
         domain: domain,
-        context: context,
+        subdomain: subdomain,
+        ...(context ? { context } : {}),
         priority,
         status,
         tags,
@@ -156,7 +158,7 @@ export function ItemEditForm({
 
       onSave(updatedItem);
     },
-    [item, title, type, domain, context, priority, status, tags, notes, validateForm, onSave]
+    [item, title, type, domain, subdomain, context, priority, status, tags, notes, validateForm, onSave]
   );
 
   /**
@@ -248,25 +250,32 @@ export function ItemEditForm({
   }, []);
 
   /**
-   * Handle context selection
+   * Handle subdomain selection
    */
-  const handleContextSelect = useCallback((value: string) => {
-    setContext([value]); // Single selection for context
+  const handleSubdomainSelect = useCallback((value: string) => {
+    setSubdomain([value]); // Single selection for subdomain
   }, []);
 
   /**
-   * Handle context removal
+   * Handle subdomain removal
    */
-  const handleContextRemove = useCallback(() => {
-    setContext([]);
+  const handleSubdomainRemove = useCallback(() => {
+    setSubdomain([]);
   }, []);
 
   /**
-   * Handle adding new context
+   * Handle adding new subdomain
    */
-  const handleContextAdd = useCallback((value: string) => {
-    setLocalContextOptions((prev) => [...prev, value]);
-    setContext([value]);
+  const handleSubdomainAdd = useCallback((value: string) => {
+    setLocalSubdomainOptions((prev) => [...prev, value]);
+    setSubdomain([value]);
+  }, []);
+
+  /**
+   * Handle context text change (free-form)
+   */
+  const handleContextChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setContext(event.target.value);
   }, []);
 
   /**
@@ -349,18 +358,38 @@ export function ItemEditForm({
         disabled={isSaving}
       />
 
-      {/* Context Field */}
+      {/* Subdomain Field */}
       <MultiSelectCombobox
-        label="Context"
-        options={localContextOptions}
-        selected={context}
-        onSelect={handleContextSelect}
-        onRemove={handleContextRemove}
-        onAdd={handleContextAdd}
-        placeholder="Select or type context..."
-        helperText="Additional context or environment details"
+        label="Subdomain"
+        options={localSubdomainOptions}
+        selected={subdomain}
+        onSelect={handleSubdomainSelect}
+        onRemove={handleSubdomainRemove}
+        onAdd={handleSubdomainAdd}
+        placeholder="Select or type subdomain..."
+        helperText="Sub-category within the domain"
         disabled={isSaving}
       />
+
+      {/* Context Field - Free-form text */}
+      <div className="field-container">
+        <div className="form-field-label-row">
+          <label className="field-label" htmlFor={`${formId}-context`}>
+            Context
+          </label>
+        </div>
+        <input
+          id={`${formId}-context`}
+          type="text"
+          className="input-base"
+          value={context}
+          onChange={handleContextChange}
+          placeholder="Optional background/context for this item..."
+          disabled={isSaving}
+          aria-label="Item context"
+        />
+        <div className="form-field-helper">Additional context or background information</div>
+      </div>
 
       {/* Priority Field */}
       <DropdownWithAdd

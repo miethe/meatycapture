@@ -47,11 +47,13 @@ import { ExitCodes } from '@cli/handlers/exitCodes.js';
 /**
  * Valid field names that can be imported.
  * Must match FieldName type from core models.
+ * Note: 'context' is now a free-form text field, not a categorical field.
+ * 'subdomain' replaces the old 'context' array as the categorical sub-domain selector.
  */
 const VALID_FIELD_NAMES: readonly FieldName[] = [
   'type',
   'domain',
-  'context',
+  'subdomain',
   'priority',
   'status',
   'tags',

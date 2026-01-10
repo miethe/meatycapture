@@ -36,7 +36,7 @@ const createMockItem = (overrides: Partial<RequestLogItem> = {}): RequestLogItem
   type: 'enhancement',
   title: 'Test Item',
   domain: ['web'],
-  context: ['test'],
+  subdomain: ['test'],
   priority: 'medium',
   status: 'triage',
   tags: [],

@@ -39,6 +39,7 @@ import {
   ParseError,
 } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
+import { updateIndexAfterWrite } from '@cli/indexing/auto-update.js';
 
 /**
  * Command options for item update command.
@@ -60,7 +61,9 @@ export interface ItemUpdateOptions {
   removeTags?: string;
   /** Update domains (comma-separated) */
   domain?: string;
-  /** Update contexts (comma-separated) */
+  /** Update subdomains (comma-separated) */
+  subdomain?: string;
+  /** Update context (free-form text) */
   context?: string;
   /** Output as JSON */
   json?: boolean;
@@ -164,6 +167,7 @@ function hasUpdateOption(options: ItemUpdateOptions): boolean {
     options.addTags ||
     options.removeTags ||
     options.domain ||
+    options.subdomain ||
     options.context
   );
 }
@@ -243,8 +247,18 @@ function applyUpdates(item: RequestLogItem, options: ItemUpdateOptions): void {
   if (options.domain) {
     item.domain = parseCommaSeparated(options.domain);
   }
-  if (options.context) {
-    item.context = parseCommaSeparated(options.context);
+  if (options.subdomain) {
+    item.subdomain = parseCommaSeparated(options.subdomain);
+  }
+  // Context is now a free-form string field
+  // With exactOptionalPropertyTypes, we need to delete the property to unset it
+  if (options.context !== undefined) {
+    const trimmed = options.context.trim();
+    if (trimmed) {
+      item.context = trimmed;
+    } else {
+      delete item.context;
+    }
   }
 
   // Tag updates (replace, add, remove)
@@ -386,7 +400,8 @@ function formatHumanOutput(itemId: string, item: RequestLogItem): string {
     `  Status: ${item.status}`,
     `  Priority: ${item.priority}`,
     `  Domain: ${item.domain.join(', ') || '(none)'}`,
-    `  Context: ${item.context.join(', ') || '(none)'}`,
+    `  Subdomain: ${item.subdomain.join(', ') || '(none)'}`,
+    `  Context: ${item.context || '(none)'}`,
     `  Tags: ${item.tags.join(', ') || '(none)'}`,
   ];
   return lines.join('\n');
@@ -432,7 +447,7 @@ export async function itemUpdateAction(
   if (!hasUpdateOption(options)) {
     throw new ValidationError(
       'No update options provided',
-      'Specify at least one field to update: --status, --priority, --type, --title, --tags, --add-tags, --remove-tags, --domain, --context'
+      'Specify at least one field to update: --status, --priority, --type, --title, --tags, --add-tags, --remove-tags, --domain, --subdomain, --context'
     );
   }
 
@@ -443,6 +458,9 @@ export async function itemUpdateAction(
   const updatedItem = options.noBackup
     ? await updateWithoutBackup(resolvedPath, itemId, options)
     : await updateWithBackup(resolvedPath, itemId, options);
+  const { docStore } = await createAdapters();
+  const updatedDoc = await docStore.read(resolvedPath);
+  await updateIndexAfterWrite(docStore, resolvedPath, updatedDoc);
 
   // Output result
   if (!options.quiet) {
@@ -498,7 +516,8 @@ Examples:
     .option('--add-tags <tags>', 'Add to existing tags (comma-separated)')
     .option('--remove-tags <tags>', 'Remove from existing tags (comma-separated)')
     .option('--domain <domains>', 'Update domains (comma-separated)')
-    .option('--context <contexts>', 'Update contexts (comma-separated)')
+    .option('--subdomain <subdomains>', 'Update subdomains (comma-separated)')
+    .option('--context <text>', 'Update context (free-form text)')
     .option('--json', 'Output as JSON')
     .option('--yaml', 'Output as YAML')
     .option('-q, --quiet', 'Suppress output')
@@ -511,7 +530,8 @@ Examples:
   meatycapture log item update doc.md REQ-20251203-app-01 --priority high --type bug
   meatycapture log item update doc.md REQ-20251203-app-01 --tags "urgent,blocker"
   meatycapture log item update doc.md REQ-20251203-app-01 --add-tags security --remove-tags draft
-  meatycapture log item update doc.md REQ-20251203-app-01 --domain "api,backend" --context "auth"
+  meatycapture log item update doc.md REQ-20251203-app-01 --domain "api,backend" --subdomain "auth"
+  meatycapture log item update doc.md REQ-20251203-app-01 --context "Background info for this item"
   meatycapture log item update doc.md REQ-20251203-app-01 --status done --json
 
 Exit Codes:

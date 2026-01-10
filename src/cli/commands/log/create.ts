@@ -30,7 +30,9 @@ import { generateDocId } from '@core/validation';
 import { aggregateTags, updateItemsIndex } from '@core/serializer';
 import { createAdapters } from '@adapters/factory';
 import { realClock } from '@adapters/clock';
+import { normalizeDraftNotes } from '@cli/commands/log/note-utils';
 import { readInput, isStdinInput, StdinError } from '@cli/handlers/stdin';
+import { updateIndexAfterWrite } from '@cli/indexing/auto-update.js';
 import {
   withErrorHandling,
   ValidationError,
@@ -89,6 +91,10 @@ function isValidCliInput(obj: unknown): obj is CreateCliInput {
 
 /**
  * Type guard to validate ItemDraft structure.
+ *
+ * Field validation:
+ * - subdomain: required array of strings (categorical selection)
+ * - context: optional string (free-form text)
  */
 function isValidItemDraft(obj: unknown): obj is ItemDraft {
   if (!obj || typeof obj !== 'object') {
@@ -102,8 +108,9 @@ function isValidItemDraft(obj: unknown): obj is ItemDraft {
     typeof item.type === 'string' &&
     Array.isArray(item.domain) &&
     item.domain.every((d) => typeof d === 'string') &&
-    Array.isArray(item.context) &&
-    item.context.every((c) => typeof c === 'string') &&
+    Array.isArray(item.subdomain) &&
+    item.subdomain.every((s) => typeof s === 'string') &&
+    (item.context === undefined || typeof item.context === 'string') &&
     typeof item.priority === 'string' &&
     typeof item.status === 'string' &&
     Array.isArray(item.tags) &&
@@ -124,7 +131,8 @@ function getExpectedFormatHint(): string {
     '    "title": "Item title",\n' +
     '    "type": "enhancement",\n' +
     '    "domain": ["web"],\n' +
-    '    "context": ["Context"],\n' +
+    '    "subdomain": ["user-facing"],\n' +
+    '    "context": "Optional background info",\n' +
     '    "priority": "medium",\n' +
     '    "status": "triage",\n' +
     '    "tags": ["tag1"],\n' +
@@ -355,13 +363,19 @@ async function createActionImpl(
   const docId = generateDocId(input.project, now);
 
   const items = input.items.map((itemDraft, index) => {
-    const itemNumber = index + 1;
-    const itemId = `${docId}-${String(itemNumber).padStart(2, '0')}`;
+    const itemNumber = String(index + 1).padStart(2, '0');
+    const itemId = `${docId}-${itemNumber}`;
+    const notes = normalizeDraftNotes(itemDraft.notes, {
+      now,
+      projectSlug: input.project,
+      itemNumber,
+    });
 
     return {
       ...itemDraft,
       id: itemId,
       created_at: now,
+      notes,
     };
   });
 
@@ -406,6 +420,7 @@ async function createActionImpl(
   // Write document (use lower-level write to bypass automatic backup in docStore)
   // We handle backup manually above to respect --no-backup flag
   await docStore.write(outputPath, doc);
+  await updateIndexAfterWrite(docStore, outputPath, doc);
 
   // Format and output result
   if (!isQuietMode()) {

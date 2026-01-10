@@ -104,6 +104,10 @@ export async function promptTags(projectId?: string): Promise<string[]> {
 /**
  * Prompts for a complete item draft interactively.
  *
+ * Fields:
+ * - subdomain: categorical multi-select (from field catalog)
+ * - context: optional free-form text (not from field catalog)
+ *
  * @param projectId - Project ID for field options
  * @returns Complete ItemDraft
  */
@@ -115,27 +119,40 @@ export async function promptItemDraft(projectId: string): Promise<ItemDraft> {
   const type = await promptFieldValue('type', projectId);
   const domainValue = await promptFieldValue('domain', projectId, false);
   const domain = domainValue ? [domainValue] : [];
-  const contextValue = await promptFieldValue('context', projectId, false);
-  const context = contextValue ? [contextValue] : [];
+  const subdomainValue = await promptFieldValue('subdomain', projectId, false);
+  const subdomain = subdomainValue ? [subdomainValue] : [];
   const priority = await promptFieldValue('priority', projectId);
   const status = await promptFieldValue('status', projectId);
 
   const tags = await promptTags(projectId);
 
+  // Context is now free-form text, not from field catalog
+  const { prompt: promptText } = await import('./prompts.js');
+  const contextInput = await promptText('Context (optional background info): ');
+  const contextValue = contextInput.trim();
+
   // Notes are now Note[] - for MVP interactive mode, we skip note creation
   // Full notes UI will be added in Phase 2-4
   const notes: import('@core/models').Note[] = [];
 
-  return {
+  // Build result object - context is only added if non-empty
+  // (exactOptionalPropertyTypes requires this pattern)
+  const result: ItemDraft = {
     title,
     type,
     domain,
-    context,
+    subdomain,
     priority,
     status,
     tags,
     notes,
   };
+
+  if (contextValue) {
+    result.context = contextValue;
+  }
+
+  return result;
 }
 
 /**

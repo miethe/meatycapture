@@ -35,7 +35,7 @@ import { ValidationError } from '../middleware/error-handler.js';
 const VALID_FIELD_NAMES: readonly FieldName[] = [
   'type',
   'domain',
-  'context',
+  'subdomain',
   'priority',
   'status',
   'tags',
@@ -53,7 +53,7 @@ const VALID_FIELD_SCOPES: readonly FieldScope[] = ['global', 'project'] as const
  * Ensures the field name is one of the supported field types:
  * - type: Item type (enhancement, bug, etc.)
  * - domain: Domain/area (web, api, etc.)
- * - context: Additional context categorization
+ * - subdomain: Sub-domain categories within the main domain
  * - priority: Priority level (low, medium, high, critical)
  * - status: Item status (triage, backlog, done, etc.)
  * - tags: Tag values for categorization
@@ -65,7 +65,7 @@ const VALID_FIELD_SCOPES: readonly FieldScope[] = ['global', 'project'] as const
  * @example
  * ```typescript
  * const fieldName = validateFieldName(body.field);
- * // Returns 'type' | 'domain' | 'context' | 'priority' | 'status' | 'tags'
+ * // Returns 'type' | 'domain' | 'subdomain' | 'priority' | 'status' | 'tags'
  * ```
  */
 export function validateFieldName(value: unknown): FieldName {

@@ -69,6 +69,13 @@ export interface DocumentCacheResult {
   invalidate: () => void;
 
   /**
+   * Remove a cached document by path
+   *
+   * @param path - Document file path
+   */
+  remove: (path: string) => void;
+
+  /**
    * Get the cache Map for passing to children
    *
    * Returns the underlying Map instance.
@@ -147,11 +154,28 @@ export function useDocumentCache(): DocumentCacheResult {
     setCache(new Map());
   }, []);
 
+  /**
+   * Remove a document from cache
+   *
+   * Stable callback that removes the entry from the Map.
+   */
+  const remove = useCallback((path: string): void => {
+    setCache((prev) => {
+      if (!prev.has(path)) {
+        return prev;
+      }
+      const next = new Map(prev);
+      next.delete(path);
+      return next;
+    });
+  }, []);
+
   return {
     get,
     set,
     has,
     invalidate,
+    remove,
     cache,
   };
 }

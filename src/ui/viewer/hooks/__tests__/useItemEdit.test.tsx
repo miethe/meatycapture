@@ -17,7 +17,7 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 const mockFieldOptions = {
   type: ['enhancement', 'bug', 'idea'],
   domain: ['web', 'api', 'mobile'],
-  context: ['frontend', 'backend'],
+  subdomain: ['frontend', 'backend'],
   priority: ['low', 'medium', 'high'],
   status: ['triage', 'in-progress', 'done'],
   tags: ['ux', 'api', 'performance'],
@@ -29,7 +29,7 @@ const createMockItem = (overrides: Partial<RequestLogItem> = {}): RequestLogItem
   title: 'Test Item Title',
   type: 'enhancement',
   domain: ['web'],
-  context: ['frontend'],
+  subdomain: ['frontend'],
   priority: 'medium',
   status: 'triage',
   tags: ['ux', 'api'],

@@ -28,6 +28,7 @@ import {
   mkdir,
   copyFile,
 } from '@tauri-apps/plugin-fs';
+import * as tauriFs from '@tauri-apps/plugin-fs';
 import { join, homeDir } from '@tauri-apps/api/path';
 import type { DocStore, DocMeta, Clock } from '@core/ports';
 import type { RequestLogDoc, ItemDraft } from '@core/models';
@@ -247,6 +248,42 @@ export class TauriDocStore implements DocStore {
 
       throw new Error(
         `Failed to write document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Deletes a request-log document from the filesystem.
+   *
+   * @param path - Absolute path to the document file
+   * @throws Error if delete fails
+   */
+  async delete(path: string): Promise<void> {
+    logger.debug('Deleting document (Tauri)', { path });
+
+    try {
+      const expandedPath = await expandPath(path);
+      const fsWithRemove = tauriFs as unknown as {
+        remove?: (path: string) => Promise<void>;
+        removeFile?: (path: string) => Promise<void>;
+        removeDir?: (path: string) => Promise<void>;
+      };
+      const removeFn = fsWithRemove.remove ?? fsWithRemove.removeFile ?? fsWithRemove.removeDir;
+
+      if (!removeFn) {
+        throw new Error('File removal is not supported by the current Tauri fs adapter.');
+      }
+
+      await removeFn(expandedPath);
+      logger.info('Document deleted successfully (Tauri)', { path: expandedPath });
+    } catch (error) {
+      logger.error('Failed to delete document (Tauri)', {
+        path,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      throw new Error(
+        `Failed to delete document ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }

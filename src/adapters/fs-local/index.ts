@@ -268,6 +268,36 @@ export class FsDocStore implements DocStore {
   }
 
   /**
+   * Deletes a request-log document from the filesystem.
+   *
+   * @param path - Absolute path to the document file
+   * @throws Error if delete fails or file not found
+   */
+  async delete(path: string): Promise<void> {
+    const expandedPath = expandPath(path);
+    logger.debug('Deleting document', { path: expandedPath });
+
+    try {
+      await fs.unlink(expandedPath);
+      logger.info('Document deleted successfully', { path: expandedPath });
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        logger.error('Document not found for delete', { path: expandedPath });
+        throw new Error(`Document not found: ${expandedPath}`);
+      }
+
+      logger.error('Failed to delete document', {
+        path: expandedPath,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      throw new Error(
+        `Failed to delete document ${expandedPath}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
    * Appends a new item to an existing document.
    *
    * Automatically handles:

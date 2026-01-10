@@ -93,7 +93,7 @@ function createMockItem(overrides: Partial<RequestLogItem> = {}): RequestLogItem
     title: 'Test Item Title',
     type: 'enhancement',
     domain: ['web'],
-    context: ['frontend'],
+    subdomain: ['frontend'],
     priority: 'medium',
     status: 'triage',
     tags: ['ux', 'api'],

@@ -34,6 +34,8 @@ interface MultiSelectComboboxProps {
   tooltip?: string;
   /** Whether field is disabled */
   disabled?: boolean;
+  /** Base ID for label/input associations (helps avoid duplicate IDs) */
+  idBase?: string;
 }
 
 /**
@@ -51,6 +53,7 @@ export function MultiSelectCombobox({
   helperText,
   tooltip,
   disabled = false,
+  idBase,
 }: MultiSelectComboboxProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,7 +65,10 @@ export function MultiSelectCombobox({
   const listboxRef = useRef<HTMLUListElement>(null);
 
   // Generate unique IDs for accessibility
-  const inputId = `multiselect-combobox-${label.toLowerCase().replace(/\s+/g, '-')}`;
+  const idSeed = idBase
+    ? idBase.replace(/\s+/g, '-')
+    : label.toLowerCase().replace(/\s+/g, '-');
+  const inputId = `multiselect-combobox-${idSeed}`;
   const listboxId = `${inputId}-listbox`;
   const helperId = `${inputId}-helper`;
   const liveRegionId = `${inputId}-live`;

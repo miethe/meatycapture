@@ -76,7 +76,7 @@ describe('serialize', () => {
     expect(markdown).toContain(`**Priority:** ${item.priority}`);
     expect(markdown).toContain(`**Status:** ${item.status}`);
     expect(markdown).toContain(`**Tags:** ${item.tags.join(', ')}`);
-    expect(markdown).toContain(`**Context:** ${item.context}`);
+    expect(markdown).toContain(`**Subdomain:** ${item.subdomain}`);
   });
 
   it('should separate items with horizontal rules', () => {
@@ -163,7 +163,7 @@ updated_at: 2025-12-03T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test, example
-**Context:** Test context
+**Subdomain:** test
 
 ### Problem/Goal
 Test notes describing the problem.
@@ -223,7 +223,7 @@ updated_at: 2025-12-03T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test
-**Context:** First context
+**Subdomain:** first
 
 ### Problem/Goal
 First notes.
@@ -234,7 +234,7 @@ First notes.
 
 **Type:** bug | **Domain:** api | **Priority:** high | **Status:** backlog
 **Tags:** urgent
-**Context:** Second context
+**Subdomain:** second
 
 ### Problem/Goal
 Second notes.
@@ -266,7 +266,7 @@ updated_at: 2025-12-03T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** high | **Status:** backlog
 **Tags:** urgent, api, feature
-**Context:** Test context here
+**Subdomain:** test, backend
 
 ### Problem/Goal
 Detailed notes go here.
@@ -286,7 +286,7 @@ Multiple lines supported.
     expect(item.priority).toBe('high');
     expect(item.status).toBe('backlog');
     expect(item.tags).toEqual(['urgent', 'api', 'feature']);
-    expect(item.context).toStrictEqual(['Test context here']);
+    expect(item.subdomain).toStrictEqual(['test', 'backend']);
     // Notes are parsed by TASK-1.5 - for now, parsed items have undefined notes
     expect(item.notes).toBeUndefined();
   });
@@ -447,7 +447,7 @@ updated_at: 2025-12-03T10:00:00.000Z
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test
 **Modified:** 2025-12-03T14:30:00.000Z
-**Context:** Test context
+**Subdomain:** test
 
 ### Problem/Goal
 Test notes.
@@ -477,7 +477,7 @@ updated_at: 2025-12-03T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test
-**Context:** Test context
+**Subdomain:** test
 
 ### Problem/Goal
 Test notes.
@@ -518,7 +518,7 @@ describe('serialize/parse roundtrip', () => {
       expect(parsedItem.title).toBe(origItem.title);
       expect(parsedItem.type).toBe(origItem.type);
       expect(parsedItem.domain).toStrictEqual(origItem.domain);
-      expect(parsedItem.context).toStrictEqual(origItem.context);
+      expect(parsedItem.subdomain).toStrictEqual(origItem.subdomain);
       expect(parsedItem.priority).toBe(origItem.priority);
       expect(parsedItem.status).toBe(origItem.status);
       expect(parsedItem.tags).toEqual(origItem.tags);
@@ -946,7 +946,7 @@ describe('serialize with notes', () => {
       title: 'Test Feature',
       type: 'enhancement',
       domain: ['web', 'api'],
-      context: ['frontend'],
+      subdomain: ['frontend'],
       priority: 'high',
       status: 'in-progress',
       tags: ['ux', 'feature'],
@@ -966,7 +966,7 @@ describe('serialize with notes', () => {
     expect(md).toContain('**Priority:** high');
     expect(md).toContain('**Status:** in-progress');
     expect(md).toContain('**Tags:** ux, feature');
-    expect(md).toContain('**Context:** frontend');
+    expect(md).toContain('**Subdomain:** frontend');
 
     // Verify notes section is present
     expect(md).toContain('#### Notes');
@@ -1024,7 +1024,7 @@ updated_at: 2026-01-01T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test
-**Context:** Test context
+**Subdomain:** test
 
 `;
 
@@ -1049,7 +1049,7 @@ updated_at: 2026-01-01T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test
-**Context:** Test context
+**Subdomain:** test
 
 #### Notes
 
@@ -1082,7 +1082,7 @@ updated_at: 2026-01-01T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test
-**Context:** Test context
+**Subdomain:** test
 
 #### Notes
 
@@ -1124,7 +1124,7 @@ updated_at: 2026-01-01T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test
-**Context:** Test context
+**Subdomain:** test
 
 #### Notes
 
@@ -1159,7 +1159,7 @@ updated_at: 2026-01-01T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test
-**Context:** Test context
+**Subdomain:** test
 
 #### Notes
 
@@ -1191,7 +1191,7 @@ updated_at: 2026-01-01T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test
-**Context:** Test context
+**Subdomain:** test
 
 #### Notes
 
@@ -1223,7 +1223,7 @@ updated_at: 2026-01-01T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test
-**Context:** Test context
+**Subdomain:** test
 
 #### Notes
 
@@ -1270,7 +1270,7 @@ updated_at: 2026-01-01T10:00:00.000Z
 
 **Type:** enhancement | **Domain:** web | **Priority:** medium | **Status:** triage
 **Tags:** test
-**Context:** Test context
+**Subdomain:** test
 
 #### Notes
 

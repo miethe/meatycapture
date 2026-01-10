@@ -371,10 +371,10 @@ describe('ApiFieldCatalogStore', () => {
     });
 
     it('should handle all field types', async () => {
-      const fields: Array<'type' | 'domain' | 'context' | 'priority' | 'status' | 'tags'> = [
+      const fields: Array<'type' | 'domain' | 'subdomain' | 'priority' | 'status' | 'tags'> = [
         'type',
         'domain',
-        'context',
+        'subdomain',
         'priority',
         'status',
         'tags',

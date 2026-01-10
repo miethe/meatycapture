@@ -436,21 +436,29 @@ function parseYaml(yamlContent: string): Record<string, unknown> {
         }
 
         if (listLine.trim().startsWith('-')) {
-          // Start of new list item
-          listItems.push({});
-
-          // Also extract property if present on same line (e.g., "- id: value")
+          // Extract content after the hyphen
           const restOfLine = listLine.trim().substring(1).trim(); // Remove leading "-"
+
           if (restOfLine) {
             const propColonIndex = restOfLine.indexOf(':');
             if (propColonIndex !== -1) {
+              // This is a key: value pair - start a new object and add the property
+              // e.g., "- id: value" for items_index entries
+              listItems.push({});
               const propKey = restOfLine.substring(0, propColonIndex).trim();
               const propValue = restOfLine.substring(propColonIndex + 1).trim();
               const lastItem = listItems[listItems.length - 1];
               if (lastItem) {
                 lastItem[propKey] = propValue;
               }
+            } else {
+              // Simple string value without colon - push as string directly
+              // e.g., "- tag1" for tags in hyphenated list format
+              (listItems as unknown[]).push(restOfLine);
             }
+          } else {
+            // Empty list item line (just "-"), push empty object for subsequent properties
+            listItems.push({});
           }
         } else if (listLine.startsWith('  ') && listItems.length > 0) {
           // Property of current list item

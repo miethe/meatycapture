@@ -23,7 +23,7 @@ export interface AdminContainerProps {
 /**
  * All available field names for tab navigation
  */
-const FIELD_NAMES: FieldName[] = ['type', 'domain', 'context', 'priority', 'status', 'tags'];
+const FIELD_NAMES: FieldName[] = ['type', 'domain', 'subdomain', 'priority', 'status', 'tags'];
 
 /**
  * AdminContainer orchestrates the field options management UI.

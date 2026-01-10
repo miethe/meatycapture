@@ -1,7 +1,7 @@
 /**
  * Log Command Group
  *
- * Manages request-log documents: create, append, list, view, delete, search, note, item.
+ * Manages request-log documents: create, append, list, view, delete, search, index, note, item.
  * This is the primary command group for document operations.
  *
  * Usage:
@@ -11,6 +11,7 @@
  *   meatycapture log view <doc-path>        View document contents
  *   meatycapture log delete <doc-path>      Delete document (with confirmation)
  *   meatycapture log search <query>         Search documents
+ *   meatycapture log index [project]        Build or update catalog index
  *   meatycapture log note add <doc> <item>  Add a note to an item
  *   meatycapture log item update <doc> <id> Update item fields
  */
@@ -23,6 +24,7 @@ import { registerViewCommand } from './view';
 import { registerDeleteCommand } from './delete';
 import { registerSearchCommand } from './search';
 import { registerNoteAddCommand } from './note-add';
+import { registerIndexCommand } from './indexer';
 import { createItemCommand } from './item-update';
 
 /**
@@ -50,6 +52,7 @@ Examples:
   meatycapture log search "bug"                Search for items with "bug"
   meatycapture log search "tag:ux"             Search by tag
   meatycapture log search "type:enhancement"   Search by type
+  meatycapture log index my-project            Build or update catalog index
   meatycapture log note add doc.md ITEM-01 -c "Note text"  Add note to item
   meatycapture log item update doc.md ITEM-01 --status done  Update item status
 `
@@ -63,6 +66,7 @@ Examples:
   registerDeleteCommand(log);
   registerSearchCommand(log);
   registerNoteAddCommand(log);
+  registerIndexCommand(log);
 
   // Add the item subcommand group
   log.addCommand(createItemCommand());
@@ -79,3 +83,4 @@ export { deleteAction } from './delete';
 export { searchAction } from './search';
 export { noteAddAction } from './note-add';
 export { itemUpdateAction } from './item-update';
+export { indexAction } from './indexer';

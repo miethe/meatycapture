@@ -9,11 +9,13 @@ import type { FieldName } from '@core/models';
 
 /**
  * Valid field names for field catalog.
+ * Note: 'context' is now a free-form text field, not a categorical field.
+ * 'subdomain' replaces the old 'context' array as the categorical sub-domain selector.
  */
 const VALID_FIELD_NAMES: readonly FieldName[] = [
   'type',
   'domain',
-  'context',
+  'subdomain',
   'priority',
   'status',
   'tags',

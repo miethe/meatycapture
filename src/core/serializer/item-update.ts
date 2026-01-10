@@ -56,6 +56,130 @@ export interface ItemUpdateResult {
 }
 
 /**
+ * Fields that can be updated on an item via inline editing.
+ *
+ * Note: `subdomain` is a multi-select array (categorical field).
+ * Note: `context` is an optional free-form text string.
+ */
+export interface ItemFieldUpdates {
+  title?: string;
+  type?: string;
+  domain?: string[];
+  subdomain?: string[];
+  /** Optional free-form context text */
+  context?: string;
+  priority?: string;
+  status?: string;
+  tags?: string[];
+}
+
+/**
+ * Compare two string arrays for exact equality.
+ */
+function arraysEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((value, index) => value === b[index]);
+}
+
+/**
+ * Applies field updates to a specific item within a document.
+ *
+ * This is a pure function that updates the item fields, item.modified_at,
+ * document.updated_at, and document-level aggregates.
+ *
+ * @param doc - The RequestLogDoc to update
+ * @param itemId - The ID of the item to update
+ * @param updates - Partial updates for item fields
+ * @returns Object containing the updated document and whether changes were made
+ *
+ * @throws {ItemNotFoundError} When the specified item ID isn't found in the document
+ */
+export function applyItemUpdate(
+  doc: RequestLogDoc,
+  itemId: string,
+  updates: ItemFieldUpdates
+): ItemUpdateResult {
+  const itemIndex = doc.items.findIndex((item) => item.id === itemId);
+  if (itemIndex === -1) {
+    throw new ItemNotFoundError(doc.doc_id, itemId);
+  }
+
+  const targetItem = doc.items[itemIndex];
+  if (!targetItem) {
+    throw new ItemNotFoundError(doc.doc_id, itemId);
+  }
+
+  let changed = false;
+  const updatedItem: RequestLogItem = { ...targetItem };
+
+  if (updates.title !== undefined && updates.title !== targetItem.title) {
+    updatedItem.title = updates.title;
+    changed = true;
+  }
+
+  if (updates.type !== undefined && updates.type !== targetItem.type) {
+    updatedItem.type = updates.type;
+    changed = true;
+  }
+
+  if (updates.domain !== undefined && !arraysEqual(updates.domain, targetItem.domain)) {
+    updatedItem.domain = updates.domain;
+    changed = true;
+  }
+
+  if (updates.subdomain !== undefined && !arraysEqual(updates.subdomain, targetItem.subdomain)) {
+    updatedItem.subdomain = updates.subdomain;
+    changed = true;
+  }
+
+  // context is an optional string - compare with fallback to empty string for undefined
+  if (updates.context !== undefined && updates.context !== (targetItem.context ?? '')) {
+    // Only set context if non-empty, otherwise remove it
+    if (updates.context.trim().length > 0) {
+      updatedItem.context = updates.context;
+    } else {
+      delete updatedItem.context;
+    }
+    changed = true;
+  }
+
+  if (updates.priority !== undefined && updates.priority !== targetItem.priority) {
+    updatedItem.priority = updates.priority;
+    changed = true;
+  }
+
+  if (updates.status !== undefined && updates.status !== targetItem.status) {
+    updatedItem.status = updates.status;
+    changed = true;
+  }
+
+  if (updates.tags !== undefined && !arraysEqual(updates.tags, targetItem.tags)) {
+    updatedItem.tags = updates.tags;
+    changed = true;
+  }
+
+  if (!changed) {
+    return { updatedDoc: doc, changed: false };
+  }
+
+  const now = new Date();
+  updatedItem.modified_at = now;
+
+  const updatedItems = [...doc.items];
+  updatedItems[itemIndex] = updatedItem;
+
+  const updatedDoc: RequestLogDoc = {
+    ...doc,
+    items: updatedItems,
+    items_index: updateItemsIndex(updatedItems),
+    tags: aggregateTags(updatedItems),
+    updated_at: now,
+  };
+
+  return { updatedDoc, changed: true };
+}
+
+/**
  * Applies a notes update to a specific item within a document.
  *
  * This is a pure function that transforms the document in memory without

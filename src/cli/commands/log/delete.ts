@@ -17,6 +17,7 @@ import * as readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { createAdapters } from '@adapters/factory';
 import type { RequestLogDoc } from '@core/models';
+import { removeIndexAfterDelete } from '@cli/indexing/auto-update.js';
 import {
   FileNotFoundError,
   UserInterruptError,
@@ -135,6 +136,7 @@ export async function deleteAction(docPath: string, options: DeleteOptions): Pro
 
   // Step 4: Delete the file
   await fs.unlink(resolvedPath);
+  await removeIndexAfterDelete(resolvedPath);
 
   // Step 5: Report success
   const fileName = basename(resolvedPath);

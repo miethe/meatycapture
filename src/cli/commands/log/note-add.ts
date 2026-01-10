@@ -26,6 +26,7 @@ import { NOTE_TYPES, isNoteType, NOTE_TYPE_OPTIONS } from '@core/models';
 import { createAdapters } from '@adapters/factory';
 import { serialize, parse } from '@core/serializer';
 import type { OutputFormat } from '@cli/formatters';
+import { updateIndexAfterWrite } from '@cli/indexing/auto-update.js';
 import {
   withErrorHandling,
   ValidationError,
@@ -400,11 +401,11 @@ export async function noteAddAction(
   };
 
   // Add note with or without backup
-  if (options.noBackup) {
-    await addNoteWithoutBackup(resolvedPath, itemId, note);
-  } else {
-    await addNoteWithBackup(resolvedPath, itemId, note);
-  }
+  const result = options.noBackup
+    ? await addNoteWithoutBackup(resolvedPath, itemId, note)
+    : await addNoteWithBackup(resolvedPath, itemId, note);
+  const { docStore } = await createAdapters();
+  await updateIndexAfterWrite(docStore, resolvedPath, result.doc);
 
   // Output result
   if (!options.quiet) {

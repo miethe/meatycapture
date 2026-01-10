@@ -261,6 +261,11 @@ async function main(): Promise<void> {
               return await docsRouter.write(req);
             }
 
+            // DELETE /api/docs/:doc_id - Delete document
+            if (method === 'DELETE' && /^\/api\/docs\/[^/]+$/.test(path)) {
+              return await docsRouter.delete(req);
+            }
+
             // PATCH /api/docs/:doc_id/items - Append item
             if (method === 'PATCH' && /^\/api\/docs\/[^/]+\/items$/.test(path)) {
               return await docsRouter.appendItem(req);

@@ -20,7 +20,9 @@ import { realClock } from '@adapters/clock';
 import { aggregateTags, updateItemsIndex, serialize, parse } from '@core/serializer';
 import { generateItemId, getNextItemNumber } from '@core/validation';
 import { formatOutput, type OutputFormat, type FormatOptions } from '@cli/formatters/index.js';
+import { normalizeDraftNotes } from '@cli/commands/log/note-utils.js';
 import { readInput, isStdinInput, StdinError } from '@cli/handlers/stdin.js';
+import { updateIndexAfterWrite } from '@cli/indexing/auto-update.js';
 import {
   withErrorHandling,
   ValidationError,
@@ -53,6 +55,10 @@ interface AppendOptions {
 
 /**
  * Type guard to validate ItemDraft structure.
+ *
+ * Field validation:
+ * - subdomain: required array of strings (categorical selection)
+ * - context: optional string (free-form text)
  */
 function isValidItemDraft(obj: unknown): obj is ItemDraft {
   if (!obj || typeof obj !== 'object') {
@@ -66,8 +72,9 @@ function isValidItemDraft(obj: unknown): obj is ItemDraft {
     typeof item.type === 'string' &&
     Array.isArray(item.domain) &&
     item.domain.every((d) => typeof d === 'string') &&
-    Array.isArray(item.context) &&
-    item.context.every((c) => typeof c === 'string') &&
+    Array.isArray(item.subdomain) &&
+    item.subdomain.every((s) => typeof s === 'string') &&
+    (item.context === undefined || typeof item.context === 'string') &&
     typeof item.priority === 'string' &&
     typeof item.status === 'string' &&
     Array.isArray(item.tags) &&
@@ -126,7 +133,7 @@ function parseAppendInput(content: string, source: string): AppendCliInput {
   if (!isValidAppendInput(data)) {
     throw new ValidationError(
       'Invalid JSON structure for append',
-      'Expected format: {"project": "slug", "items": [{title, type, domain[], context[], priority, status, tags[], notes}]}'
+      'Expected format: {"project": "slug", "items": [{title, type, domain[], subdomain[], context?, priority, status, tags[], notes}]}'
     );
   }
 
@@ -237,10 +244,17 @@ async function appendWithoutBackup(docPath: string, input: AppendCliInput): Prom
 
   for (const item of input.items) {
     const itemId = generateItemId(doc.doc_id, nextNumber);
+    const itemNumber = String(nextNumber).padStart(2, '0');
+    const notes = normalizeDraftNotes(item.notes, {
+      now,
+      projectSlug: doc.project_id,
+      itemNumber,
+    });
     newItems.push({
       ...item,
       id: itemId,
       created_at: now,
+      notes,
     });
     nextNumber++;
   }
@@ -276,8 +290,13 @@ async function appendWithoutBackup(docPath: string, input: AppendCliInput): Prom
 async function appendWithBackup(docPath: string, input: AppendCliInput): Promise<RequestLogDoc> {
   const { docStore } = await createAdapters();
   let updatedDoc: RequestLogDoc | null = null;
+  const noteNow = realClock.now();
+  const normalizedItems = input.items.map((item) => ({
+    ...item,
+    notes: normalizeDraftNotes(item.notes, { now: noteNow }),
+  }));
 
-  for (const item of input.items) {
+  for (const item of normalizedItems) {
     try {
       updatedDoc = await docStore.append(docPath, item, realClock);
     } catch (error) {
@@ -343,6 +362,8 @@ export async function appendAction(
   const updatedDoc = options.noBackup
     ? await appendWithoutBackup(resolvedDocPath, input)
     : await appendWithBackup(resolvedDocPath, input);
+  const { docStore } = await createAdapters();
+  await updateIndexAfterWrite(docStore, resolvedDocPath, updatedDoc);
 
   // Output result
   if (!options.quiet) {

@@ -43,7 +43,7 @@ function createMockDocument(overrides: Partial<RequestLogDoc> = {}): RequestLogD
         title: 'Test Item 1',
         type: 'bug',
         domain: ['api'],
-        context: ['Test context'],
+        subdomain: ['Test context'],
         priority: 'medium',
         status: 'triage',
         tags: ['tag1'],
@@ -55,7 +55,7 @@ function createMockDocument(overrides: Partial<RequestLogDoc> = {}): RequestLogD
         title: 'Test Item 2',
         type: 'enhancement',
         domain: ['web'],
-        context: ['Test context 2'],
+        subdomain: ['Test context 2'],
         priority: 'high',
         status: 'backlog',
         tags: ['tag2'],
@@ -162,7 +162,14 @@ function createMockDocStore(): MockDocStore {
 // ============================================================================
 
 vi.mock('../DocumentDetail', () => ({
-  DocumentDetail: ({ document, isLoading }: { document: RequestLogDoc; isLoading: boolean }) => (
+  DocumentDetail: ({
+    document,
+    isLoading,
+  }: {
+    document: RequestLogDoc;
+    isLoading: boolean;
+    docPath?: string;
+  }) => (
     <div data-testid="document-detail" data-loading={isLoading}>
       Document Detail: {document.doc_id}
     </div>

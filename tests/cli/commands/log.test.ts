@@ -89,6 +89,36 @@ describe('Log Commands', () => {
         expect(doc.items).toHaveLength(1);
       });
 
+      it('should backfill note timestamps when missing', async () => {
+        const input = {
+          project: 'test-project',
+          items: [
+            createMockItemDraft({
+              notes: [
+                {
+                  id: 'TEMP-NOTE-1',
+                  type: 'General',
+                  content: 'Note without timestamps',
+                } as any,
+              ],
+            }),
+          ],
+        };
+        const inputFile = await createJsonInputFile(tempDir, input);
+        const outputPath = join(tempDir, 'output.md');
+
+        const { createAction } = await import('@cli/commands/log/create');
+
+        await expect(createAction(inputFile, { output: outputPath })).rejects.toThrow(ExitError);
+
+        const content = await fs.readFile(outputPath, 'utf-8');
+        const doc = parse(content);
+        const note = doc.items[0]?.notes?.[0];
+
+        expect(note?.created_at).toBeInstanceOf(Date);
+        expect(note?.updated_at).toBeInstanceOf(Date);
+      });
+
       it('should generate doc_id from project slug and date', async () => {
         const input = createValidCliInput('my-project');
         const inputFile = await createJsonInputFile(tempDir, input);
@@ -744,6 +774,7 @@ describe('Log Commands', () => {
         await projectStore.create({
           name: 'Myproject',
           default_path: projectDocsPath,
+          enabled: true,
         });
 
         // Create a doc in that path with REQ filename format
@@ -789,6 +820,7 @@ describe('Log Commands', () => {
         await projectStore.create({
           name: 'Testslug',
           default_path: projectDocsPath,
+          enabled: true,
         });
 
         // Create doc with the REQ-YYYYMMDD-testslug.md pattern
@@ -826,6 +858,7 @@ describe('Log Commands', () => {
         await projectStore.create({
           name: 'Numberedproj',
           default_path: projectDocsPath,
+          enabled: true,
         });
 
         // Create doc with the -NN suffix pattern (e.g., REQ-YYYYMMDD-numberedproj-01.md)
@@ -1758,7 +1791,7 @@ describe('Log Commands', () => {
 
       it('should update context field', async () => {
         const docPath = await createTestDoc(tempDir, {
-          items: [createMockItem({ id: 'REQ-20251203-test-project-01', context: ['Test Context'] })],
+          items: [createMockItem({ id: 'REQ-20251203-test-project-01', subdomain: ['Test Context'] })],
         });
 
         const { itemUpdateAction } = await import('@cli/commands/log/item-update');

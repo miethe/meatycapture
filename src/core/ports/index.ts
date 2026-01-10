@@ -208,6 +208,16 @@ export interface DocStore {
   write(path: string, doc: RequestLogDoc): Promise<void>;
 
   /**
+   * Delete a request-log document
+   *
+   * Removes the document from storage. Implementations may throw
+   * if deletion is not supported for the current adapter.
+   *
+   * @param path - File path to the document
+   */
+  delete?(path: string): Promise<void>;
+
+  /**
    * Append a new item to an existing document
    * Automatically:
    * - Generates item ID with incremented counter

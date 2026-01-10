@@ -35,7 +35,7 @@ const mockDocument: RequestLogDoc = {
       title: 'Existing Item',
       type: 'enhancement',
       domain: ['web'],
-      context: [''],
+      subdomain: [''],
       priority: 'medium',
       status: 'triage',
       tags: ['tag1'],

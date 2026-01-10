@@ -20,7 +20,7 @@ const createMockItem = (overrides: Partial<RequestLogItem> = {}): RequestLogItem
   title: 'Test Item Title',
   type: 'enhancement',
   domain: ['web'],
-  context: ['frontend'],
+  subdomain: ['frontend'],
   priority: 'medium',
   status: 'triage',
   tags: ['ux', 'api'],
@@ -33,7 +33,7 @@ const createMockItem = (overrides: Partial<RequestLogItem> = {}): RequestLogItem
 const defaultFieldOptions = {
   type: ['enhancement', 'bug', 'idea', 'task', 'question'],
   domain: ['web', 'api', 'mobile', 'backend'],
-  context: ['frontend', 'backend', 'infrastructure'],
+  subdomain: ['frontend', 'backend', 'infrastructure'],
   priority: ['low', 'medium', 'high', 'critical'],
   status: ['triage', 'backlog', 'planned', 'in-progress', 'done', 'wontfix'],
   tags: ['ux', 'api', 'performance', 'security'],
@@ -424,7 +424,7 @@ describe('ItemEditForm', () => {
     it('preserves context value when empty in initial item', async () => {
       const user = userEvent.setup({ delay: null });
       const onSave = vi.fn();
-      const item = createMockItem({ context: [] });
+      const item = createMockItem({ subdomain: [] });
 
       render(<ItemEditForm {...createDefaultProps({ item, onSave })} />);
 

@@ -72,9 +72,9 @@ export function ItemStep({
     () => convertOptions(fieldOptions.domain),
     [fieldOptions.domain, convertOptions]
   );
-  const contextOptions = useMemo(
-    () => convertOptions(fieldOptions.context),
-    [fieldOptions.context, convertOptions]
+  const subdomainOptions = useMemo(
+    () => convertOptions(fieldOptions.subdomain),
+    [fieldOptions.subdomain, convertOptions]
   );
   const priorityOptions = useMemo(
     () => convertOptions(fieldOptions.priority),
@@ -143,29 +143,37 @@ export function ItemStep({
     [draft, onDraftChange, onAddFieldOption]
   );
 
-  // Context multi-select handlers
-  const handleContextSelect = useCallback(
+  // Subdomain multi-select handlers
+  const handleSubdomainSelect = useCallback(
     (value: string) => {
-      if (!draft.context.includes(value)) {
-        onDraftChange({ ...draft, context: [...draft.context, value] });
+      if (!draft.subdomain.includes(value)) {
+        onDraftChange({ ...draft, subdomain: [...draft.subdomain, value] });
       }
     },
     [draft, onDraftChange]
   );
 
-  const handleContextRemove = useCallback(
+  const handleSubdomainRemove = useCallback(
     (value: string) => {
-      onDraftChange({ ...draft, context: draft.context.filter((c) => c !== value) });
+      onDraftChange({ ...draft, subdomain: draft.subdomain.filter((s) => s !== value) });
     },
     [draft, onDraftChange]
   );
 
-  const handleContextAdd = useCallback(
+  const handleSubdomainAdd = useCallback(
     async (value: string) => {
-      await onAddFieldOption('context', value);
-      onDraftChange({ ...draft, context: [...draft.context, value] });
+      await onAddFieldOption('subdomain', value);
+      onDraftChange({ ...draft, subdomain: [...draft.subdomain, value] });
     },
     [draft, onDraftChange, onAddFieldOption]
+  );
+
+  // Context text input handler (free-form)
+  const handleContextChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      onDraftChange({ ...draft, context: event.target.value });
+    },
+    [draft, onDraftChange]
   );
 
   const handlePriorityChange = useCallback(
@@ -357,18 +365,36 @@ export function ItemStep({
             tooltip="The functional area or module this request applies to (web, mobile, api, etc.)"
           />
 
-          {/* Context - Optional (multi-select) */}
+          {/* Subdomain - Optional (multi-select) */}
           <MultiSelectCombobox
-            options={contextOptions.map((o) => o.label)}
-            selected={draft.context}
-            onSelect={handleContextSelect}
-            onRemove={handleContextRemove}
-            onAdd={handleContextAdd}
-            placeholder="Select context..."
-            label="Context"
-            helperText="Additional context or category"
-            tooltip="Specific context or subcategory for this request"
+            options={subdomainOptions.map((o) => o.label)}
+            selected={draft.subdomain}
+            onSelect={handleSubdomainSelect}
+            onRemove={handleSubdomainRemove}
+            onAdd={handleSubdomainAdd}
+            placeholder="Select subdomain..."
+            label="Subdomain"
+            helperText="Sub-category within the domain"
+            tooltip="Specific subdomain or subcategory for this request"
           />
+
+          {/* Context - Optional (free-form text) */}
+          <FormField
+            label="Context"
+            id="item-context"
+            helperText="Optional background or context"
+            tooltip="Additional background information or context for this request"
+          >
+            <input
+              id="item-context"
+              type="text"
+              className="input-base"
+              value={draft.context || ''}
+              onChange={handleContextChange}
+              placeholder="Optional background/context for this item..."
+              aria-label="Item context"
+            />
+          </FormField>
 
           {/* Priority - Required */}
           <DropdownWithAdd

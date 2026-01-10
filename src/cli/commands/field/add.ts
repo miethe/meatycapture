@@ -41,11 +41,13 @@ import {
 /**
  * Valid field names for field catalog.
  * Must match FieldName type from core models.
+ * Note: 'context' is now a free-form text field, not a categorical field.
+ * 'subdomain' replaces the old 'context' array as the categorical sub-domain selector.
  */
 const VALID_FIELD_NAMES: readonly FieldName[] = [
   'type',
   'domain',
-  'context',
+  'subdomain',
   'priority',
   'status',
   'tags',
@@ -290,10 +292,12 @@ Examples:
 Supported Fields:
   type       Item types (enhancement, bug, idea, task, question)
   domain     Domain areas (web, api, mobile, cli, infra)
-  context    Context information (user-facing, internal, technical)
+  subdomain  Sub-domain categories (user-facing, internal, technical)
   priority   Priority levels (low, medium, high, critical)
   status     Status values (triage, backlog, planned, in-progress, done)
   tags       Freeform tags for categorization
+
+Note: 'context' is now a free-form text field on items, not a field catalog option.
 
 Exit Codes:
   0  Success - option added to field catalog

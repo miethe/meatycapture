@@ -3,7 +3,7 @@
  *
  * Searches request-log documents for items matching a query.
  * Supports text search in title/notes and special prefix syntax
- * for filtering by tags, type, or status.
+ * for filtering by tags, type, status, domain, subdomain, and context.
  *
  * Usage:
  *   meatycapture log search <query> [project]
@@ -14,6 +14,8 @@
  *   meatycapture log search "type:enhancement"    # Items of type enhancement
  *   meatycapture log search "status:triage"       # Items with status triage
  *   meatycapture log search "tag:api login"       # Combined (AND logic)
+ *   meatycapture log search "domain:api"          # Items with domain "api"
+ *   meatycapture log search "context:auth"        # Items with context text
  *
  * Exit Codes:
  *   0 - Success (even if no results)
@@ -31,6 +33,7 @@ import {
   type SearchOptions,
   type MatchMode,
 } from '@cli/handlers/search.js';
+import { searchCatalogIndex } from '@cli/indexing/search.js';
 import { handleError, CliError, setQuietMode, isQuietMode } from '@cli/handlers/errors.js';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 
@@ -139,7 +142,21 @@ export async function searchAction(
       searchPath = join(homedir(), '.meatycapture', 'docs');
     }
 
-    // Load documents
+    // Configure search options
+    const searchOptions: SearchOptions = {
+      matchMode: parseMatchMode(options.match) as MatchMode,
+      limit: parseLimit(options.limit),
+    };
+
+    // Try catalog + text index if available
+    const indexedMatches = await searchCatalogIndex(query, searchPath, searchOptions);
+    if (indexedMatches !== null) {
+      outputResults(indexedMatches, options);
+      process.exit(ExitCodes.SUCCESS);
+      return;
+    }
+
+    // Load documents for full scan fallback
     const { docStore } = await createAdapters();
     const docMetas = await docStore.list(searchPath);
 
@@ -165,12 +182,6 @@ export async function searchAction(
         continue;
       }
     }
-
-    // Configure search options
-    const searchOptions: SearchOptions = {
-      matchMode: parseMatchMode(options.match) as MatchMode,
-      limit: parseLimit(options.limit),
-    };
 
     // Execute search
     const matches = searchDocuments(docsWithPaths, query, searchOptions);
@@ -234,7 +245,10 @@ export function registerSearchCommand(program: Command): void {
   program
     .command('search')
     .description('Search request-log documents for items matching a query')
-    .argument('<query>', 'Search query (supports tag:, type:, status: prefixes)')
+    .argument(
+      '<query>',
+      'Search query (supports tag:, type:, status:, domain:, subdomain:, context: prefixes)'
+    )
     .argument('[project]', 'Project identifier (optional)')
     .option('-p, --path <path>', 'Custom path to search for documents')
     .option('--json', 'Output as JSON')
@@ -252,6 +266,9 @@ Query Syntax:
   tag:<name>      Search for items with tag
   type:<type>     Search for items of type (enhancement, bug, etc.)
   status:<status> Search for items with status (triage, backlog, etc.)
+  domain:<value>  Search for items with domain
+  subdomain:<val> Search for items with subdomain
+  context:<text>  Search for items with context text
 
   Multiple terms are combined with AND logic.
 
@@ -260,6 +277,7 @@ Examples:
   meatycapture log search "tag:ux"
   meatycapture log search "type:enhancement" my-project
   meatycapture log search "tag:api status:triage" --table
+  meatycapture log search "domain:web context:auth"
   meatycapture log search "urgent" -p ./docs --json
 `
     )

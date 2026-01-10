@@ -35,6 +35,10 @@ interface MultiSelectWithAddProps {
   helperText?: string;
   /** Tooltip content for contextual help */
   tooltip?: string;
+  /** Whether the field is disabled */
+  disabled?: boolean;
+  /** Base ID for label/input associations (helps avoid duplicate IDs) */
+  idBase?: string;
 }
 
 export function MultiSelectWithAdd({
@@ -47,12 +51,16 @@ export function MultiSelectWithAdd({
   error,
   helperText,
   tooltip,
+  disabled = false,
+  idBase,
 }: MultiSelectWithAddProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fieldIdBase = (idBase ?? label).replace(/\s+/g, '-');
+  const inputId = `tags-input-${fieldIdBase}`;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -91,37 +99,42 @@ export function MultiSelectWithAdd({
 
   // Handle input change - filter options
   const handleInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    if (disabled) return;
     setSearchQuery(event.target.value);
     setIsOpen(true);
-  }, []);
+  }, [disabled]);
 
   // Handle input focus - show dropdown
   const handleInputFocus = useCallback(() => {
+    if (disabled) return;
     setIsOpen(true);
-  }, []);
+  }, [disabled]);
 
   // Handle selecting an option
   const handleSelectOption = useCallback(
     (optionId: string) => {
+      if (disabled) return;
       onChange([...values, optionId]);
       setSearchQuery('');
       setIsOpen(true); // Keep open for multiple selections
       inputRef.current?.focus();
     },
-    [values, onChange]
+    [values, onChange, disabled]
   );
 
   // Handle removing a tag
   const handleRemoveTag = useCallback(
     (valueId: string) => {
+      if (disabled) return;
       onChange(values.filter((id) => id !== valueId));
       inputRef.current?.focus();
     },
-    [values, onChange]
+    [values, onChange, disabled]
   );
 
   // Handle creating a new tag
   const handleCreateTag = useCallback(async () => {
+    if (disabled) return;
     const newValue = searchQuery.trim();
     if (!newValue || exactMatch) {
       return;
@@ -138,11 +151,12 @@ export function MultiSelectWithAdd({
     } finally {
       setIsCreating(false);
     }
-  }, [searchQuery, exactMatch, onAddNew]);
+  }, [searchQuery, exactMatch, onAddNew, disabled]);
 
   // Handle keyboard navigation
   const handleInputKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (disabled) return;
       if (event.key === 'Enter' && searchQuery.trim() && !exactMatch) {
         event.preventDefault();
         handleCreateTag();
@@ -156,14 +170,14 @@ export function MultiSelectWithAdd({
         onChange(values.slice(0, -1));
       }
     },
-    [searchQuery, exactMatch, values, onChange, handleCreateTag]
+    [searchQuery, exactMatch, values, onChange, handleCreateTag, disabled]
   );
 
   return (
     <div className="field-container">
       {/* Label with optional tooltip */}
       <div className="form-field-label-row">
-        <label className="field-label" htmlFor={`tags-input-${label}`}>
+        <label className="field-label" htmlFor={inputId}>
           {label}
         </label>
         {tooltip && (
@@ -182,7 +196,7 @@ export function MultiSelectWithAdd({
 
       {/* Helper text */}
       {helperText && !error && (
-        <div className="form-field-helper" id={`tags-input-${label}-helper`}>
+        <div className="form-field-helper" id={`${inputId}-helper`}>
           {helperText}
         </div>
       )}
@@ -212,7 +226,7 @@ export function MultiSelectWithAdd({
         <div className="tags-input-wrapper">
           <input
             ref={inputRef}
-            id={`tags-input-${label}`}
+            id={inputId}
             type="text"
             className="input-base tags-search-input"
             value={searchQuery}
@@ -220,12 +234,12 @@ export function MultiSelectWithAdd({
             onFocus={handleInputFocus}
             onKeyDown={handleInputKeyDown}
             placeholder={placeholder}
-            disabled={isCreating}
+            disabled={disabled || isCreating}
             aria-label={label}
             aria-expanded={isOpen}
             aria-haspopup="listbox"
             aria-autocomplete="list"
-            aria-describedby={helperText ? `tags-input-${label}-helper` : undefined}
+            aria-describedby={helperText ? `${inputId}-helper` : undefined}
             autoComplete="off"
           />
 
@@ -250,7 +264,7 @@ export function MultiSelectWithAdd({
                       handleSelectOption(option.id);
                     }
                   }}
-                  tabIndex={0}
+                  tabIndex={disabled ? -1 : 0}
                 >
                   <span>{option.label}</span>
                 </div>
@@ -268,7 +282,7 @@ export function MultiSelectWithAdd({
                       handleCreateTag();
                     }
                   }}
-                  disabled={isCreating}
+                  disabled={disabled || isCreating}
                   aria-label={`Create new tag: ${searchQuery.trim()}`}
                 >
                   {isCreating ? (

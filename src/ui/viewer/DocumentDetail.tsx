@@ -26,6 +26,28 @@ export interface DocumentDetailProps {
 
   /** Loading state while fetching document */
   isLoading: boolean;
+
+  /** Document path for update operations */
+  docPath?: string;
+
+  /** Called when an item field update occurs */
+  onItemUpdate?: (
+    docPath: string,
+    itemId: string,
+    updates: {
+      title?: string;
+      type?: string;
+      domain?: string[];
+      subdomain?: string[];
+      context?: string;
+      priority?: string;
+      status?: string;
+      tags?: string[];
+    }
+  ) => void;
+
+  /** Whether a specific item is currently updating */
+  isItemUpdating?: (itemId: string) => boolean;
 }
 
 /**
@@ -37,7 +59,13 @@ export interface DocumentDetailProps {
  * @param props - DocumentDetailProps
  * @returns DocumentDetail component
  */
-export function DocumentDetail({ document, isLoading }: DocumentDetailProps): React.JSX.Element {
+export function DocumentDetail({
+  document,
+  isLoading,
+  docPath,
+  onItemUpdate,
+  isItemUpdating,
+}: DocumentDetailProps): React.JSX.Element {
   const [showItemsIndex, setShowItemsIndex] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
@@ -229,7 +257,14 @@ export function DocumentDetail({ document, isLoading }: DocumentDetailProps): Re
           ) : (
             document.items.map((item) => (
               <div key={item.id} role="listitem">
-                <ItemCard item={item} onCopyId={handleCopyItemId} />
+                <ItemCard
+                  item={item}
+                  onCopyId={handleCopyItemId}
+                  {...(docPath && onItemUpdate
+                    ? { onItemUpdate: (updates) => onItemUpdate(docPath, item.id, updates) }
+                    : {})}
+                  isUpdating={isItemUpdating ? isItemUpdating(item.id) : false}
+                />
               </div>
             ))
           )}

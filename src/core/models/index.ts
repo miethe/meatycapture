@@ -35,8 +35,10 @@ export type ConfigKey = 'default_project' | 'api_url';
 
 /**
  * Field names that support configurable options
+ * Note: 'subdomain' replaced 'context' as the categorical field;
+ * 'context' is now a free-form text field (not in FieldName)
  */
-export type FieldName = 'type' | 'domain' | 'context' | 'priority' | 'status' | 'tags';
+export type FieldName = 'type' | 'domain' | 'subdomain' | 'priority' | 'status' | 'tags';
 
 /**
  * Scope for field options - global applies to all projects,
@@ -97,8 +99,10 @@ export interface ItemDraft {
   type: string;
   /** Domain/area (web, api, mobile, etc.) - supports multiple selections */
   domain: string[];
-  /** Additional context information - supports multiple selections */
-  context: string[];
+  /** Sub-domain categories within the main domain - supports multiple selections */
+  subdomain: string[];
+  /** Optional free-form context/background information */
+  context?: string;
   /** Priority level (low, medium, high, critical) */
   priority: string;
   /** Current status (triage, backlog, in-progress, etc.) */
@@ -126,8 +130,10 @@ export interface RequestLogItem {
   type: string;
   /** Domain/area (web, api, mobile, etc.) - supports multiple selections */
   domain: string[];
-  /** Additional context information - supports multiple selections */
-  context: string[];
+  /** Sub-domain categories within the main domain - supports multiple selections */
+  subdomain: string[];
+  /** Optional free-form context/background information */
+  context?: string;
   /** Priority level (low, medium, high, critical) */
   priority: string;
   /** Current status (triage, backlog, in-progress, etc.) */
@@ -447,7 +453,7 @@ export function isProject(obj: unknown): obj is Project {
 export function isFieldOption(obj: unknown): obj is FieldOption {
   if (!obj || typeof obj !== 'object') return false;
   const f = obj as Partial<FieldOption>;
-  const validFields: FieldName[] = ['type', 'domain', 'context', 'priority', 'status', 'tags'];
+  const validFields: FieldName[] = ['type', 'domain', 'subdomain', 'priority', 'status', 'tags'];
   const validScopes: FieldScope[] = ['global', 'project'];
   return (
     typeof f.id === 'string' &&
@@ -464,6 +470,7 @@ export function isFieldOption(obj: unknown): obj is FieldOption {
 /**
  * Type guard to check if an object is a valid ItemDraft.
  * Notes must be an array of valid Note objects.
+ * context is optional free-form string; subdomain is required array.
  */
 export function isItemDraft(obj: unknown): obj is ItemDraft {
   if (!obj || typeof obj !== 'object') return false;
@@ -473,8 +480,9 @@ export function isItemDraft(obj: unknown): obj is ItemDraft {
     typeof i.type === 'string' &&
     Array.isArray(i.domain) &&
     i.domain.every((d) => typeof d === 'string') &&
-    Array.isArray(i.context) &&
-    i.context.every((c) => typeof c === 'string') &&
+    Array.isArray(i.subdomain) &&
+    i.subdomain.every((s) => typeof s === 'string') &&
+    (i.context === undefined || typeof i.context === 'string') &&
     typeof i.priority === 'string' &&
     typeof i.status === 'string' &&
     Array.isArray(i.tags) &&
@@ -488,6 +496,7 @@ export function isItemDraft(obj: unknown): obj is ItemDraft {
  * Type guard to check if an object is a valid RequestLogItem.
  * Notes can be undefined (backward compat) or an array of valid Note objects.
  * modified_at is optional for backward compatibility (existing docs may not have it).
+ * context is optional free-form string; subdomain is required array.
  */
 export function isRequestLogItem(obj: unknown): obj is RequestLogItem {
   if (!obj || typeof obj !== 'object') return false;
@@ -503,8 +512,9 @@ export function isRequestLogItem(obj: unknown): obj is RequestLogItem {
     typeof i.type === 'string' &&
     Array.isArray(i.domain) &&
     i.domain.every((d) => typeof d === 'string') &&
-    Array.isArray(i.context) &&
-    i.context.every((c) => typeof c === 'string') &&
+    Array.isArray(i.subdomain) &&
+    i.subdomain.every((s) => typeof s === 'string') &&
+    (i.context === undefined || typeof i.context === 'string') &&
     typeof i.priority === 'string' &&
     typeof i.status === 'string' &&
     Array.isArray(i.tags) &&

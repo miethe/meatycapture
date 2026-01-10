@@ -57,7 +57,7 @@ function createMockItem(overrides: Partial<RequestLogItem> = {}): RequestLogItem
     title: 'Test Item Title',
     type: 'enhancement',
     domain: ['web'],
-    context: ['frontend'],
+    subdomain: ['frontend'],
     priority: 'medium',
     status: 'triage',
     tags: ['ux', 'api'],
@@ -108,7 +108,7 @@ function createMockDocument(overrides: Partial<RequestLogDoc> = {}): RequestLogD
 const defaultFieldOptions = {
   type: ['enhancement', 'bug', 'idea', 'task', 'question'],
   domain: ['web', 'api', 'mobile', 'backend'],
-  context: ['frontend', 'backend', 'infrastructure'],
+  subdomain: ['frontend', 'backend', 'infrastructure'],
   priority: ['low', 'medium', 'high', 'critical'],
   status: ['triage', 'backlog', 'planned', 'in-progress', 'done', 'wontfix'],
   tags: ['ux', 'api', 'performance', 'security'],
@@ -957,7 +957,7 @@ describe('ItemCRUD Integration Tests', () => {
         title: 'New Title',
         type: expect.any(String),
         domain: expect.any(Array),
-        context: expect.any(Array),
+        subdomain: expect.any(Array),
         priority: expect.any(String),
         status: expect.any(String),
         tags: expect.any(Array),
@@ -965,6 +965,7 @@ describe('ItemCRUD Integration Tests', () => {
         created_at: expect.any(Date),
         modified_at: expect.any(Date),
       });
+      // context is optional string, may or may not be present
     });
 
     it('calls DocStore.deleteItem with correct path and ID', async () => {

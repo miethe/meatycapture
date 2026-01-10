@@ -15,6 +15,7 @@
  * - GET    /api/docs?directory={path}              → list()
  * - GET    /api/docs/:doc_id?path={path}           → read()
  * - POST   /api/docs/:doc_id?path={path}           → write()
+ * - DELETE /api/docs/:doc_id?path={path}           → delete()
  * - PATCH  /api/docs/:doc_id/items?path={path}     → append()
  * - POST   /api/docs/:doc_id/backup?path={path}    → backup()
  * - HEAD   /api/docs/:doc_id?path={path}           → isWritable()
@@ -153,6 +154,22 @@ export class ApiDocStore implements DocStore {
 
     // Server returns {success: true, doc_id, path}
     // We ignore response for void return type
+  }
+
+  /**
+   * Delete a request-log document
+   *
+   * Calls: DELETE /api/docs/:doc_id?path={path}
+   *
+   * @param path - File path to the document
+   * @throws ValidationError if path parameter is invalid
+   * @throws NotFoundError if document not found at path
+   * @throws StorageError if server fails to delete document
+   */
+  async delete(path: string): Promise<void> {
+    const docId = extractDocId(path);
+
+    await this.client.delete<null>(`/api/docs/${docId}`, { path });
   }
 
   /**
