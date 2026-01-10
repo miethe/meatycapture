@@ -1,7 +1,7 @@
 ---
 description: Execute phase development with YAML-driven orchestration
 argument-hint: <phase-number> [--plan=path/to/plan.md]
-allowed-tools: Read, Grep, Glob, Edit, MultiEdit, Write,
+allowed-tools: Read, Grep, Glob, Edit, MultiEdit, Write, Skill,
   Bash(git:*), Bash(gh:*), Bash(pnpm:*), Bash(pytest:*),
   Bash(uv:*), Bash(pre-commit:*)
 ---
@@ -10,9 +10,22 @@ allowed-tools: Read, Grep, Glob, Edit, MultiEdit, Write,
 
 Execute phase `$ARGUMENTS` using YAML-driven orchestration.
 
+## Step 0: Load Required Skills (MANDATORY)
+
+**Execute these Skill tool calls NOW before any other action:**
+
+```text
+Skill("dev-execution")
+Skill("artifact-tracking")
+```
+
+⚠️ **DO NOT PROCEED** until both skills are loaded. The guidance below depends on skill content.
+
+---
+
 ## Execution Mode
 
-Load phase execution guidance: [.claude/skills/dev-execution/modes/phase-execution.md]
+Reference: [.claude/skills/dev-execution/modes/phase-execution.md]
 
 ## Actions
 

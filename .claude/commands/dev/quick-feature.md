@@ -10,6 +10,8 @@ argument-hint: [feature-text|file-path|REQ-ID]
 
 Streamlined planning and execution for simple features: `$ARGUMENTS`
 
+Utilize dev-execution skill for detailed guidance.
+
 ## Execution Mode
 
 Load quick execution guidance: [.claude/skills/dev-execution/modes/quick-execution.md]
