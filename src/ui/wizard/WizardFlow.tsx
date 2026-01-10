@@ -260,7 +260,12 @@ export function WizardFlow({
         };
 
         for (const option of options) {
-          grouped[option.field].push(option);
+          const fieldArray = grouped[option.field];
+          if (fieldArray) {
+            fieldArray.push(option);
+          } else if (import.meta.env.DEV) {
+            console.warn(`[WizardFlow] Skipping option with unknown field: ${option.field}`);
+          }
         }
 
         setFieldOptions(grouped);
