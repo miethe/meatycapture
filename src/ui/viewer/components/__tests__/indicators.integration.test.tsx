@@ -68,7 +68,7 @@ describe('Indicators Integration Tests', () => {
 
       render(<StatusIndicator status={item.status} showTooltip={false} />);
 
-      const indicator = screen.getByRole('img', { name: 'In Progress' });
+      const indicator = screen.getByRole('img', { name: 'Status: In Progress' });
       expect(indicator).toHaveClass('status-indicator--in-progress');
     });
   });
@@ -349,7 +349,7 @@ describe('Indicators Integration Tests', () => {
 
       render(<SimulatedItemCard item={item} />);
 
-      const indicator = screen.getByRole('img', { name: 'In Progress' });
+      const indicator = screen.getByRole('img', { name: 'Status: In Progress' });
       expect(indicator).toBeInTheDocument();
       expect(indicator).toHaveClass('status-indicator--in-progress');
     });
@@ -359,14 +359,14 @@ describe('Indicators Integration Tests', () => {
 
       const { rerender } = render(<SimulatedItemCard item={item} />);
 
-      let indicator = screen.getByRole('img', { name: 'Triage' });
+      let indicator = screen.getByRole('img', { name: 'Status: Triage' });
       expect(indicator).toHaveClass('status-indicator--triage');
 
       // Update status
       const updatedItem = { ...item, status: 'done' };
       rerender(<SimulatedItemCard item={updatedItem} />);
 
-      indicator = screen.getByRole('img', { name: 'Done' });
+      indicator = screen.getByRole('img', { name: 'Status: Done' });
       expect(indicator).toHaveClass('status-indicator--done');
     });
   });
@@ -513,8 +513,8 @@ describe('Indicators Integration Tests', () => {
       );
 
       // StatusIndicator has aria-label
-      const statusIndicator = screen.getByRole('img', { name: 'Done' });
-      expect(statusIndicator).toHaveAttribute('aria-label', 'Done');
+      const statusIndicator = screen.getByRole('img', { name: 'Status: Done' });
+      expect(statusIndicator).toHaveAttribute('aria-label', 'Status: Done');
 
       // ItemCountIndicator has aria-label with breakdown
       const itemCount = screen.getByText('2 items');

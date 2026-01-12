@@ -221,35 +221,35 @@ describe('StatusIndicator', () => {
       render(<StatusIndicator status="done" />);
 
       const indicator = screen.getByTestId('status-indicator');
-      expect(indicator).toHaveAttribute('aria-label', 'Done');
+      expect(indicator).toHaveAttribute('aria-label', 'Status: Done');
     });
 
     it('has aria-label "In Progress" for in-progress status', () => {
       render(<StatusIndicator status="in-progress" />);
 
       const indicator = screen.getByTestId('status-indicator');
-      expect(indicator).toHaveAttribute('aria-label', 'In Progress');
+      expect(indicator).toHaveAttribute('aria-label', 'Status: In Progress');
     });
 
     it('has aria-label "Won\'t Fix" for wontfix status', () => {
       render(<StatusIndicator status="wontfix" />);
 
       const indicator = screen.getByTestId('status-indicator');
-      expect(indicator).toHaveAttribute('aria-label', "Won't Fix");
+      expect(indicator).toHaveAttribute('aria-label', "Status: Won't Fix");
     });
 
     it('has aria-label with capitalized status for standard statuses', () => {
       render(<StatusIndicator status="backlog" />);
 
       const indicator = screen.getByTestId('status-indicator');
-      expect(indicator).toHaveAttribute('aria-label', 'Backlog');
+      expect(indicator).toHaveAttribute('aria-label', 'Status: Backlog');
     });
 
     it('has aria-label for unknown status values', () => {
       render(<StatusIndicator status="custom-status" />);
 
       const indicator = screen.getByTestId('status-indicator');
-      expect(indicator).toHaveAttribute('aria-label', 'Custom Status');
+      expect(indicator).toHaveAttribute('aria-label', 'Status: Custom Status');
     });
 
     it('renders as a span element', () => {
