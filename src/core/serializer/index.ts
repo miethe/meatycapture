@@ -312,6 +312,11 @@ function serializeItem(item: RequestLogItem): string {
     lines.push(`**Context:** ${item.context}`);
   }
 
+  // Include feature if non-empty array (optional for backward compatibility)
+  if (item.feature && item.feature.length > 0) {
+    lines.push(`**Feature:** ${item.feature.join(', ')}`);
+  }
+
   // Include tags if non-empty array
   if (item.tags.length > 0) {
     lines.push(`**Tags:** ${item.tags.join(', ')}`);
@@ -588,6 +593,16 @@ function parseItems(body: string): RequestLogItem[] {
     // context is optional string - only set if non-empty
     const context = contextStr && contextStr.length > 0 ? contextStr : undefined;
 
+    // Parse feature line (array of comma-separated values, optional for backward compatibility)
+    const featureMatch = content.match(/\*\*Feature:\*\*\s*([^\n]+)/);
+    const featureStr = featureMatch?.[1]?.trim() || '';
+    const feature = featureStr
+      ? featureStr
+          .split(',')
+          .map((f) => f.trim())
+          .filter((f) => f.length > 0)
+      : [];
+
     // Extract created_at from item ID (REQ-YYYYMMDD-...)
     // For MVP, use a default timestamp if not parseable
     const dateMatch = id.match(/REQ-(\d{8})-/);
@@ -618,6 +633,11 @@ function parseItems(body: string): RequestLogItem[] {
     // Add context only if present (avoids undefined assignment with exactOptionalPropertyTypes)
     if (context !== undefined) {
       item.context = context;
+    }
+
+    // Add feature only if present (avoids undefined assignment with exactOptionalPropertyTypes)
+    if (feature.length > 0) {
+      item.feature = feature;
     }
 
     // Add notes only if present (avoids undefined assignment with exactOptionalPropertyTypes)

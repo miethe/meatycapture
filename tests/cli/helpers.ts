@@ -278,6 +278,7 @@ export function createMockItemDraft(overrides?: Partial<ItemDraft>): ItemDraft {
     type: 'enhancement',
     domain: ['web'],
     subdomain: ['Test Context'],
+    feature: [],
     priority: 'medium',
     status: 'triage',
     tags: ['test'],

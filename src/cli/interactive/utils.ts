@@ -142,6 +142,7 @@ export async function promptItemDraft(projectId: string): Promise<ItemDraft> {
     type,
     domain,
     subdomain,
+    feature: [],
     priority,
     status,
     tags,

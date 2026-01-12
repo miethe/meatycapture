@@ -1,1 +1,10 @@
-deployed = []
+[[deployed]]
+artifact_name = "prd-writer"
+artifact_type = "agent"
+from_collection = "default"
+deployed_at = "2026-01-10T14:23:32.770676"
+artifact_path = "agents/prd-writer.md"
+content_hash = "4c1dd9d428073f665d9b198c506da53b6337ca7676d80684b7126fae77bf5ff2"
+local_modifications = false
+merge_base_snapshot = "4c1dd9d428073f665d9b198c506da53b6337ca7676d80684b7126fae77bf5ff2"
+collection_sha = "4c1dd9d428073f665d9b198c506da53b6337ca7676d80684b7126fae77bf5ff2"

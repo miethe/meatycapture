@@ -153,6 +153,7 @@ const createMockItemDraft = (): ItemDraft => ({
   type: 'bug',
   domain: ['ui'],
   subdomain: ['dashboard'],
+  feature: [],
   priority: 'high',
   status: 'triage',
   tags: ['ui', 'bug'],

@@ -38,7 +38,7 @@ export type ConfigKey = 'default_project' | 'api_url';
  * Note: 'subdomain' replaced 'context' as the categorical field;
  * 'context' is now a free-form text field (not in FieldName)
  */
-export type FieldName = 'type' | 'domain' | 'subdomain' | 'priority' | 'status' | 'tags';
+export type FieldName = 'type' | 'domain' | 'subdomain' | 'priority' | 'status' | 'tags' | 'feature';
 
 /**
  * Scope for field options - global applies to all projects,
@@ -107,6 +107,8 @@ export interface ItemDraft {
   priority: string;
   /** Current status (triage, backlog, in-progress, etc.) */
   status: string;
+  /** Linked features (PRD, Epic, etc.) - supports multiple selections */
+  feature: string[];
   /** Array of tag strings for categorization */
   tags: string[];
   /**
@@ -138,6 +140,8 @@ export interface RequestLogItem {
   priority: string;
   /** Current status (triage, backlog, in-progress, etc.) */
   status: string;
+  /** Linked features (PRD, Epic, etc.) - supports multiple selections (optional for backward compatibility) */
+  feature?: string[];
   /** Array of tag strings for categorization */
   tags: string[];
   /**
@@ -453,7 +457,7 @@ export function isProject(obj: unknown): obj is Project {
 export function isFieldOption(obj: unknown): obj is FieldOption {
   if (!obj || typeof obj !== 'object') return false;
   const f = obj as Partial<FieldOption>;
-  const validFields: FieldName[] = ['type', 'domain', 'subdomain', 'priority', 'status', 'tags'];
+  const validFields: FieldName[] = ['type', 'domain', 'subdomain', 'priority', 'status', 'tags', 'feature'];
   const validScopes: FieldScope[] = ['global', 'project'];
   return (
     typeof f.id === 'string' &&
@@ -485,6 +489,8 @@ export function isItemDraft(obj: unknown): obj is ItemDraft {
     (i.context === undefined || typeof i.context === 'string') &&
     typeof i.priority === 'string' &&
     typeof i.status === 'string' &&
+    Array.isArray(i.feature) &&
+    i.feature.every((f) => typeof f === 'string') &&
     Array.isArray(i.tags) &&
     i.tags.every((t) => typeof t === 'string') &&
     Array.isArray(i.notes) &&
@@ -506,6 +512,10 @@ export function isRequestLogItem(obj: unknown): obj is RequestLogItem {
   const notesValid =
     i.notes === undefined || (Array.isArray(i.notes) && i.notes.every((n) => isNote(n)));
 
+  // Validate feature: undefined is allowed (backward compat), or must be array of strings
+  const featureValid =
+    i.feature === undefined || (Array.isArray(i.feature) && i.feature.every((f) => typeof f === 'string'));
+
   return (
     typeof i.id === 'string' &&
     typeof i.title === 'string' &&
@@ -517,6 +527,7 @@ export function isRequestLogItem(obj: unknown): obj is RequestLogItem {
     (i.context === undefined || typeof i.context === 'string') &&
     typeof i.priority === 'string' &&
     typeof i.status === 'string' &&
+    featureValid &&
     Array.isArray(i.tags) &&
     i.tags.every((t) => typeof t === 'string') &&
     notesValid &&

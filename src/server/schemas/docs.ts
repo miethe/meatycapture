@@ -292,6 +292,7 @@ export function validateItemDraftBody(body: unknown): ItemDraft {
     type: validateString(obj.type, 'type'),
     domain: Array.isArray(obj.domain) ? validateStringArray(obj.domain, 'domain') : [],
     subdomain: Array.isArray(obj.subdomain) ? validateStringArray(obj.subdomain, 'subdomain') : [],
+    feature: Array.isArray(obj.feature) ? validateStringArray(obj.feature, 'feature') : [],
     priority: validateString(obj.priority, 'priority'),
     status: validateString(obj.status, 'status'),
     tags: validateStringArray(obj.tags, 'tags'),

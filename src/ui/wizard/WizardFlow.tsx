@@ -82,6 +82,7 @@ const EMPTY_DRAFT: ItemDraft = {
   subdomain: [],
   priority: 'medium',
   status: 'triage',
+  feature: [],
   tags: [],
   notes: [],
 };
@@ -132,6 +133,7 @@ export function WizardFlow({
     subdomain: [],
     priority: [],
     status: [],
+    feature: [],
     tags: [],
   });
 
@@ -256,6 +258,7 @@ export function WizardFlow({
           subdomain: [],
           priority: [],
           status: [],
+          feature: [],
           tags: [],
         };
 
