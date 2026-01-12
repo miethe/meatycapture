@@ -20,7 +20,7 @@ import type { CatalogEntry } from '@core/catalog';
 import type { RequestLogDoc } from '@core/models';
 import { DocumentDetail } from './DocumentDetail';
 import { DocumentKebabMenu } from './DocumentKebabMenu';
-import { ItemCountIndicator, TypeDistributionIndicator } from './components';
+import { DocumentStatusIndicator, TypeDistributionIndicator } from './components';
 
 export interface DocumentRowProps {
   /** Catalog entry metadata */
@@ -274,9 +274,9 @@ export const DocumentRow = React.memo(function DocumentRow({
         {/* Inline Metadata Display */}
         <td className="viewer-document-cell viewer-metadata-cell" role="cell">
           <div className="doc-row-metadata">
-            {/* Item count with status breakdown tooltip when document loaded */}
+            {/* Status completion indicator when document loaded */}
             {document?.items && document.items.length > 0 ? (
-              <ItemCountIndicator items={document.items} size="sm" />
+              <DocumentStatusIndicator items={document.items} size="sm" />
             ) : (
               <span className="doc-meta-item">
                 <FileTextIcon className="doc-meta-icon" aria-hidden="true" />

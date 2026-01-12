@@ -9,8 +9,8 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import './Tooltip.css';
 
 interface TooltipProps {
-  /** Tooltip content text */
-  content: string;
+  /** Tooltip content - can be text or complex JSX */
+  content: React.ReactNode;
   /** Child element that triggers the tooltip */
   children: React.ReactNode;
   /** Tooltip position relative to trigger */

@@ -17,3 +17,6 @@ export type { ItemCountIndicatorProps } from './ItemCountIndicator';
 
 export { TypeDistributionIndicator } from './TypeDistributionIndicator';
 export type { TypeDistributionIndicatorProps } from './TypeDistributionIndicator';
+
+export { DocumentStatusIndicator } from './DocumentStatusIndicator';
+export type { DocumentStatusIndicatorProps } from './DocumentStatusIndicator';

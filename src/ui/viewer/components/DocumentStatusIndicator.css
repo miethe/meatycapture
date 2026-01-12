@@ -1,0 +1,167 @@
+/**
+ * DocumentStatusIndicator Styles
+ *
+ * Boxed "x/y done" indicator with color-coded states.
+ * Tooltip contains status breakdown text and segmented progress bar.
+ */
+
+/* ============================================================================
+ * Main Indicator Container
+ * ============================================================================ */
+
+.doc-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--color-bg-glass-active);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  cursor: default;
+  transition: all var(--transition-fast);
+}
+
+/* Medium size variant */
+.doc-status-indicator--md {
+  padding: 0.375rem 0.625rem;
+  font-size: 0.8125rem;
+  border-radius: var(--radius-md);
+}
+
+/* Hover state for interactivity hint */
+.doc-status-indicator:hover {
+  background: var(--color-bg-glass-hover);
+  border-color: var(--color-border-focus);
+  color: var(--color-text);
+}
+
+/* Focus state for keyboard accessibility */
+.doc-status-indicator:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+ * Color States
+ * ============================================================================ */
+
+/* Complete state (100% done) - Green */
+.doc-status-indicator--complete {
+  background: var(--color-status-done-bg);
+  border-color: var(--color-status-done-border);
+  color: var(--color-status-done);
+}
+
+.doc-status-indicator--complete:hover {
+  background: rgba(99, 255, 150, 0.3);
+  border-color: var(--color-status-done);
+}
+
+.doc-status-indicator--complete .doc-status-text {
+  color: var(--color-status-done);
+}
+
+/* Empty state (0% done) - Yellow/Warning */
+.doc-status-indicator--empty {
+  background: var(--color-status-triage-bg);
+  border-color: var(--color-status-triage-border);
+  color: var(--color-status-triage);
+}
+
+.doc-status-indicator--empty:hover {
+  background: rgba(255, 220, 99, 0.3);
+  border-color: var(--color-status-triage);
+}
+
+.doc-status-indicator--empty .doc-status-text {
+  color: var(--color-status-triage);
+}
+
+/* Partial state uses default neutral styling */
+
+/* ============================================================================
+ * Text Styling
+ * ============================================================================ */
+
+.doc-status-text {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+ * Tooltip Content
+ * ============================================================================ */
+
+.doc-status-tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 10rem;
+}
+
+.doc-status-tooltip-text {
+  font-size: 0.8125rem;
+  color: var(--color-text);
+  white-space: normal;
+  line-height: 1.4;
+}
+
+/* Progress bar container */
+.doc-status-tooltip-bar {
+  display: flex;
+  width: 100%;
+  height: 0.5rem;
+  background: var(--color-bg-glass-active);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+/* Segment base styles */
+.doc-status-tooltip-segment {
+  height: 100%;
+  min-width: 2px;
+  transition: width var(--transition-fast);
+}
+
+/* ============================================================================
+ * Status Segment Colors
+ * Using existing CSS variables from viewer.css
+ * ============================================================================ */
+
+.doc-status-tooltip-segment--done {
+  background: var(--color-status-done);
+}
+
+.doc-status-tooltip-segment--in-progress {
+  background: var(--color-status-in-progress);
+}
+
+.doc-status-tooltip-segment--planned {
+  background: var(--color-status-planned);
+}
+
+.doc-status-tooltip-segment--backlog {
+  background: var(--color-status-backlog);
+}
+
+.doc-status-tooltip-segment--triage {
+  background: var(--color-status-triage);
+}
+
+.doc-status-tooltip-segment--wontfix {
+  background: var(--color-status-wontfix);
+}
+
+/* ============================================================================
+ * Reduced Motion Support
+ * ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .doc-status-indicator,
+  .doc-status-tooltip-segment {
+    transition: none;
+  }
+}
