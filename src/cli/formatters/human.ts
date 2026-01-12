@@ -149,10 +149,12 @@ export function formatItemAsHuman(item: RequestLogItem, options?: Partial<Format
   lines.push(`${c.dim('Tags:')} ${formatTags(c, item.tags)}`);
   lines.push(`${c.dim('Created:')} ${c.gray(formatDate(item.created_at))}`);
 
-  if (item.notes) {
+  if (item.notes && item.notes.length > 0) {
     lines.push('');
     lines.push(c.dim('Notes:'));
-    lines.push(c.white(item.notes));
+    for (const note of item.notes) {
+      lines.push(`  ${c.cyan(`[${note.type}]`)} ${c.white(note.content)}`);
+    }
   }
 
   return lines.join('\n');
