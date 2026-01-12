@@ -15,6 +15,7 @@ import { MultiSelectCombobox } from '../shared/MultiSelectCombobox';
 import { FormField, type ValidationState } from '../shared/FormField';
 import { NoteModal } from '../shared/NoteModal';
 import { NotesList } from '../shared/NotesList';
+import { generateUUID } from '../shared/browserCompat';
 import type { ItemDraft, FieldOption, FieldName, Note, NoteType } from '../../core/models';
 import './ItemStep.css';
 
@@ -87,6 +88,10 @@ export function ItemStep({
   const tagOptions = useMemo(
     () => convertOptions(fieldOptions.tags),
     [fieldOptions.tags, convertOptions]
+  );
+  const featureOptions = useMemo(
+    () => convertOptions(fieldOptions.feature),
+    [fieldOptions.feature, convertOptions]
   );
 
   // Field change handlers with validation
@@ -168,6 +173,31 @@ export function ItemStep({
     [draft, onDraftChange, onAddFieldOption]
   );
 
+  // Feature multi-select handlers
+  const handleFeatureSelect = useCallback(
+    (value: string) => {
+      if (!draft.feature.includes(value)) {
+        onDraftChange({ ...draft, feature: [...draft.feature, value] });
+      }
+    },
+    [draft, onDraftChange]
+  );
+
+  const handleFeatureRemove = useCallback(
+    (value: string) => {
+      onDraftChange({ ...draft, feature: draft.feature.filter((f) => f !== value) });
+    },
+    [draft, onDraftChange]
+  );
+
+  const handleFeatureAdd = useCallback(
+    async (value: string) => {
+      await onAddFieldOption('feature', value);
+      onDraftChange({ ...draft, feature: [...draft.feature, value] });
+    },
+    [draft, onDraftChange, onAddFieldOption]
+  );
+
   // Context text input handler (free-form)
   const handleContextChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -233,7 +263,7 @@ export function ItemStep({
       } else {
         // Add new note with temporary ID
         const newNote: Note = {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           type: noteData.type as NoteType,
           content: noteData.content,
           created_at: now,
@@ -395,6 +425,19 @@ export function ItemStep({
               aria-label="Item context"
             />
           </FormField>
+
+          {/* Feature - Optional (multi-select) */}
+          <MultiSelectCombobox
+            options={featureOptions.map((o) => o.label)}
+            selected={draft.feature}
+            onSelect={handleFeatureSelect}
+            onRemove={handleFeatureRemove}
+            onAdd={handleFeatureAdd}
+            placeholder="Link to features..."
+            label="Feature"
+            helperText="Linked features (PRD, Epic, etc.)"
+            tooltip="Link this item to one or more features, PRDs, or epics for tracking"
+          />
 
           {/* Priority - Required */}
           <DropdownWithAdd

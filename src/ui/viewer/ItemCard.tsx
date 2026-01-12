@@ -27,6 +27,7 @@ import { DropdownWithAdd } from '@ui/shared/DropdownWithAdd';
 import { MultiSelectCombobox } from '@ui/shared/MultiSelectCombobox';
 import { MultiSelectWithAdd } from '@ui/shared/MultiSelectWithAdd';
 import { Tooltip } from '@ui/shared/Tooltip';
+import { copyToClipboard, generateUUID } from '@ui/shared/browserCompat';
 import { aggregateNoteTypeCounts } from './utils/indicators';
 import { StatusIndicator } from './components';
 
@@ -338,22 +339,19 @@ export function ItemCard({
    * Handle copy item ID to clipboard
    */
   const handleCopyId = async () => {
-    try {
-      await navigator.clipboard.writeText(item.id);
+    const success = await copyToClipboard(item.id);
+
+    if (success) {
       setCopyFeedback('Copied!');
       onCopyId(item.id);
-
-      // Clear feedback after 2 seconds
-      setTimeout(() => {
-        setCopyFeedback(null);
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy item ID:', err);
+    } else {
       setCopyFeedback('Failed to copy');
-      setTimeout(() => {
-        setCopyFeedback(null);
-      }, 2000);
     }
+
+    // Clear feedback after 2 seconds
+    setTimeout(() => {
+      setCopyFeedback(null);
+    }, 2000);
   };
 
   // -------------------------------------------------------------------------
@@ -412,7 +410,7 @@ export function ItemCard({
       } else {
         // Add mode: create new note with temporary ID
         const newNote: Note = {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           type: noteData.type,
           content: noteData.content,
           created_at: now,

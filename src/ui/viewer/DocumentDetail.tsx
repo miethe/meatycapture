@@ -18,6 +18,7 @@ import React, { useState } from 'react';
 import type { RequestLogDoc } from '@core/models';
 import { ItemCard } from './ItemCard';
 import { StatsCard } from './StatsCard';
+import { copyToClipboard } from '@ui/shared/browserCompat';
 import { FileTextIcon, CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
 
 export interface DocumentDetailProps {
@@ -73,21 +74,18 @@ export function DocumentDetail({
    * Handle copy document ID to clipboard
    */
   const handleCopyDocId = async () => {
-    try {
-      await navigator.clipboard.writeText(document.doc_id);
-      setCopyFeedback('Copied!');
+    const success = await copyToClipboard(document.doc_id);
 
-      // Clear feedback after 2 seconds
-      setTimeout(() => {
-        setCopyFeedback(null);
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy document ID:', err);
+    if (success) {
+      setCopyFeedback('Copied!');
+    } else {
       setCopyFeedback('Failed to copy');
-      setTimeout(() => {
-        setCopyFeedback(null);
-      }, 2000);
     }
+
+    // Clear feedback after 2 seconds
+    setTimeout(() => {
+      setCopyFeedback(null);
+    }, 2000);
   };
 
   /**
