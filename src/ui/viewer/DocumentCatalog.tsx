@@ -139,6 +139,15 @@ export function DocumentCatalog({
   /**
    * Table column definitions for TanStack Table
    * Defines sortable fields and cell rendering
+   *
+   * Column layout:
+   * - expand: Expand/collapse chevron (50px)
+   * - types: Type distribution indicator (80px)
+   * - docInfo: Info icon with doc_id tooltip + copy (40px)
+   * - title: Document title (flexible, sortable)
+   * - itemStatus: Status indicator "x/y done" (80px)
+   * - modifiedDate: Calendar icon + date (100px)
+   * - tags: Tag chips with overflow (remaining space)
    */
   const columns = useMemo<ColumnDef<CatalogEntry>[]>(
     () => [
@@ -155,9 +164,10 @@ export function DocumentCatalog({
         size: 80,
       },
       {
-        accessorKey: 'doc_id',
-        header: 'Document ID',
-        sortingFn: 'alphanumeric',
+        id: 'docInfo',
+        header: '',
+        cell: () => null, // Rendered manually in DocumentRow (info icon with doc_id tooltip)
+        size: 40,
       },
       {
         accessorKey: 'title',
@@ -165,9 +175,21 @@ export function DocumentCatalog({
         sortingFn: 'alphanumeric',
       },
       {
-        id: 'metadata',
-        header: 'Metadata',
-        cell: () => null, // Rendered manually in DocumentRow (includes item_count, updated_at, tags)
+        id: 'itemStatus',
+        header: 'Status',
+        cell: () => null, // Rendered manually in DocumentRow (DocumentStatusIndicator)
+        size: 80,
+      },
+      {
+        id: 'modifiedDate',
+        header: 'Modified',
+        cell: () => null, // Rendered manually in DocumentRow (calendar + date)
+        size: 100,
+      },
+      {
+        id: 'tags',
+        header: 'Tags',
+        cell: () => null, // Rendered manually in DocumentRow (tag chips with overflow)
       },
     ],
     []
@@ -438,12 +460,24 @@ export function DocumentCatalog({
     <div className="viewer-catalog glass" role="region" aria-label="Document catalog">
       <div className="viewer-catalog-table-wrapper">
         <table className="viewer-catalog-table" role="table">
+          {/* Column widths for fixed table layout */}
+          <colgroup>
+            <col className="col-expand" />
+            <col className="col-types" />
+            <col className="col-doc-info" />
+            <col className="col-title" />
+            <col className="col-status" />
+            <col className="col-modified" />
+            <col className="col-tags" />
+            <col className="col-actions" />
+          </colgroup>
+
           {/* Table Header */}
           <thead role="rowgroup">
             <tr className="viewer-catalog-header" role="row">
               {table.getHeaderGroups().map((headerGroup) =>
                 headerGroup.headers.map((header) => {
-                  const isSortable = ['doc_id', 'title'].includes(header.id);
+                  const isSortable = ['title'].includes(header.id);
                   const isTypesHeader = header.id === 'types';
 
                   return (

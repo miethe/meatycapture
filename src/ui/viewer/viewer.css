@@ -578,9 +578,20 @@
 /* Catalog Table */
 .viewer-catalog-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.9375rem;
 }
+
+/* Column widths for fixed table layout */
+.viewer-catalog-table colgroup .col-expand { width: 50px; }
+.viewer-catalog-table colgroup .col-types { width: 80px; }
+.viewer-catalog-table colgroup .col-doc-info { width: 40px; }
+.viewer-catalog-table colgroup .col-title { width: auto; } /* Flexible */
+.viewer-catalog-table colgroup .col-status { width: 80px; }
+.viewer-catalog-table colgroup .col-modified { width: 100px; }
+.viewer-catalog-table colgroup .col-tags { width: 150px; }
+.viewer-catalog-table colgroup .col-actions { width: 40px; }
 
 /* Table Header */
 .viewer-catalog-header {
@@ -642,7 +653,21 @@
 .project-header-content {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.project-header-left {
+  display: flex;
+  align-items: center;
   gap: var(--spacing-md);
+}
+
+.project-header-indicators {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-left: auto;
 }
 
 .project-chevron {
@@ -658,7 +683,6 @@
   font-weight: 600;
   color: var(--color-text);
   margin: 0;
-  flex: 1;
 }
 
 .project-count-badge {
@@ -817,12 +841,24 @@
   line-height: 1;
 }
 
-/* Title Cell */
+/* Title Cell - Flexible width, no max constraint */
 .viewer-title-cell {
-  max-width: 12rem;
+  overflow: hidden;
+}
+
+.viewer-title-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-width: 0;
+}
+
+.viewer-title-text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 /* Count Cell */
@@ -838,9 +874,41 @@
   white-space: nowrap;
 }
 
-/* Tags Cell */
+/* Tags Cell - Uses remaining space with overflow handling */
 .viewer-tags-cell {
-  min-width: 8rem;
+  flex: 1;
+  min-width: 6rem;
+  overflow: hidden;
+}
+
+.viewer-tags-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.375rem;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.doc-tags-placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Tags overflow badge "+N" */
+.doc-tags-overflow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.125rem 0.375rem;
+  background: var(--color-bg-glass-active);
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tags-container {
@@ -852,6 +920,102 @@
 .tags-placeholder {
   color: var(--color-text-muted);
   font-style: italic;
+}
+
+/* ============================================================================
+ * Doc Info Cell - Info icon with doc_id tooltip + copy
+ * ============================================================================ */
+
+.viewer-doc-info-cell {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  text-align: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.viewer-doc-info-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.viewer-doc-info-button:hover {
+  background: var(--color-bg-glass-hover);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.viewer-doc-info-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.viewer-doc-info-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.viewer-doc-info-feedback {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+/* ============================================================================
+ * Item Status Cell - DocumentStatusIndicator "x/y done"
+ * ============================================================================ */
+
+.viewer-item-status-cell {
+  width: 80px;
+  min-width: 80px;
+  max-width: 100px;
+  white-space: nowrap;
+}
+
+.doc-meta-item-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* ============================================================================
+ * Modified Date Cell - Calendar icon + relative date
+ * ============================================================================ */
+
+.viewer-modified-date-cell {
+  width: 100px;
+  min-width: 90px;
+  max-width: 120px;
+  white-space: nowrap;
+}
+
+.doc-meta-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+/* ============================================================================
+ * Actions Cell - Kebab menu at end of row
+ * ============================================================================ */
+
+.viewer-actions-cell {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  padding: var(--spacing-xs);
 }
 
 /* Metadata Cell - Consolidated inline metadata display */
@@ -1094,11 +1258,54 @@
     padding: var(--spacing-xs) var(--spacing-sm);
   }
 
+  /* Make title cell constrained on mobile */
   .viewer-title-cell {
-    max-width: 12rem;
+    max-width: 10rem;
   }
 
-  /* Stack metadata vertically on mobile */
+  /* Hide tags column on mobile to save space */
+  .viewer-tags-cell {
+    display: none;
+  }
+
+  /* Smaller fixed widths on mobile */
+  .viewer-doc-info-cell {
+    width: 36px;
+    min-width: 36px;
+    max-width: 36px;
+  }
+
+  .viewer-doc-info-button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .viewer-item-status-cell {
+    width: 70px;
+    min-width: 60px;
+    max-width: 80px;
+  }
+
+  .viewer-modified-date-cell {
+    width: 80px;
+    min-width: 70px;
+    max-width: 90px;
+  }
+
+  /* Make date text smaller on mobile */
+  .doc-meta-date {
+    font-size: 0.75rem;
+  }
+
+  .viewer-actions-cell {
+    width: 36px;
+    min-width: 36px;
+    max-width: 36px;
+  }
+
+  /* Stack metadata vertically on mobile (legacy support) */
   .viewer-metadata-cell {
     min-width: auto;
   }
@@ -2265,6 +2472,7 @@
   .doc-row-chevron,
   .viewer-expand-button,
   .viewer-copy-button,
+  .viewer-doc-info-button,
   .viewer-item-action-button,
   .viewer-item-collapse-toggle,
   .viewer-item-collapsible,

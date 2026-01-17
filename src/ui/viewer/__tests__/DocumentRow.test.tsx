@@ -79,7 +79,10 @@ describe('DocumentRow', () => {
         </table>
       );
 
-      expect(screen.getByText('REQ-20251231-test')).toBeInTheDocument();
+      // doc_id is now in the info button aria-label, not as visible text
+      expect(
+        screen.getByRole('button', { name: /Document ID: REQ-20251231-test/i })
+      ).toBeInTheDocument();
       expect(screen.getByText('Test Document')).toBeInTheDocument();
     });
 
@@ -92,7 +95,8 @@ describe('DocumentRow', () => {
         </table>
       );
 
-      expect(screen.getByText('5')).toBeInTheDocument();
+      // Item count is now displayed as "X items" text
+      expect(screen.getByText('5 items')).toBeInTheDocument();
     });
   });
 
@@ -368,7 +372,7 @@ describe('DocumentRow', () => {
   });
 
   describe('tags display', () => {
-    it('does not show tags when document is null', () => {
+    it('shows placeholder when document is null', () => {
       const { container } = render(
         <table>
           <tbody>
@@ -377,10 +381,12 @@ describe('DocumentRow', () => {
         </table>
       );
 
-      expect(container.querySelector('.doc-row-tags')).not.toBeInTheDocument();
+      // Should show placeholder when no document
+      expect(container.querySelector('.doc-tags-placeholder')).toBeInTheDocument();
+      expect(container.querySelector('.viewer-tags-wrapper')).not.toBeInTheDocument();
     });
 
-    it('does not show tags when document has empty tags array', () => {
+    it('shows placeholder when document has empty tags array', () => {
       const document = createMockDocument({ tags: [] });
       const { container } = render(
         <table>
@@ -390,7 +396,9 @@ describe('DocumentRow', () => {
         </table>
       );
 
-      expect(container.querySelector('.doc-row-tags')).not.toBeInTheDocument();
+      // Should show placeholder when tags array is empty
+      expect(container.querySelector('.doc-tags-placeholder')).toBeInTheDocument();
+      expect(container.querySelector('.viewer-tags-wrapper')).not.toBeInTheDocument();
     });
 
     it('shows tags when document has tags', () => {
@@ -403,13 +411,15 @@ describe('DocumentRow', () => {
         </table>
       );
 
-      expect(container.querySelector('.doc-row-tags')).toBeInTheDocument();
+      // Should show tags wrapper with all tags
+      expect(container.querySelector('.viewer-tags-wrapper')).toBeInTheDocument();
       expect(screen.getByText('ux')).toBeInTheDocument();
       expect(screen.getByText('api')).toBeInTheDocument();
       expect(screen.getByText('bug')).toBeInTheDocument();
     });
 
-    it('shows only first 3 tags with overflow indicator', () => {
+    it('shows all tags with CSS overflow handling (no JS truncation)', () => {
+      // New design shows ALL tags in the DOM, CSS handles overflow
       const document = createMockDocument({
         tags: ['ux', 'api', 'bug', 'enhancement', 'review'],
       });
@@ -421,23 +431,20 @@ describe('DocumentRow', () => {
         </table>
       );
 
-      // First 3 tags should be visible
+      // All tags should be in the DOM (CSS handles visual overflow)
       expect(screen.getByText('ux')).toBeInTheDocument();
       expect(screen.getByText('api')).toBeInTheDocument();
       expect(screen.getByText('bug')).toBeInTheDocument();
+      expect(screen.getByText('enhancement')).toBeInTheDocument();
+      expect(screen.getByText('review')).toBeInTheDocument();
 
-      // 4th and 5th tags should not be visible as chips
-      expect(screen.queryByText('enhancement')).not.toBeInTheDocument();
-      expect(screen.queryByText('review')).not.toBeInTheDocument();
-
-      // Should show overflow indicator (+2)
-      expect(screen.getByText('+2')).toBeInTheDocument();
+      // No overflow indicator since CSS handles it
+      expect(screen.queryByText(/\+\d/)).not.toBeInTheDocument();
     });
 
-    it('does not show overflow indicator with exactly 3 tags', () => {
+    it('wraps tags with tooltip showing all tags', () => {
       const document = createMockDocument({ tags: ['ux', 'api', 'bug'] });
-
-      render(
+      const { container } = render(
         <table>
           <tbody>
             <DocumentRow {...defaultProps} document={document} />
@@ -445,7 +452,8 @@ describe('DocumentRow', () => {
         </table>
       );
 
-      expect(screen.queryByText(/\+\d/)).not.toBeInTheDocument();
+      // Tags should be wrapped in tooltip
+      expect(container.querySelector('.tooltip-wrapper')).toBeInTheDocument();
     });
   });
 

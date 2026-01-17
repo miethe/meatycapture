@@ -75,23 +75,29 @@ export const ProjectGroupRow = React.memo(function ProjectGroupRow({
       aria-expanded={isExpanded}
       aria-label={`Project ${project.name} with ${documentCount} document${documentCount !== 1 ? 's' : ''}`}
     >
-      <td colSpan={6} className="viewer-project-header" role="cell">
+      <td colSpan={8} className="viewer-project-header" role="cell">
         <div className="project-header-content">
-          {/* Chevron Icon */}
-          <span className="project-chevron" aria-hidden="true">
-            {isExpanded ? '▼' : '▶'}
-          </span>
+          {/* Left side: Chevron and Project Name */}
+          <div className="project-header-left">
+            {/* Chevron Icon */}
+            <span className="project-chevron" aria-hidden="true">
+              {isExpanded ? '▼' : '▶'}
+            </span>
 
-          {/* Project Name */}
-          <h3 className="project-name">{project.name}</h3>
+            {/* Project Name */}
+            <h3 className="project-name">{project.name}</h3>
+          </div>
 
-          {/* Document Count Badge */}
-          <span className="project-count-badge" aria-label={`${documentCount} documents`}>
-            {documentCount}
-          </span>
+          {/* Right side: Indicators */}
+          <div className="project-header-indicators">
+            {/* Document Count Badge */}
+            <span className="project-count-badge" aria-label={`${documentCount} documents`}>
+              {documentCount}
+            </span>
 
-          {/* Project Progress Indicator */}
-          {documents.length > 0 && <ProjectProgressIndicator documents={documents} />}
+            {/* Project Progress Indicator */}
+            {documents.length > 0 && <ProjectProgressIndicator documents={documents} />}
+          </div>
         </div>
       </td>
     </tr>

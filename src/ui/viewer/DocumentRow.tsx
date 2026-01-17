@@ -2,25 +2,40 @@
  * DocumentRow Component
  *
  * Renders a single document row in the catalog table.
- * Displays document metadata (doc_id, title, item_count, updated_at, tags).
- * Handles row expansion for detailed document view.
+ * Displays document metadata in separate columns for better layout control.
+ *
+ * Column structure:
+ * - Expand: Chevron for row expansion
+ * - Types: Type distribution indicator
+ * - Doc Info: Info icon with doc_id tooltip + copy to clipboard
+ * - Title: Document title with archived badge
+ * - Status: DocumentStatusIndicator "x/y done"
+ * - Modified: Calendar icon + relative date
+ * - Tags: Tag chips with overflow tooltip
+ * - Actions: Kebab menu (end of row)
  *
  * Features:
  * - Click row to expand/collapse detail view
  * - Loading state during document fetch
- * - Tags displayed as chips
+ * - Copy doc_id to clipboard with feedback
+ * - Tags displayed as chips with overflow handling
  * - Keyboard accessible (Enter to expand)
  * - Hover states for interaction feedback
  * - Kebab menu for document actions (Add Item, Edit, Archive, Delete)
  */
 
-import React from 'react';
-import { FileTextIcon, CalendarIcon, ChevronDownIcon, ArchiveIcon } from '@radix-ui/react-icons';
+import React, { useState, useCallback } from 'react';
+import { CalendarIcon, ChevronDownIcon, ArchiveIcon, InfoCircledIcon } from '@radix-ui/react-icons';
 import type { CatalogEntry } from '@core/catalog';
 import type { RequestLogDoc } from '@core/models';
 import { DocumentDetail } from './DocumentDetail';
 import { DocumentKebabMenu } from './DocumentKebabMenu';
 import { DocumentStatusIndicator, TypeDistributionIndicator } from './components';
+import { Tooltip } from '@ui/shared/Tooltip';
+import { copyToClipboard } from '@ui/shared/browserCompat';
+
+/** Maximum number of tags to show before displaying "+N" overflow badge */
+const MAX_VISIBLE_TAGS = 3;
 
 export interface DocumentRowProps {
   /** Catalog entry metadata */
@@ -103,6 +118,9 @@ export const DocumentRow = React.memo(function DocumentRow({
   onItemUpdate,
   isItemUpdating,
 }: DocumentRowProps): React.JSX.Element {
+  // Copy feedback state for doc_id copy button
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+
   /**
    * Handle row click for expansion
    * Loads document data if not already loaded/loading
@@ -113,6 +131,29 @@ export const DocumentRow = React.memo(function DocumentRow({
     }
     onToggle();
   };
+
+  /**
+   * Handle copy doc_id to clipboard
+   * Shows feedback for 2 seconds
+   */
+  const handleCopyDocId = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent row expansion
+      const success = await copyToClipboard(entry.doc_id);
+
+      if (success) {
+        setCopyFeedback('Copied!');
+      } else {
+        setCopyFeedback('Failed');
+      }
+
+      // Clear feedback after 2 seconds
+      setTimeout(() => {
+        setCopyFeedback(null);
+      }, 2000);
+    },
+    [entry.doc_id]
+  );
 
   /**
    * Handle keyboard navigation
@@ -210,6 +251,10 @@ export const DocumentRow = React.memo(function DocumentRow({
   // Get the document to use for the kebab menu
   const docForMenu = document || createPlaceholderDoc(entry);
 
+  // Build tags tooltip content (all tags if more than visible)
+  const allTagsTooltip =
+    document?.tags && document.tags.length > 0 ? document.tags.join(', ') : null;
+
   return (
     <>
       <tr
@@ -221,7 +266,7 @@ export const DocumentRow = React.memo(function DocumentRow({
         aria-expanded={isExpanded}
         aria-label={ariaLabel}
       >
-        {/* Expand/Collapse Button */}
+        {/* Column 1: Expand/Collapse Button */}
         <td className="viewer-document-cell viewer-expand-cell" role="cell">
           <button
             type="button"
@@ -244,7 +289,7 @@ export const DocumentRow = React.memo(function DocumentRow({
           </button>
         </td>
 
-        {/* Type Distribution Indicator */}
+        {/* Column 2: Type Distribution Indicator */}
         <td className="viewer-document-cell viewer-type-indicator-cell" role="cell">
           {document?.items && document.items.length > 0 ? (
             <TypeDistributionIndicator items={document.items} maxTypes={3} />
@@ -253,10 +298,31 @@ export const DocumentRow = React.memo(function DocumentRow({
           )}
         </td>
 
-        {/* Document ID */}
-        <td className="viewer-document-cell" role="cell">
-          <div className="doc-id-container">
-            <code className="doc-id-code">{entry.doc_id}</code>
+        {/* Column 3: Doc Info (info icon with doc_id tooltip + copy) */}
+        <td className="viewer-document-cell viewer-doc-info-cell" role="cell">
+          <Tooltip content={entry.doc_id} position="top" delay={200}>
+            <button
+              type="button"
+              className="viewer-doc-info-button"
+              onClick={handleCopyDocId}
+              aria-label={`Document ID: ${entry.doc_id}. Click to copy.`}
+              title="Click to copy document ID"
+            >
+              {copyFeedback ? (
+                <span className="viewer-doc-info-feedback" role="status" aria-live="polite">
+                  {copyFeedback === 'Copied!' ? '✓' : '✗'}
+                </span>
+              ) : (
+                <InfoCircledIcon className="viewer-doc-info-icon" aria-hidden="true" />
+              )}
+            </button>
+          </Tooltip>
+        </td>
+
+        {/* Column 4: Title with archived badge */}
+        <td className="viewer-document-cell viewer-title-cell" role="cell">
+          <div className="viewer-title-content">
+            <span className="viewer-title-text">{entry.title}</span>
             {entry.archived && (
               <span className="doc-archived-badge" role="status" aria-label="Archived document">
                 <ArchiveIcon className="doc-archived-icon" aria-hidden="true" />
@@ -266,63 +332,70 @@ export const DocumentRow = React.memo(function DocumentRow({
           </div>
         </td>
 
-        {/* Title */}
-        <td className="viewer-document-cell viewer-title-cell" role="cell">
-          {entry.title}
+        {/* Column 5: Item Status (x/y done) */}
+        <td className="viewer-document-cell viewer-item-status-cell" role="cell">
+          {document?.items && document.items.length > 0 ? (
+            <DocumentStatusIndicator items={document.items} size="sm" />
+          ) : (
+            <span className="doc-meta-item-count">{entry.item_count} items</span>
+          )}
         </td>
 
-        {/* Inline Metadata Display */}
-        <td className="viewer-document-cell viewer-metadata-cell" role="cell">
-          <div className="doc-row-metadata">
-            {/* Status completion indicator when document loaded */}
-            {document?.items && document.items.length > 0 ? (
-              <DocumentStatusIndicator items={document.items} size="sm" />
-            ) : (
-              <span className="doc-meta-item">
-                <FileTextIcon className="doc-meta-icon" aria-hidden="true" />
-                <span className="doc-meta-value">{entry.item_count}</span>
-              </span>
-            )}
-            <span className="doc-meta-item">
-              <CalendarIcon className="doc-meta-icon" aria-hidden="true" />
-              <time className="doc-meta-value" dateTime={entry.updated_at.toISOString()}>
-                {formatDate(entry.updated_at)}
-              </time>
-            </span>
-            {document && document.tags && document.tags.length > 0 && (
-              <div className="doc-row-tags">
-                {document.tags.slice(0, 3).map((tag) => (
+        {/* Column 6: Modified Date */}
+        <td className="viewer-document-cell viewer-modified-date-cell" role="cell">
+          <span className="doc-meta-date">
+            <CalendarIcon className="doc-meta-icon" aria-hidden="true" />
+            <time className="doc-meta-value" dateTime={entry.updated_at.toISOString()}>
+              {formatDate(entry.updated_at)}
+            </time>
+          </span>
+        </td>
+
+        {/* Column 7: Tags with overflow - shows MAX_VISIBLE_TAGS then "+N" */}
+        <td className="viewer-document-cell viewer-tags-cell" role="cell">
+          {document?.tags && document.tags.length > 0 ? (
+            <Tooltip content={allTagsTooltip || ''} position="top" delay={300}>
+              <div className="viewer-tags-wrapper">
+                {document.tags.slice(0, MAX_VISIBLE_TAGS).map((tag) => (
                   <span key={tag} className="doc-tag-chip">
                     {tag}
                   </span>
                 ))}
-                {document.tags.length > 3 && (
-                  <span className="doc-tag-more">+{document.tags.length - 3}</span>
+                {document.tags.length > MAX_VISIBLE_TAGS && (
+                  <span className="doc-tags-overflow">
+                    +{document.tags.length - MAX_VISIBLE_TAGS}
+                  </span>
                 )}
               </div>
-            )}
-            <div
-              className="doc-row-actions"
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => e.stopPropagation()}
-            >
-              <DocumentKebabMenu
-                doc={docForMenu}
-                onAddItem={handleAddItem}
-                onEdit={handleEdit}
-                onArchive={handleArchive}
-                onUnarchive={entry.archived ? handleUnarchive : undefined}
-                onDelete={handleDelete}
-              />
-            </div>
+            </Tooltip>
+          ) : (
+            <span className="doc-tags-placeholder">-</span>
+          )}
+        </td>
+
+        {/* Column 8: Actions (kebab menu) */}
+        <td className="viewer-document-cell viewer-actions-cell" role="cell">
+          <div
+            className="doc-row-actions"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <DocumentKebabMenu
+              doc={docForMenu}
+              onAddItem={handleAddItem}
+              onEdit={handleEdit}
+              onArchive={handleArchive}
+              onUnarchive={entry.archived ? handleUnarchive : undefined}
+              onDelete={handleDelete}
+            />
           </div>
         </td>
       </tr>
 
-      {/* Expanded Detail Row */}
+      {/* Expanded Detail Row - spans all 8 columns */}
       {isExpanded && (
         <tr className="viewer-detail-row" role="row">
-          <td colSpan={5} className="viewer-detail-cell" role="cell">
+          <td colSpan={8} className="viewer-detail-cell" role="cell">
             <div className="viewer-detail-content">
               {document ? (
                 <DocumentDetail
