@@ -129,6 +129,7 @@ export interface ItemCardProps {
     type: string[];
     domain: string[];
     subdomain: string[];
+    feature: string[];
     priority: string[];
     status: string[];
     tags: string[];
@@ -140,6 +141,7 @@ export interface ItemCardProps {
     type?: string;
     domain?: string[];
     subdomain?: string[];
+    feature?: string[];
     context?: string;
     priority?: string;
     status?: string;
@@ -261,6 +263,7 @@ export function ItemCard({
       type: unique([...DEFAULT_FIELD_OPTIONS.type, item.type]),
       domain: unique(item.domain),
       subdomain: unique(item.subdomain),
+      feature: unique(item.feature || []),
       priority: unique([...DEFAULT_FIELD_OPTIONS.priority, item.priority]),
       status: unique([...DEFAULT_FIELD_OPTIONS.status, item.status]),
       tags: unique(item.tags),
@@ -278,6 +281,9 @@ export function ItemCard({
   const [localSubdomainOptions, setLocalSubdomainOptions] = useState<string[]>(
     resolvedFieldOptions.subdomain
   );
+  const [localFeatureOptions, setLocalFeatureOptions] = useState<string[]>(
+    resolvedFieldOptions.feature
+  );
   const [localPriorityOptions, setLocalPriorityOptions] = useState<string[]>(
     resolvedFieldOptions.priority
   );
@@ -290,6 +296,7 @@ export function ItemCard({
     setLocalTypeOptions((prev) => mergeOptions(prev, resolvedFieldOptions.type));
     setLocalDomainOptions((prev) => mergeOptions(prev, resolvedFieldOptions.domain));
     setLocalSubdomainOptions((prev) => mergeOptions(prev, resolvedFieldOptions.subdomain));
+    setLocalFeatureOptions((prev) => mergeOptions(prev, resolvedFieldOptions.feature));
     setLocalPriorityOptions((prev) => mergeOptions(prev, resolvedFieldOptions.priority));
     setLocalStatusOptions((prev) => mergeOptions(prev, resolvedFieldOptions.status));
     setLocalTagOptions((prev) => mergeOptions(prev, resolvedFieldOptions.tags));
@@ -487,6 +494,7 @@ export function ItemCard({
       type?: string;
       domain?: string[];
       subdomain?: string[];
+      feature?: string[];
       context?: string;
       priority?: string;
       status?: string;
@@ -527,6 +535,24 @@ export function ItemCard({
     (value: string) => {
       setLocalSubdomainOptions((prev) => mergeOptions(prev, [value]));
       handleFieldUpdate({ subdomain: [value] });
+    },
+    [handleFieldUpdate, mergeOptions]
+  );
+
+  const handleFeatureSelect = useCallback(
+    (value: string) => handleFieldUpdate({ feature: [value] }),
+    [handleFieldUpdate]
+  );
+
+  const handleFeatureRemove = useCallback(
+    () => handleFieldUpdate({ feature: [] }),
+    [handleFieldUpdate]
+  );
+
+  const handleFeatureAdd = useCallback(
+    (value: string) => {
+      setLocalFeatureOptions((prev) => mergeOptions(prev, [value]));
+      handleFieldUpdate({ feature: [value] });
     },
     [handleFieldUpdate, mergeOptions]
   );
@@ -691,6 +717,18 @@ export function ItemCard({
                 placeholder="Select or type subdomain..."
                 disabled={isFieldDisabled}
                 idBase={`item-${item.id}-subdomain`}
+              />
+
+              <MultiSelectCombobox
+                label="Feature"
+                options={localFeatureOptions}
+                selected={item.feature || []}
+                onSelect={handleFeatureSelect}
+                onRemove={handleFeatureRemove}
+                onAdd={handleFeatureAdd}
+                placeholder="Select or type feature..."
+                disabled={isFieldDisabled}
+                idBase={`item-${item.id}-feature`}
               />
             </div>
 
