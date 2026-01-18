@@ -31,6 +31,7 @@ export interface ItemEditFormProps {
     type: string[];
     domain: string[];
     subdomain: string[];
+    feature: string[];
     priority: string[];
     status: string[];
     tags: string[];
@@ -80,6 +81,7 @@ export function ItemEditForm({
   const [domain, setDomain] = useState<string[]>(item.domain || []);
   const [subdomain, setSubdomain] = useState<string[]>(item.subdomain || []);
   const [context, setContext] = useState<string>(item.context || '');
+  const [feature, setFeature] = useState<string[]>(item.feature || []);
   const [priority, setPriority] = useState(item.priority);
   const [status, setStatus] = useState(item.status);
   const [tags, setTags] = useState<string[]>(item.tags);
@@ -92,6 +94,7 @@ export function ItemEditForm({
   // Track local field options for add-new functionality
   const [localDomainOptions, setLocalDomainOptions] = useState<string[]>(fieldOptions.domain);
   const [localSubdomainOptions, setLocalSubdomainOptions] = useState<string[]>(fieldOptions.subdomain);
+  const [localFeatureOptions, setLocalFeatureOptions] = useState<string[]>(fieldOptions.feature);
   const [localTagOptions, setLocalTagOptions] = useState<string[]>(fieldOptions.tags);
 
   // Convert field options to dropdown format
@@ -149,6 +152,7 @@ export function ItemEditForm({
         domain: domain,
         subdomain: subdomain,
         ...(context ? { context } : {}),
+        ...(feature.length > 0 ? { feature } : {}),
         priority,
         status,
         tags,
@@ -158,7 +162,7 @@ export function ItemEditForm({
 
       onSave(updatedItem);
     },
-    [item, title, type, domain, subdomain, context, priority, status, tags, notes, validateForm, onSave]
+    [item, title, type, domain, subdomain, context, feature, priority, status, tags, notes, validateForm, onSave]
   );
 
   /**
@@ -272,6 +276,28 @@ export function ItemEditForm({
   }, []);
 
   /**
+   * Handle feature selection
+   */
+  const handleFeatureSelect = useCallback((value: string) => {
+    setFeature((prev) => (prev.includes(value) ? prev : [...prev, value]));
+  }, []);
+
+  /**
+   * Handle feature removal
+   */
+  const handleFeatureRemove = useCallback((value: string) => {
+    setFeature((prev) => prev.filter((f) => f !== value));
+  }, []);
+
+  /**
+   * Handle adding new feature
+   */
+  const handleFeatureAdd = useCallback((value: string) => {
+    setLocalFeatureOptions((prev) => [...prev, value]);
+    setFeature((prev) => [...prev, value]);
+  }, []);
+
+  /**
    * Handle context text change (free-form)
    */
   const handleContextChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -368,6 +394,19 @@ export function ItemEditForm({
         onAdd={handleSubdomainAdd}
         placeholder="Select or type subdomain..."
         helperText="Sub-category within the domain"
+        disabled={isSaving}
+      />
+
+      {/* Feature Field */}
+      <MultiSelectCombobox
+        label="Feature"
+        options={localFeatureOptions}
+        selected={feature}
+        onSelect={handleFeatureSelect}
+        onRemove={handleFeatureRemove}
+        onAdd={handleFeatureAdd}
+        placeholder="Link to features..."
+        helperText="Linked features (PRD, Epic, etc.)"
         disabled={isSaving}
       />
 

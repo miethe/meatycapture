@@ -34,6 +34,7 @@ const defaultFieldOptions = {
   type: ['enhancement', 'bug', 'idea', 'task', 'question'],
   domain: ['web', 'api', 'mobile', 'backend'],
   subdomain: ['frontend', 'backend', 'infrastructure'],
+  feature: [],
   priority: ['low', 'medium', 'high', 'critical'],
   status: ['triage', 'backlog', 'planned', 'in-progress', 'done', 'wontfix'],
   tags: ['ux', 'api', 'performance', 'security'],

@@ -709,6 +709,7 @@ export function ViewerContainer({
         domain?: string[];
         subdomain?: string[];
         context?: string;
+        feature?: string[];
         priority?: string;
         status?: string;
         tags?: string[];

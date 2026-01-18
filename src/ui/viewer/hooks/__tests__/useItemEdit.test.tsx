@@ -18,6 +18,7 @@ const mockFieldOptions = {
   type: ['enhancement', 'bug', 'idea'],
   domain: ['web', 'api', 'mobile'],
   subdomain: ['frontend', 'backend'],
+  feature: [],
   priority: ['low', 'medium', 'high'],
   status: ['triage', 'in-progress', 'done'],
   tags: ['ux', 'api', 'performance'],

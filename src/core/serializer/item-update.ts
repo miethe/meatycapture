@@ -60,6 +60,7 @@ export interface ItemUpdateResult {
  *
  * Note: `subdomain` is a multi-select array (categorical field).
  * Note: `context` is an optional free-form text string.
+ * Note: `feature` is an optional multi-select array for linked features.
  */
 export interface ItemFieldUpdates {
   title?: string;
@@ -68,6 +69,8 @@ export interface ItemFieldUpdates {
   subdomain?: string[];
   /** Optional free-form context text */
   context?: string;
+  /** Linked features (PRD, Epic, etc.) */
+  feature?: string[];
   priority?: string;
   status?: string;
   tags?: string[];
@@ -139,6 +142,17 @@ export function applyItemUpdate(
       updatedItem.context = updates.context;
     } else {
       delete updatedItem.context;
+    }
+    changed = true;
+  }
+
+  // feature is an optional array - compare with fallback to empty array for undefined
+  if (updates.feature !== undefined && !arraysEqual(updates.feature, targetItem.feature ?? [])) {
+    // Only set feature if non-empty, otherwise remove it
+    if (updates.feature.length > 0) {
+      updatedItem.feature = updates.feature;
+    } else {
+      delete updatedItem.feature;
     }
     changed = true;
   }
