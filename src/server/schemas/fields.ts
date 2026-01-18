@@ -12,7 +12,7 @@
  * - DELETE /api/fields/:id (delete field option)
  *
  * Validates:
- * - Field names (type, domain, context, priority, status, tags)
+ * - Field names (type, domain, subdomain, priority, status, tags, feature)
  * - Field scopes (global, project)
  * - Field option creation data
  *
@@ -39,6 +39,7 @@ const VALID_FIELD_NAMES: readonly FieldName[] = [
   'priority',
   'status',
   'tags',
+  'feature',
 ] as const;
 
 /**
@@ -57,6 +58,7 @@ const VALID_FIELD_SCOPES: readonly FieldScope[] = ['global', 'project'] as const
  * - priority: Priority level (low, medium, high, critical)
  * - status: Item status (triage, backlog, done, etc.)
  * - tags: Tag values for categorization
+ * - feature: Linked features (PRD, Epic, etc.)
  *
  * @param value - Field name to validate
  * @returns Validated FieldName
@@ -65,7 +67,7 @@ const VALID_FIELD_SCOPES: readonly FieldScope[] = ['global', 'project'] as const
  * @example
  * ```typescript
  * const fieldName = validateFieldName(body.field);
- * // Returns 'type' | 'domain' | 'subdomain' | 'priority' | 'status' | 'tags'
+ * // Returns 'type' | 'domain' | 'subdomain' | 'priority' | 'status' | 'tags' | 'feature'
  * ```
  */
 export function validateFieldName(value: unknown): FieldName {
