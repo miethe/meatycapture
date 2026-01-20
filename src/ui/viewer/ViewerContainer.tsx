@@ -27,8 +27,9 @@ import {
 } from '@core/catalog';
 import { listAllDocuments, extractFilterOptions } from '@core/catalog/utils';
 import { applyItemUpdate } from '@core/serializer';
-import type { ViewerContainerProps } from './types';
+import type { ViewerContainerProps, FieldOptions } from './types';
 import type { CaptureContext } from '../wizard';
+import type { FieldOption } from '@core/models';
 import { useFocusTrap, useToast } from '@ui/shared';
 import { DocumentCatalog } from './DocumentCatalog';
 import { DocumentFilters } from './DocumentFilters';
@@ -58,9 +59,33 @@ import './viewer.css';
  * @param props - ProjectStore and DocStore dependencies
  * @returns ViewerContainer component
  */
+/**
+ * Helper function to group FieldOption[] by field name into FieldOptions
+ */
+function groupFieldOptionsByField(options: FieldOption[]): FieldOptions {
+  const grouped: FieldOptions = {
+    type: [],
+    domain: [],
+    subdomain: [],
+    feature: [],
+    priority: [],
+    status: [],
+    tags: [],
+  };
+
+  for (const opt of options) {
+    if (opt.field in grouped) {
+      grouped[opt.field as keyof FieldOptions].push(opt.value);
+    }
+  }
+
+  return grouped;
+}
+
 export function ViewerContainer({
   projectStore,
   docStore,
+  fieldCatalogStore,
   onAddItemToDocument,
 }: ViewerContainerProps): React.JSX.Element {
   // ============================================================================
@@ -117,6 +142,11 @@ export function ViewerContainer({
 
   /** Error message if catalog load fails */
   const [error, setError] = useState<string | null>(null);
+
+  /** Field options per project (keyed by project_id) */
+  const [projectFieldOptions, setProjectFieldOptions] = useState<Map<string, FieldOptions>>(
+    new Map()
+  );
 
   // ============================================================================
   // Document Action State
@@ -184,13 +214,26 @@ export function ViewerContainer({
       setFilterOptions(options);
 
       console.info(`[ViewerContainer] Loaded ${entries.length} document(s)`);
+
+      // Load field options for all projects
+      const fieldOptionsMap = new Map<string, FieldOptions>();
+      for (const project of projectList) {
+        try {
+          const options = await fieldCatalogStore.getForProject(project.id);
+          fieldOptionsMap.set(project.id, groupFieldOptionsByField(options));
+        } catch (err) {
+          console.warn(`[ViewerContainer] Failed to load field options for project ${project.id}:`, err);
+        }
+      }
+      setProjectFieldOptions(fieldOptionsMap);
+      console.info(`[ViewerContainer] Loaded field options for ${fieldOptionsMap.size} project(s)`);
     } catch (err) {
       console.error('[ViewerContainer] Failed to load catalog:', err);
       setError(err instanceof Error ? err.message : 'Failed to load catalog');
     } finally {
       setLoading(false);
     }
-  }, [projectStore, docStore]);
+  }, [projectStore, docStore, fieldCatalogStore]);
 
   /**
    * Load catalog on mount
@@ -785,6 +828,59 @@ export function ViewerContainer({
   );
 
   /**
+   * Handle adding a new field option to the field catalog
+   * Persists the option and updates local state
+   */
+  const handleAddFieldOption = useCallback(
+    async (field: string, value: string, projectId: string) => {
+      try {
+        // Add to field catalog store (persists to disk)
+        await fieldCatalogStore.addOption({
+          field: field as 'type' | 'domain' | 'subdomain' | 'feature' | 'priority' | 'status' | 'tags',
+          value,
+          scope: 'project',
+          project_id: projectId,
+        });
+
+        // Update local state to reflect the new option
+        setProjectFieldOptions((prev) => {
+          const next = new Map(prev);
+          const existing = next.get(projectId) || {
+            type: [],
+            domain: [],
+            subdomain: [],
+            feature: [],
+            priority: [],
+            status: [],
+            tags: [],
+          };
+
+          // Add the new value if not already present
+          const fieldKey = field as keyof FieldOptions;
+          if (!existing[fieldKey].includes(value)) {
+            next.set(projectId, {
+              ...existing,
+              [fieldKey]: [...existing[fieldKey], value].sort(),
+            });
+          }
+
+          return next;
+        });
+
+        console.info(`[ViewerContainer] Added field option: ${field}="${value}" for project ${projectId}`);
+      } catch (error) {
+        console.error('[ViewerContainer] Failed to add field option:', error);
+        addToast({
+          type: 'error',
+          message: error instanceof Error ? error.message : 'Failed to add field option',
+          duration: 5000,
+        });
+      }
+    },
+    [fieldCatalogStore, addToast]
+  );
+
+  /**
    * Close edit modal on Escape key
    */
   useEffect(() => {
@@ -926,6 +1022,8 @@ export function ViewerContainer({
             onDeleteDocument={handleRequestDeleteDocument}
             onItemUpdate={handleItemUpdate}
             isItemUpdating={isItemUpdating}
+            fieldOptions={projectFieldOptions}
+            onAddFieldOption={handleAddFieldOption}
           />
 
           {activeDoc && (

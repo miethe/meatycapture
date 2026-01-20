@@ -231,6 +231,7 @@ function AppContent() {
             <ViewerContainer
               projectStore={stores.projectStore}
               docStore={stores.docStore}
+              fieldCatalogStore={stores.fieldCatalogStore}
               onAddItemToDocument={handleAddItemFromViewer}
             />
           ) : (

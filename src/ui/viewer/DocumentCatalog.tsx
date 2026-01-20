@@ -31,6 +31,7 @@ import {
 } from '@tanstack/react-table';
 import type { RequestLogDoc } from '@core/models';
 import type { CatalogEntry, CatalogSort, GroupedCatalog } from '@core/catalog';
+import type { FieldOptions } from './types';
 import { ProjectGroupRow } from './ProjectGroupRow';
 import { DocumentRow } from './DocumentRow';
 
@@ -84,6 +85,7 @@ export interface DocumentCatalogProps {
       domain?: string[];
       subdomain?: string[];
       context?: string;
+      feature?: string[];
       priority?: string;
       status?: string;
       tags?: string[];
@@ -92,6 +94,12 @@ export interface DocumentCatalogProps {
 
   /** Whether a specific item is updating */
   isItemUpdating?: (path: string, itemId: string) => boolean;
+
+  /** Field options per project (keyed by project_id) */
+  fieldOptions?: Map<string, FieldOptions>;
+
+  /** Callback when a new field option is added during editing */
+  onAddFieldOption?: (field: string, value: string, projectId: string) => Promise<void>;
 }
 
 /**
@@ -119,6 +127,8 @@ export function DocumentCatalog({
   onDeleteDocument,
   onItemUpdate,
   isItemUpdating,
+  fieldOptions,
+  onAddFieldOption,
 }: DocumentCatalogProps): React.JSX.Element {
   // ============================================================================
   // State Management
@@ -563,6 +573,13 @@ export function DocumentCatalog({
                           }
                           {...(onItemUpdate ? { onItemUpdate } : {})}
                           {...(isItemUpdating ? { isItemUpdating } : {})}
+                          fieldOptions={fieldOptions?.get(projectId)}
+                          onAddFieldOption={
+                            onAddFieldOption
+                              ? (field: string, value: string) =>
+                                  onAddFieldOption(field, value, projectId)
+                              : undefined
+                          }
                         />
                       ))}
                   </React.Fragment>

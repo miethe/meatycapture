@@ -65,6 +65,11 @@ function validateRequestLogItem(obj: unknown): RequestLogItem {
     result.modified_at = validateDate(item.modified_at, 'modified_at');
   }
 
+  // Preserve optional feature array if present (exactOptionalPropertyTypes compatible)
+  if (Array.isArray(item.feature) && item.feature.length > 0) {
+    result.feature = validateStringArray(item.feature, 'feature');
+  }
+
   return result;
 }
 

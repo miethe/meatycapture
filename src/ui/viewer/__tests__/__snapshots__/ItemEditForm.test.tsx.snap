@@ -186,22 +186,22 @@ exports[`ItemEditForm > snapshot > matches snapshot in saving state 1`] = `
       >
         <label
           class="field-label"
-          for="multiselect-combobox-context"
+          for="multiselect-combobox-subdomain"
         >
-          Context
+          Subdomain
         </label>
       </div>
       <div
         class="form-field-helper"
-        id="multiselect-combobox-context-helper"
+        id="multiselect-combobox-subdomain-helper"
       >
-        Additional context or environment details
+        Sub-category within the domain
       </div>
       <div
         class="tags-input-container"
       >
         <div
-          aria-label="Selected context"
+          aria-label="Selected subdomain"
           class="tags-badges"
           role="list"
         >
@@ -229,16 +229,16 @@ exports[`ItemEditForm > snapshot > matches snapshot in saving state 1`] = `
         >
           <input
             aria-autocomplete="list"
-            aria-controls="multiselect-combobox-context-listbox"
-            aria-describedby="multiselect-combobox-context-helper"
+            aria-controls="multiselect-combobox-subdomain-listbox"
+            aria-describedby="multiselect-combobox-subdomain-helper"
             aria-expanded="false"
             aria-haspopup="listbox"
             aria-invalid="false"
             autocomplete="off"
             class="input-base tags-search-input "
             disabled=""
-            id="multiselect-combobox-context"
-            placeholder="Select or type context..."
+            id="multiselect-combobox-subdomain"
+            placeholder="Select or type subdomain..."
             role="combobox"
             type="text"
             value=""
@@ -247,11 +247,91 @@ exports[`ItemEditForm > snapshot > matches snapshot in saving state 1`] = `
             aria-atomic="true"
             aria-live="polite"
             class="sr-only"
-            id="multiselect-combobox-context-live"
+            id="multiselect-combobox-subdomain-live"
             role="status"
             style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
           />
         </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="multiselect-combobox-feature"
+        >
+          Feature
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="multiselect-combobox-feature-helper"
+      >
+        Linked features (PRD, Epic, etc.)
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-controls="multiselect-combobox-feature-listbox"
+            aria-describedby="multiselect-combobox-feature-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-invalid="false"
+            autocomplete="off"
+            class="input-base tags-search-input "
+            disabled=""
+            id="multiselect-combobox-feature"
+            placeholder="Link to features..."
+            role="combobox"
+            type="text"
+            value=""
+          />
+          <div
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+            id="multiselect-combobox-feature-live"
+            role="status"
+            style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for=":ro:-context"
+        >
+          Context
+        </label>
+      </div>
+      <input
+        aria-label="Item context"
+        class="input-base"
+        disabled=""
+        id=":ro:-context"
+        placeholder="Optional background/context for this item..."
+        type="text"
+        value=""
+      />
+      <div
+        class="form-field-helper"
+      >
+        Additional context or background information
       </div>
     </div>
     <div
@@ -689,22 +769,22 @@ exports[`ItemEditForm > snapshot > matches snapshot with default item 1`] = `
       >
         <label
           class="field-label"
-          for="multiselect-combobox-context"
+          for="multiselect-combobox-subdomain"
         >
-          Context
+          Subdomain
         </label>
       </div>
       <div
         class="form-field-helper"
-        id="multiselect-combobox-context-helper"
+        id="multiselect-combobox-subdomain-helper"
       >
-        Additional context or environment details
+        Sub-category within the domain
       </div>
       <div
         class="tags-input-container"
       >
         <div
-          aria-label="Selected context"
+          aria-label="Selected subdomain"
           class="tags-badges"
           role="list"
         >
@@ -731,15 +811,15 @@ exports[`ItemEditForm > snapshot > matches snapshot with default item 1`] = `
         >
           <input
             aria-autocomplete="list"
-            aria-controls="multiselect-combobox-context-listbox"
-            aria-describedby="multiselect-combobox-context-helper"
+            aria-controls="multiselect-combobox-subdomain-listbox"
+            aria-describedby="multiselect-combobox-subdomain-helper"
             aria-expanded="false"
             aria-haspopup="listbox"
             aria-invalid="false"
             autocomplete="off"
             class="input-base tags-search-input "
-            id="multiselect-combobox-context"
-            placeholder="Select or type context..."
+            id="multiselect-combobox-subdomain"
+            placeholder="Select or type subdomain..."
             role="combobox"
             type="text"
             value=""
@@ -748,11 +828,89 @@ exports[`ItemEditForm > snapshot > matches snapshot with default item 1`] = `
             aria-atomic="true"
             aria-live="polite"
             class="sr-only"
-            id="multiselect-combobox-context-live"
+            id="multiselect-combobox-subdomain-live"
             role="status"
             style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
           />
         </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="multiselect-combobox-feature"
+        >
+          Feature
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="multiselect-combobox-feature-helper"
+      >
+        Linked features (PRD, Epic, etc.)
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-controls="multiselect-combobox-feature-listbox"
+            aria-describedby="multiselect-combobox-feature-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-invalid="false"
+            autocomplete="off"
+            class="input-base tags-search-input "
+            id="multiselect-combobox-feature"
+            placeholder="Link to features..."
+            role="combobox"
+            type="text"
+            value=""
+          />
+          <div
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+            id="multiselect-combobox-feature-live"
+            role="status"
+            style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for=":rn:-context"
+        >
+          Context
+        </label>
+      </div>
+      <input
+        aria-label="Item context"
+        class="input-base"
+        id=":rn:-context"
+        placeholder="Optional background/context for this item..."
+        type="text"
+        value=""
+      />
+      <div
+        class="form-field-helper"
+      >
+        Additional context or background information
       </div>
     </div>
     <div
@@ -1183,22 +1341,22 @@ exports[`ItemEditForm > snapshot > matches snapshot with validation errors 1`] =
       >
         <label
           class="field-label"
-          for="multiselect-combobox-context"
+          for="multiselect-combobox-subdomain"
         >
-          Context
+          Subdomain
         </label>
       </div>
       <div
         class="form-field-helper"
-        id="multiselect-combobox-context-helper"
+        id="multiselect-combobox-subdomain-helper"
       >
-        Additional context or environment details
+        Sub-category within the domain
       </div>
       <div
         class="tags-input-container"
       >
         <div
-          aria-label="Selected context"
+          aria-label="Selected subdomain"
           class="tags-badges"
           role="list"
         >
@@ -1225,15 +1383,15 @@ exports[`ItemEditForm > snapshot > matches snapshot with validation errors 1`] =
         >
           <input
             aria-autocomplete="list"
-            aria-controls="multiselect-combobox-context-listbox"
-            aria-describedby="multiselect-combobox-context-helper"
+            aria-controls="multiselect-combobox-subdomain-listbox"
+            aria-describedby="multiselect-combobox-subdomain-helper"
             aria-expanded="false"
             aria-haspopup="listbox"
             aria-invalid="false"
             autocomplete="off"
             class="input-base tags-search-input "
-            id="multiselect-combobox-context"
-            placeholder="Select or type context..."
+            id="multiselect-combobox-subdomain"
+            placeholder="Select or type subdomain..."
             role="combobox"
             type="text"
             value=""
@@ -1242,11 +1400,89 @@ exports[`ItemEditForm > snapshot > matches snapshot with validation errors 1`] =
             aria-atomic="true"
             aria-live="polite"
             class="sr-only"
-            id="multiselect-combobox-context-live"
+            id="multiselect-combobox-subdomain-live"
             role="status"
             style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
           />
         </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for="multiselect-combobox-feature"
+        >
+          Feature
+        </label>
+      </div>
+      <div
+        class="form-field-helper"
+        id="multiselect-combobox-feature-helper"
+      >
+        Linked features (PRD, Epic, etc.)
+      </div>
+      <div
+        class="tags-input-container"
+      >
+        <div
+          class="tags-input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-controls="multiselect-combobox-feature-listbox"
+            aria-describedby="multiselect-combobox-feature-helper"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-invalid="false"
+            autocomplete="off"
+            class="input-base tags-search-input "
+            id="multiselect-combobox-feature"
+            placeholder="Link to features..."
+            role="combobox"
+            type="text"
+            value=""
+          />
+          <div
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+            id="multiselect-combobox-feature-live"
+            role="status"
+            style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border: 0px;"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="field-container"
+    >
+      <div
+        class="form-field-label-row"
+      >
+        <label
+          class="field-label"
+          for=":rp:-context"
+        >
+          Context
+        </label>
+      </div>
+      <input
+        aria-label="Item context"
+        class="input-base"
+        id=":rp:-context"
+        placeholder="Optional background/context for this item..."
+        type="text"
+        value=""
+      />
+      <div
+        class="form-field-helper"
+      >
+        Additional context or background information
       </div>
     </div>
     <div

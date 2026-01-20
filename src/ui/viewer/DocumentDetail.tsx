@@ -16,6 +16,7 @@
 
 import React, { useState } from 'react';
 import type { RequestLogDoc } from '@core/models';
+import type { FieldOptions } from './types';
 import { ItemCard } from './ItemCard';
 import { StatsCard } from './StatsCard';
 import { copyToClipboard } from '@ui/shared/browserCompat';
@@ -50,6 +51,12 @@ export interface DocumentDetailProps {
 
   /** Whether a specific item is currently updating */
   isItemUpdating?: (itemId: string) => boolean;
+
+  /** Field options for inline editing */
+  fieldOptions?: FieldOptions | undefined;
+
+  /** Callback when a new field option is added during editing */
+  onAddFieldOption?: ((field: string, value: string) => Promise<void>) | undefined;
 }
 
 /**
@@ -67,6 +74,8 @@ export function DocumentDetail({
   docPath,
   onItemUpdate,
   isItemUpdating,
+  fieldOptions,
+  onAddFieldOption,
 }: DocumentDetailProps): React.JSX.Element {
   const [showItemsIndex, setShowItemsIndex] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
@@ -263,6 +272,8 @@ export function DocumentDetail({
                     ? { onItemUpdate: (updates) => onItemUpdate(docPath, item.id, updates) }
                     : {})}
                   isUpdating={isItemUpdating ? isItemUpdating(item.id) : false}
+                  fieldOptions={fieldOptions}
+                  onAddFieldOption={onAddFieldOption}
                 />
               </div>
             ))

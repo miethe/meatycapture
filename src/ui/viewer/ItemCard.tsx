@@ -133,7 +133,7 @@ export interface ItemCardProps {
     priority: string[];
     status: string[];
     tags: string[];
-  };
+  } | undefined;
 
   /** Called when an inline field update occurs */
   onItemUpdate?: (updates: {
@@ -150,6 +150,9 @@ export interface ItemCardProps {
 
   /** Whether inline field updates are currently saving */
   isUpdating?: boolean;
+
+  /** Callback when a new field option is added during editing (for persistence) */
+  onAddFieldOption?: ((field: string, value: string) => Promise<void>) | undefined;
 }
 
 /**
@@ -233,6 +236,7 @@ export function ItemCard({
   fieldOptions,
   onItemUpdate,
   isUpdating = false,
+  onAddFieldOption,
 }: ItemCardProps): React.JSX.Element {
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
@@ -517,8 +521,12 @@ export function ItemCard({
     (value: string) => {
       setLocalDomainOptions((prev) => mergeOptions(prev, [value]));
       handleFieldUpdate({ domain: [value] });
+      // Persist to field catalog if callback provided
+      if (onAddFieldOption) {
+        onAddFieldOption('domain', value);
+      }
     },
-    [handleFieldUpdate, mergeOptions]
+    [handleFieldUpdate, mergeOptions, onAddFieldOption]
   );
 
   const handleSubdomainSelect = useCallback(
@@ -535,8 +543,12 @@ export function ItemCard({
     (value: string) => {
       setLocalSubdomainOptions((prev) => mergeOptions(prev, [value]));
       handleFieldUpdate({ subdomain: [value] });
+      // Persist to field catalog if callback provided
+      if (onAddFieldOption) {
+        onAddFieldOption('subdomain', value);
+      }
     },
-    [handleFieldUpdate, mergeOptions]
+    [handleFieldUpdate, mergeOptions, onAddFieldOption]
   );
 
   const handleFeatureSelect = useCallback(
@@ -553,8 +565,12 @@ export function ItemCard({
     (value: string) => {
       setLocalFeatureOptions((prev) => mergeOptions(prev, [value]));
       handleFieldUpdate({ feature: [value] });
+      // Persist to field catalog if callback provided
+      if (onAddFieldOption) {
+        onAddFieldOption('feature', value);
+      }
     },
-    [handleFieldUpdate, mergeOptions]
+    [handleFieldUpdate, mergeOptions, onAddFieldOption]
   );
 
   const handleContextChange = useCallback(
@@ -574,32 +590,48 @@ export function ItemCard({
       setLocalTagOptions((prev) => mergeOptions(prev, [value]));
       const nextTags = item.tags.includes(value) ? item.tags : [...item.tags, value];
       handleFieldUpdate({ tags: nextTags });
+      // Persist to field catalog if callback provided
+      if (onAddFieldOption) {
+        onAddFieldOption('tags', value);
+      }
     },
-    [item.tags, handleFieldUpdate, mergeOptions]
+    [item.tags, handleFieldUpdate, mergeOptions, onAddFieldOption]
   );
 
   const handleTypeAdd = useCallback(
     async (value: string) => {
       setLocalTypeOptions((prev) => mergeOptions(prev, [value]));
       handleFieldUpdate({ type: value });
+      // Persist to field catalog if callback provided
+      if (onAddFieldOption) {
+        onAddFieldOption('type', value);
+      }
     },
-    [handleFieldUpdate, mergeOptions]
+    [handleFieldUpdate, mergeOptions, onAddFieldOption]
   );
 
   const handlePriorityAdd = useCallback(
     async (value: string) => {
       setLocalPriorityOptions((prev) => mergeOptions(prev, [value]));
       handleFieldUpdate({ priority: value });
+      // Persist to field catalog if callback provided
+      if (onAddFieldOption) {
+        onAddFieldOption('priority', value);
+      }
     },
-    [handleFieldUpdate, mergeOptions]
+    [handleFieldUpdate, mergeOptions, onAddFieldOption]
   );
 
   const handleStatusAdd = useCallback(
     async (value: string) => {
       setLocalStatusOptions((prev) => mergeOptions(prev, [value]));
       handleFieldUpdate({ status: value });
+      // Persist to field catalog if callback provided
+      if (onAddFieldOption) {
+        onAddFieldOption('status', value);
+      }
     },
-    [handleFieldUpdate, mergeOptions]
+    [handleFieldUpdate, mergeOptions, onAddFieldOption]
   );
 
   return (

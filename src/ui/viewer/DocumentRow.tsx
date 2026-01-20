@@ -28,6 +28,7 @@ import React, { useState, useCallback } from 'react';
 import { CalendarIcon, ChevronDownIcon, ArchiveIcon, InfoCircledIcon } from '@radix-ui/react-icons';
 import type { CatalogEntry } from '@core/catalog';
 import type { RequestLogDoc } from '@core/models';
+import type { FieldOptions } from './types';
 import { DocumentDetail } from './DocumentDetail';
 import { DocumentKebabMenu } from './DocumentKebabMenu';
 import { DocumentStatusIndicator, TypeDistributionIndicator } from './components';
@@ -81,6 +82,7 @@ export interface DocumentRowProps {
       domain?: string[];
       subdomain?: string[];
       context?: string;
+      feature?: string[];
       priority?: string;
       status?: string;
       tags?: string[];
@@ -89,6 +91,12 @@ export interface DocumentRowProps {
 
   /** Whether a specific item is updating */
   isItemUpdating?: (path: string, itemId: string) => boolean;
+
+  /** Field options for inline editing */
+  fieldOptions?: FieldOptions | undefined;
+
+  /** Callback when a new field option is added during editing */
+  onAddFieldOption?: ((field: string, value: string) => Promise<void>) | undefined;
 }
 
 /**
@@ -117,6 +125,8 @@ export const DocumentRow = React.memo(function DocumentRow({
   onDelete,
   onItemUpdate,
   isItemUpdating,
+  fieldOptions,
+  onAddFieldOption,
 }: DocumentRowProps): React.JSX.Element {
   // Copy feedback state for doc_id copy button
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
@@ -406,6 +416,8 @@ export const DocumentRow = React.memo(function DocumentRow({
                   isItemUpdating={(itemId) =>
                     isItemUpdating ? isItemUpdating(entry.path, itemId) : false
                   }
+                  fieldOptions={fieldOptions}
+                  onAddFieldOption={onAddFieldOption}
                 />
               ) : (
                 <div className="detail-placeholder glass">

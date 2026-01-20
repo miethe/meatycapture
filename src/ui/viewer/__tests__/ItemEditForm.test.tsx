@@ -438,7 +438,7 @@ describe('ItemEditForm', () => {
       });
 
       const savedItem = onSave.mock.calls[0]?.[0] as RequestLogItem | undefined;
-      expect(savedItem!.context).toEqual([]);
+      expect(savedItem!.context).toBeUndefined();
     });
   });
 

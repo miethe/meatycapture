@@ -5,8 +5,22 @@
  * Re-exports catalog types for convenience and defines UI-specific state management.
  */
 
-import type { ProjectStore, DocStore } from '@core/ports';
+import type { ProjectStore, DocStore, FieldCatalogStore } from '@core/ports';
 import type { CaptureContext } from '../wizard';
+
+/**
+ * Field options grouped by field name for UI components
+ * Used to populate dropdowns and multi-selects in ItemCard
+ */
+export interface FieldOptions {
+  type: string[];
+  domain: string[];
+  subdomain: string[];
+  feature: string[];
+  priority: string[];
+  status: string[];
+  tags: string[];
+}
 
 // Re-export catalog types for convenience
 export type {
@@ -61,6 +75,9 @@ export interface ViewerContainerProps {
 
   /** Document store for listing and reading documents */
   docStore: DocStore;
+
+  /** Field catalog store for loading and persisting field options */
+  fieldCatalogStore: FieldCatalogStore;
 
   /** Callback when user wants to add an item to a document (navigates to capture wizard) */
   onAddItemToDocument?: (context: CaptureContext) => void;
