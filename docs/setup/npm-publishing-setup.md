@@ -170,6 +170,57 @@ npm ERR! This operation requires a one-time password
 - [ADR-001: npm Package Naming](/docs/decisions/ADR-001-cli-npm-scope.md)
 - [npm Access Tokens Documentation](https://docs.npmjs.com/creating-and-viewing-access-tokens)
 
+## First Publish Checklist
+
+Use this checklist for the initial v0.1.0-beta.1 release:
+
+### Prerequisites
+
+- [ ] NPM_TOKEN added to GitHub Secrets (see Steps 1-2 above)
+- [ ] Package name `meatycapture` available on npm (or owned by publisher)
+
+### Release Steps
+
+- [ ] Changesets reviewed and applied (`pnpm version`)
+- [ ] PR merged to main branch
+- [ ] Tag created (v0.1.0-beta.1)
+- [ ] Publish workflow executed successfully
+
+### Verification
+
+- [ ] Package visible on [npmjs.com/package/meatycapture](https://www.npmjs.com/package/meatycapture)
+- [ ] `npm install -g meatycapture` installs successfully
+- [ ] `meatycapture --version` outputs correct version
+- [ ] `meatycapture --help` displays command help
+- [ ] `mc --help` alias works
+
+### Post-Publish
+
+- [ ] Update repository README with npm badge
+- [ ] Announce release (if applicable)
+
+## Local Package Verification
+
+Before publishing, verify the package locally:
+
+```bash
+# Build CLI
+pnpm build:cli
+
+# Test npm pack (dry run)
+npm pack --dry-run
+
+# Actual pack to inspect contents
+npm pack
+tar -tzf meatycapture-*.tgz
+rm meatycapture-*.tgz
+```
+
+Expected tarball contents:
+- `package/dist/cli/index.js` - CLI bundle (~278 KB)
+- `package/package.json` - Package configuration
+- `package/README.md` - Documentation
+
 ## Next Steps
 
 After configuring the npm token:

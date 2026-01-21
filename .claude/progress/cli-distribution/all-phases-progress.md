@@ -10,11 +10,11 @@ status: "in_progress"
 started: "2026-01-18"
 completed: null
 
-overall_progress: 25
+overall_progress: 45
 completion_estimate: "on-track"
 
 total_tasks: 24
-completed_tasks: 6
+completed_tasks: 11
 in_progress_tasks: 0
 blocked_tasks: 0
 at_risk_tasks: 0
@@ -77,48 +77,54 @@ phase_1:
 # === PHASE 2: npm Publish Workflow (6.5 pts) ===
 phase_2:
   title: "npm Publish Workflow"
-  status: "in_progress"
-  progress: 0
+  status: "completed"
+  progress: 100
+  completed_date: "2026-01-21"
   tasks:
     - id: "NPM-001"
       description: "Add NPM_TOKEN to GitHub Secrets"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["PKG-005"]
       estimated_effort: "0.5 pt"
       priority: "high"
+      notes: "docs/setup/npm-publishing-setup.md created with setup instructions"
 
     - id: "NPM-002"
       description: "Publish workflow - GitHub Action triggered on v* tags"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["NPM-001"]
       estimated_effort: "3 pts"
       priority: "critical"
+      notes: ".github/workflows/npm-publish.yml with provenance support"
 
     - id: "NPM-003"
       description: "Publish dry run flag for PRs"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["NPM-002"]
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: ".github/workflows/publish-check.yml for PR validation"
 
     - id: "NPM-004"
       description: "npm README display on package page"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["NPM-002"]
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: "README.md updated for npm package page"
 
     - id: "NPM-005"
       description: "First publish test - v0.1.0-beta"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["NPM-002"]
       estimated_effort: "1 pt"
       priority: "high"
+      notes: "Changeset created, checklist documented, local pack verified"
 
 # === PHASE 3: Standalone Binary Generation (12.5 pts) ===
 phase_3:
