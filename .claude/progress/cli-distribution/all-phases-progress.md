@@ -4,17 +4,17 @@
 
 type: progress
 prd: "cli-distribution-v1"
-phase: 0
+phase: 1
 title: "CLI Distribution & Packaging - All Phases"
-status: "planning"
+status: "in_progress"
 started: "2026-01-18"
 completed: null
 
-overall_progress: 0
+overall_progress: 25
 completion_estimate: "on-track"
 
 total_tasks: 24
-completed_tasks: 0
+completed_tasks: 6
 in_progress_tasks: 0
 blocked_tasks: 0
 at_risk_tasks: 0
@@ -25,48 +25,54 @@ contributors: ["documentation-writer"]
 # === PHASE 1: npm Publishing Foundation (8 pts) ===
 phase_1:
   title: "npm Publishing Foundation"
-  status: "pending"
-  progress: 0
+  status: "completed"
+  progress: 100
+  completed_date: "2026-01-21"
   tasks:
     - id: "PKG-001"
       description: "Package.json publishing config (files, exports, type, engines)"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: []
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "npm pack produces 58.6KB tarball with correct files"
 
     - id: "PKG-002"
       description: "Build script audit - verify publishable output"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: []
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: "Shebang present, 755 permissions, CLI executes correctly"
 
     - id: "PKG-003"
       description: "npm scope decision - check @meatycapture availability"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: []
       estimated_effort: "1 pt"
       priority: "high"
+      notes: "ADR-001 created; decided on unscoped 'meatycapture'"
 
     - id: "PKG-004"
       description: "Changesets setup for version management"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: []
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "@changesets/cli installed, config created, scripts added"
 
     - id: "PKG-005"
       description: "Version bump workflow - GitHub Action"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["PKG-004"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: ".github/workflows/version-bump.yml created"
 
 # === PHASE 2: npm Publish Workflow (6.5 pts) ===
 phase_2:
@@ -208,11 +214,12 @@ phase_4:
 
     - id: "REL-004"
       description: "Homebrew tap repository creation"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: []
       estimated_effort: "1 pt"
       priority: "high"
+      notes: "docs/setup/homebrew-tap-setup.md created with setup guide"
 
     - id: "REL-005"
       description: "Formula creation - meatycapture.rb"
