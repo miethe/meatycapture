@@ -4,7 +4,7 @@
 
 type: progress
 prd: "cli-distribution-v1"
-phase: 1
+phase: 2
 title: "CLI Distribution & Packaging - All Phases"
 status: "in_progress"
 started: "2026-01-18"
@@ -77,7 +77,7 @@ phase_1:
 # === PHASE 2: npm Publish Workflow (6.5 pts) ===
 phase_2:
   title: "npm Publish Workflow"
-  status: "pending"
+  status: "in_progress"
   progress: 0
   tasks:
     - id: "NPM-001"

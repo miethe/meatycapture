@@ -1,0 +1,63 @@
+name: Publish Check
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'build-cli.js'
+      - 'src/cli/**'
+      - '.changeset/**'
+      - '.github/workflows/npm-publish.yml'
+      - '.github/workflows/publish-check.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish-dry-run:
+    name: Publish Dry Run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build CLI
+        run: pnpm build:cli
+
+      - name: Create package tarball
+        run: npm pack
+
+      - name: List package contents
+        run: |
+          echo "=== Package Contents ==="
+          TARBALL=$(ls meatycapture-*.tgz)
+          tar -tzf "$TARBALL" | sort
+          echo ""
+          echo "=== Package Size ==="
+          ls -lh "$TARBALL"
+
+      - name: Validate publish (dry-run)
+        run: npm publish --dry-run
+
+      - name: Upload tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: meatycapture-*.tgz
+          retention-days: 7

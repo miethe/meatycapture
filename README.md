@@ -1,170 +1,104 @@
 # MeatyCapture
 
-Lightweight capture app for logging enhancements/bugs/ideas to request-log markdown files with project-aware defaults and tag aggregation.
+Lightweight CLI for logging enhancements, bugs, and ideas to structured markdown files with project-aware defaults and tag aggregation.
 
-## Architecture
+Perfect for teams that track work in Git repositories, want searchable local markdown documents, or need headless batch capture for CI/CD pipelines.
 
-```
-meatycapture/
-├── core/                 # Headless domain logic (UI-agnostic)
-│   ├── models/           # Domain types
-│   ├── validation/       # Field validation, ID generation
-│   ├── serializer/       # Request-log markdown writer/parser
-│   └── ports/            # Storage interfaces
-├── adapters/             # Port implementations
-│   ├── fs-local/         # File system read/write
-│   └── config-local/     # Projects + field catalogs
-├── ui/                   # React components
-└── platform/             # Optional desktop shell
-```
-
-## Tech Stack
-
-- TypeScript 5.x
-- React 18.x
-- Vite (build tool)
-- Vitest (testing)
-- CSS (glass/x-morphism design)
-
-## Development
-
-### Web Development
+## Installation
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Start dev server
-pnpm dev
-
-# Run tests
-pnpm test
-
-# Type checking
-pnpm typecheck
-
-# Lint
-pnpm lint
-
-# Format
-pnpm format
+npm install -g meatycapture
 ```
 
-### Desktop Application (Tauri)
-
-**Prerequisites:** Install [Rust](https://www.rust-lang.org/tools/install) first.
+Or with pnpm:
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Start desktop app in dev mode (with hot reload)
-pnpm tauri:dev
-
-# Build desktop app for production
-pnpm tauri:build
+pnpm install -g meatycapture
 ```
 
-See [src-tauri/README.md](./src-tauri/README.md) for detailed Tauri setup instructions and platform-specific dependencies.
-
-## CLI Installation & Usage
-
-The MeatyCapture CLI provides headless batch document creation and management—ideal for automation, scripting, and CI/CD pipelines.
-
-### Prerequisites
-
-- Node.js 18.0.0 or higher
-- pnpm 8.0.0 or higher
-
-### Installation (From Source)
-
-```bash
-# Clone the repository
-git clone https://github.com/your-org/meatycapture.git
-cd meatycapture
-
-# Install dependencies
-pnpm install
-
-# Build the CLI
-pnpm build:cli
-
-# Link globally (makes 'meatycapture' command available system-wide)
-npm link
-```
-
-### Verify Installation
+Verify the installation:
 
 ```bash
 meatycapture --version
 meatycapture --help
 ```
 
-### Quick Start
+## Quick Start
+
+Initialize configuration and create your first project:
 
 ```bash
-# Initialize configuration
+# Set up default configuration
 meatycapture config init
 
-# Verify your configuration and current mode
-meatycapture config show
-
-# Create your first project (interactive mode)
+# Create a new project
 meatycapture project add --interactive
 
 # Create a request log document
 meatycapture log create --interactive
-
-# Or from JSON file
-meatycapture log create input.json
 ```
 
-### Configuration
+## Key Commands
 
-The CLI can operate in two modes:
+| Command | Purpose |
+|---------|---------|
+| `meatycapture log create` | Create a new request log document |
+| `meatycapture log append` | Add items to an existing document |
+| `meatycapture log view` | View a request log document |
+| `meatycapture log search` | Search across request logs |
+| `meatycapture project add` | Register a new project |
+| `meatycapture config set` | Configure API mode or storage |
+
+## Usage Modes
 
 **Local Mode (Default)**
-Uses local filesystem storage at `~/.meatycapture/`. No server required.
+Stores documents in `~/.meatycapture/`. No server required. Perfect for local development and Git-based workflows.
 
 **API Mode**
-Connects to a MeatyCapture server for centralized storage. Set the API URL:
+Connect to a MeatyCapture server for centralized storage:
 
 ```bash
-# Set API URL persistently
-meatycapture config set api_url http://localhost:3737
-
-# View current configuration and mode
-meatycapture config show
-
-# Clear API URL to return to local mode
-meatycapture config set api_url ''
+meatycapture config set api_url https://meatycapture.example.com
 ```
 
-**Configuration Priority:**
-1. `MEATYCAPTURE_API_URL` environment variable (highest)
-2. `api_url` in `~/.meatycapture/config.json`
-3. Local filesystem (default)
+## Document Format
 
-### Command Groups
+MeatyCapture generates structured markdown files with frontmatter:
 
-| Group     | Description                                      |
-| --------- | ------------------------------------------------ |
-| `log`     | Create, append, view, search, list documents     |
-| `project` | Manage project configurations                    |
-| `field`   | Manage field catalogs (type, domain, priority)   |
-| `config`  | Manage global configuration                      |
+```yaml
+---
+type: request-log
+doc_id: REQ-20250121-meatycapture
+item_count: 2
+tags: [ux, api]
+---
 
-### Documentation
+### REQ-20250121-meatycapture-01 - Feature title
+**Type:** enhancement | **Priority:** medium | **Status:** triage
+**Tags:** ux
 
-For complete CLI documentation:
+- Description and details...
+```
 
-- [CLI Overview](docs/user/cli/index.md) - Quick start and overview
-- [Commands Reference](docs/user/cli/commands-reference.md) - All 19 commands
-- [Examples](docs/user/cli/examples.md) - Common usage patterns
-- [Configuration](docs/user/cli/configuration.md) - Environment and settings
+Documents are fully searchable and play nicely with Git-based workflows.
 
-## Project Status
+## Documentation
 
-Phase: Pre-implementation (scaffolding)
+- **[Full CLI Documentation](https://github.com/miethe/meatycapture/tree/main/docs/user/cli)** - Complete command reference and examples
+- **[Configuration Guide](https://github.com/miethe/meatycapture/tree/main/docs/user/cli/configuration.md)** - Environment variables and settings
+- **[Usage Examples](https://github.com/miethe/meatycapture/tree/main/docs/user/cli/examples.md)** - Real-world usage patterns
 
-See [CLAUDE.md](./CLAUDE.md) for detailed project documentation and architecture.
+## Requirements
+
+- Node.js 18.0.0 or higher
+- pnpm 8.0.0 or higher (if building from source)
+
+## Development
+
+MeatyCapture is built with TypeScript and includes both a CLI and optional React-based UI.
+
+For development setup and full architecture information, see the [repository](https://github.com/miethe/meatycapture).
+
+## License
+
+See the LICENSE file in the repository.
