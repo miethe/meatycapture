@@ -5,10 +5,12 @@ on:
     paths:
       - 'package.json'
       - 'build-cli.js'
+      - 'build-binary.ts'
       - 'src/cli/**'
       - '.changeset/**'
       - '.github/workflows/npm-publish.yml'
       - '.github/workflows/publish-check.yml'
+      - '.github/workflows/build-binaries.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

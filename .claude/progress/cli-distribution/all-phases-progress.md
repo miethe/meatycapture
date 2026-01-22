@@ -4,17 +4,17 @@
 
 type: progress
 prd: "cli-distribution-v1"
-phase: 2
+phase: 3
 title: "CLI Distribution & Packaging - All Phases"
 status: "in_progress"
 started: "2026-01-18"
 completed: null
 
-overall_progress: 45
+overall_progress: 75
 completion_estimate: "on-track"
 
 total_tasks: 24
-completed_tasks: 11
+completed_tasks: 18
 in_progress_tasks: 0
 blocked_tasks: 0
 at_risk_tasks: 0
@@ -129,64 +129,72 @@ phase_2:
 # === PHASE 3: Standalone Binary Generation (12.5 pts) ===
 phase_3:
   title: "Standalone Binary Generation"
-  status: "pending"
-  progress: 0
+  status: "completed"
+  progress: 100
+  completed_date: "2026-01-22"
   tasks:
     - id: "BIN-001"
       description: "Bundler evaluation - test Bun compile with CLI"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: ["PKG-002"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "Bun compile chosen over pkg/nexe. ADR-002 documents decision. Binary sizes: 60MB (macOS), 105MB (Linux), 116MB (Windows)"
 
     - id: "BIN-002"
       description: "Local binary build script"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: ["BIN-001"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "build-binary.ts created with cross-compilation support. Scripts: pnpm build:binary, pnpm build:binary:all"
 
     - id: "BIN-003"
       description: "Build matrix config - 5 platforms"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["BIN-002"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: ".github/workflows/build-binaries.yml created with 5-platform matrix"
 
     - id: "BIN-004"
       description: "macOS builds (darwin-arm64, darwin-x64)"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["BIN-003"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "macos-latest (ARM64) and macos-13 (Intel) runners configured"
 
     - id: "BIN-005"
       description: "Linux builds (linux-x64, linux-arm64)"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["BIN-003"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "ubuntu-latest for x64, cross-compilation for arm64"
 
     - id: "BIN-006"
       description: "Windows build (win32-x64)"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["BIN-003"]
       estimated_effort: "2 pts"
       priority: "medium"
+      notes: "windows-latest runner configured"
 
     - id: "BIN-007"
       description: "Binary naming convention"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: ["BIN-004"]
       estimated_effort: "0.5 pt"
       priority: "low"
+      notes: "Naming: meatycapture-{os}-{arch}[.exe]. Documented in ADR-002"
 
 # === PHASE 4: GitHub Releases & Homebrew (12 pts) ===
 phase_4:
