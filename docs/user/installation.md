@@ -489,6 +489,93 @@ rm -rf meatycapture
 
 ---
 
+## Uninstalling
+
+If you need to remove MeatyCapture, follow the instructions for the installation method you used.
+
+### npm Uninstall
+
+If you installed MeatyCapture using npm or pnpm:
+
+```bash
+# With npm
+npm uninstall -g meatycapture
+
+# Or with pnpm
+pnpm remove -g meatycapture
+```
+
+**Note:** This removes the CLI binary but does not remove configuration files or request-log documents.
+
+### Homebrew Uninstall
+
+If you installed MeatyCapture using Homebrew:
+
+```bash
+# Remove the meatycapture package
+brew uninstall meatycapture
+
+# Optionally remove the tap
+brew untap meatycapture/tap
+```
+
+### Standalone Binary Uninstall
+
+If you installed the standalone binary, remove it from its installation location:
+
+```bash
+# If installed to /usr/local/bin/
+sudo rm /usr/local/bin/meatycapture
+
+# If installed to ~/.local/bin/
+rm ~/.local/bin/meatycapture
+
+# If installed elsewhere, replace /path/to/ with the actual location
+rm /path/to/meatycapture
+```
+
+**Windows:** Delete the executable file from your installation directory (usually `C:\Users\YourUsername\AppData\Local\bin\` or similar) and remove the directory from your PATH.
+
+### From Source Uninstall
+
+If you built MeatyCapture from source:
+
+```bash
+# Remove the global link (if you created one)
+pnpm unlink --global
+
+# Delete the cloned directory
+cd ..
+rm -rf meatycapture/
+```
+
+### Removing Configuration Data
+
+To completely remove MeatyCapture configuration and settings:
+
+```bash
+# Remove the MeatyCapture config directory
+rm -rf ~/.meatycapture/
+```
+
+**Warning:** This removes:
+- Project configurations
+- Field catalogs
+- All stored settings and preferences
+
+**Note:** Request-log markdown files stored in other project directories are NOT affected by this command and will remain intact.
+
+### Complete Uninstall Checklist
+
+| Component | Location | Safe to Remove? | Impact |
+|-----------|----------|-----------------|--------|
+| CLI binary | `/usr/local/bin/meatycapture` | Yes | Removes the command |
+| CLI binary | `~/.local/bin/meatycapture` | Yes | Removes the command |
+| Config directory | `~/.meatycapture/` | Yes | Removes all settings |
+| Request logs | Project directories | User choice | Preserves your data |
+
+---
+
 ## Next Steps
 
 Once installed, initialize MeatyCapture:
