@@ -4,17 +4,17 @@
 
 type: progress
 prd: "cli-distribution-v1"
-phase: 3
+phase: 4
 title: "CLI Distribution & Packaging - All Phases"
-status: "in_progress"
+status: "completed"
 started: "2026-01-18"
-completed: null
+completed: "2026-01-25"
 
-overall_progress: 75
-completion_estimate: "on-track"
+overall_progress: 100
+completion_estimate: "completed"
 
 total_tasks: 24
-completed_tasks: 18
+completed_tasks: 24
 in_progress_tasks: 0
 blocked_tasks: 0
 at_risk_tasks: 0
@@ -199,32 +199,37 @@ phase_3:
 # === PHASE 4: GitHub Releases & Homebrew (12 pts) ===
 phase_4:
   title: "GitHub Releases & Homebrew"
-  status: "pending"
-  progress: 0
+  status: "completed"
+  progress: 100
+  started_date: "2026-01-25"
+  completed_date: "2026-01-25"
   tasks:
     - id: "REL-001"
       description: "Release workflow - GitHub Action creates release on tag"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["NPM-002"]
       estimated_effort: "3 pts"
       priority: "critical"
+      notes: ".github/workflows/release.yml - triggers on Build Binaries completion, creates release with assets"
 
     - id: "REL-002"
       description: "Asset upload - attach binaries to release"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["REL-001", "BIN-006"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "Implemented in release.yml - downloads artifacts and attaches all 5 binaries"
 
     - id: "REL-003"
       description: "Release notes generation from changesets"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["REL-001"]
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: "Implemented in release.yml - generates notes with install instructions and commit history"
 
     - id: "REL-004"
       description: "Homebrew tap repository creation"
@@ -237,65 +242,73 @@ phase_4:
 
     - id: "REL-005"
       description: "Formula creation - meatycapture.rb"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["REL-004"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "homebrew/Formula/meatycapture.rb - supports macOS/Linux ARM64/x64 with SHA256 placeholders"
 
     - id: "REL-006"
       description: "Formula auto-update on release"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["REL-005"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: ".github/workflows/update-homebrew.yml - auto-updates formula on release publish"
 
     - id: "REL-007"
       description: "Brew install integration test"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["REL-006"]
       estimated_effort: "1 pt"
       priority: "high"
+      notes: "docs/testing/homebrew-testing.md - manual test procedures and checklist"
 
 # === DOCUMENTATION (4.5 pts) ===
 documentation:
   title: "Documentation"
-  status: "pending"
-  progress: 0
+  status: "completed"
+  progress: 100
+  completed_date: "2026-01-25"
   tasks:
     - id: "DOC-001"
       description: "Installation guide - all 4 methods"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["NPM-005"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "docs/user/installation.md - comprehensive guide for npm, Homebrew, binary, and source"
 
     - id: "DOC-002"
       description: "Troubleshooting guide"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["REL-007"]
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: "docs/user/troubleshooting.md - comprehensive guide for all platforms"
 
     - id: "DOC-003"
       description: "Contributing guide - development and release"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["REL-007"]
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: "CONTRIBUTING.md - development setup, workflow, and changesets"
 
     - id: "DOC-004"
       description: "Uninstall instructions per method"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["DOC-001"]
       estimated_effort: "0.5 pt"
       priority: "low"
+      notes: "Added to docs/user/installation.md - uninstall for all methods"
 
 # Parallelization Strategy
 parallelization:
