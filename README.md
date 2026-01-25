@@ -23,6 +23,10 @@ meatycapture --version
 meatycapture --help
 ```
 
+### Alternative Installation Methods
+
+Need a different installation method? MeatyCapture also supports **Homebrew**, **standalone binaries**, and **building from source**. See the [complete installation guide](docs/user/installation.md) for all options and platform-specific instructions.
+
 ## Quick Start
 
 Initialize configuration and create your first project:
