@@ -384,13 +384,15 @@ pnpm build:cli
 4. **Link globally** (optional, makes `meatycapture` available in PATH):
 
 ```bash
-pnpm link --global
+npm link
 ```
+
+> **Note:** Use `npm link` instead of `pnpm link --global` due to a pnpm issue with recognizing binaries.
 
 Or without the global link, run the CLI directly:
 
 ```bash
-./dist/cli/index.js --version
+node ./dist/cli/index.js --version
 ```
 
 5. **Verify installation**:
@@ -409,7 +411,7 @@ If you're contributing to MeatyCapture, use the development mode:
 pnpm dev
 
 # Or run the dev CLI with watching
-pnpm build:cli && pnpm link --global
+pnpm build:cli && npm link
 
 # Watch for changes
 pnpm build:cli --watch
