@@ -1,0 +1,195 @@
+name: Update Homebrew Formula
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v0.1.0)'
+        required: true
+
+concurrency:
+  group: homebrew-update-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update-formula:
+    name: Update Homebrew Formula
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history for proper commits
+          fetch-depth: 0
+          # Use a token that can push to the repo
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get release tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${{ github.event.release.tag_name }}"
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Processing release: $TAG (version: $VERSION)"
+
+      - name: Download release binaries and calculate SHA256
+        id: sha256
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          echo "Downloading binaries for release $TAG..."
+
+          mkdir -p binaries
+          cd binaries
+
+          # Download macOS and Linux binaries (Windows not supported by Homebrew)
+          PLATFORMS=("darwin-arm64" "darwin-x64" "linux-arm64" "linux-x64")
+
+          for PLATFORM in "${PLATFORMS[@]}"; do
+            BINARY_NAME="meatycapture-${PLATFORM}"
+            URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/${BINARY_NAME}"
+
+            echo "Downloading ${BINARY_NAME}..."
+            if curl -fsSL -o "${BINARY_NAME}" "${URL}"; then
+              echo "Successfully downloaded ${BINARY_NAME}"
+            else
+              echo "::error::Failed to download ${BINARY_NAME} from ${URL}"
+              exit 1
+            fi
+          done
+
+          # Calculate SHA256 for each binary
+          echo ""
+          echo "=== SHA256 Checksums ==="
+
+          SHA_DARWIN_ARM64=$(shasum -a 256 meatycapture-darwin-arm64 | cut -d' ' -f1)
+          SHA_DARWIN_X64=$(shasum -a 256 meatycapture-darwin-x64 | cut -d' ' -f1)
+          SHA_LINUX_ARM64=$(shasum -a 256 meatycapture-linux-arm64 | cut -d' ' -f1)
+          SHA_LINUX_X64=$(shasum -a 256 meatycapture-linux-x64 | cut -d' ' -f1)
+
+          echo "darwin-arm64: $SHA_DARWIN_ARM64"
+          echo "darwin-x64:   $SHA_DARWIN_X64"
+          echo "linux-arm64:  $SHA_LINUX_ARM64"
+          echo "linux-x64:    $SHA_LINUX_X64"
+
+          # Export for next step
+          echo "darwin_arm64=$SHA_DARWIN_ARM64" >> $GITHUB_OUTPUT
+          echo "darwin_x64=$SHA_DARWIN_X64" >> $GITHUB_OUTPUT
+          echo "linux_arm64=$SHA_LINUX_ARM64" >> $GITHUB_OUTPUT
+          echo "linux_x64=$SHA_LINUX_X64" >> $GITHUB_OUTPUT
+
+      - name: Update Homebrew formula
+        run: |
+          VERSION="${{ steps.tag.outputs.version }}"
+          SHA_DARWIN_ARM64="${{ steps.sha256.outputs.darwin_arm64 }}"
+          SHA_DARWIN_X64="${{ steps.sha256.outputs.darwin_x64 }}"
+          SHA_LINUX_ARM64="${{ steps.sha256.outputs.linux_arm64 }}"
+          SHA_LINUX_X64="${{ steps.sha256.outputs.linux_x64 }}"
+
+          FORMULA="homebrew/Formula/meatycapture.rb"
+
+          echo "Updating formula to version ${VERSION}..."
+
+          # Update version
+          sed -i "s/version \".*\"/version \"${VERSION}\"/" "$FORMULA"
+
+          # Update SHA256 checksums
+          # Handle both placeholder format and existing SHA256 values
+          # macOS ARM64
+          sed -i "s/sha256 \"UPDATE_ON_RELEASE_ARM64\"/sha256 \"${SHA_DARWIN_ARM64}\"/" "$FORMULA"
+          sed -i "s/sha256 \"UPDATE_ON_RELEASE_DARWIN_ARM64_SHA256\"/sha256 \"${SHA_DARWIN_ARM64}\"/" "$FORMULA"
+          sed -i "/meatycapture-darwin-arm64/{n;s/sha256 \"[a-f0-9]\{64\}\"/sha256 \"${SHA_DARWIN_ARM64}\"/}" "$FORMULA"
+
+          # macOS x64
+          sed -i "s/sha256 \"UPDATE_ON_RELEASE_X64\"/sha256 \"${SHA_DARWIN_X64}\"/" "$FORMULA"
+          sed -i "s/sha256 \"UPDATE_ON_RELEASE_DARWIN_X64_SHA256\"/sha256 \"${SHA_DARWIN_X64}\"/" "$FORMULA"
+          sed -i "/meatycapture-darwin-x64/{n;s/sha256 \"[a-f0-9]\{64\}\"/sha256 \"${SHA_DARWIN_X64}\"/}" "$FORMULA"
+
+          # Linux ARM64
+          sed -i "s/sha256 \"UPDATE_ON_RELEASE_LINUX_ARM64\"/sha256 \"${SHA_LINUX_ARM64}\"/" "$FORMULA"
+          sed -i "s/sha256 \"UPDATE_ON_RELEASE_LINUX_ARM64_SHA256\"/sha256 \"${SHA_LINUX_ARM64}\"/" "$FORMULA"
+          sed -i "/meatycapture-linux-arm64/{n;s/sha256 \"[a-f0-9]\{64\}\"/sha256 \"${SHA_LINUX_ARM64}\"/}" "$FORMULA"
+
+          # Linux x64
+          sed -i "s/sha256 \"UPDATE_ON_RELEASE_LINUX_X64\"/sha256 \"${SHA_LINUX_X64}\"/" "$FORMULA"
+          sed -i "s/sha256 \"UPDATE_ON_RELEASE_LINUX_X64_SHA256\"/sha256 \"${SHA_LINUX_X64}\"/" "$FORMULA"
+          sed -i "/meatycapture-linux-x64/{n;s/sha256 \"[a-f0-9]\{64\}\"/sha256 \"${SHA_LINUX_X64}\"/}" "$FORMULA"
+
+          echo ""
+          echo "=== Updated Formula ==="
+          cat "$FORMULA"
+
+      - name: Verify formula syntax
+        run: |
+          # Basic Ruby syntax check
+          ruby -c homebrew/Formula/meatycapture.rb
+          echo "Formula syntax is valid"
+
+      - name: Commit and push changes
+        run: |
+          VERSION="${{ steps.tag.outputs.version }}"
+          TAG="${{ steps.tag.outputs.tag }}"
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if there are changes to commit
+          if git diff --quiet homebrew/Formula/meatycapture.rb; then
+            echo "No changes to commit - formula already up to date"
+            exit 0
+          fi
+
+          # Stage and commit
+          git add homebrew/Formula/meatycapture.rb
+          git commit -m "$(cat <<EOF
+          chore(brew): update formula to v${VERSION}
+
+          Update Homebrew formula for release ${TAG}:
+          - Version: ${VERSION}
+          - darwin-arm64 SHA256: ${{ steps.sha256.outputs.darwin_arm64 }}
+          - darwin-x64 SHA256: ${{ steps.sha256.outputs.darwin_x64 }}
+          - linux-arm64 SHA256: ${{ steps.sha256.outputs.linux_arm64 }}
+          - linux-x64 SHA256: ${{ steps.sha256.outputs.linux_x64 }}
+
+          [skip ci]
+          EOF
+          )"
+
+          # Push to main branch
+          git push origin HEAD:main
+
+          echo ""
+          echo "=== Formula Updated ==="
+          echo "Version: ${VERSION}"
+          echo "Committed and pushed to main branch"
+
+      - name: Summary
+        run: |
+          echo "## Homebrew Formula Updated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.tag.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### SHA256 Checksums" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | SHA256 |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| darwin-arm64 | \`${{ steps.sha256.outputs.darwin_arm64 }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| darwin-x64 | \`${{ steps.sha256.outputs.darwin_x64 }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| linux-arm64 | \`${{ steps.sha256.outputs.linux_arm64 }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| linux-x64 | \`${{ steps.sha256.outputs.linux_x64 }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Users can now install with:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "brew tap miethe/meatycapture https://github.com/miethe/meatycapture.git" >> $GITHUB_STEP_SUMMARY
+          echo "brew install meatycapture" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

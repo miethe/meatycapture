@@ -4,17 +4,17 @@
 
 type: progress
 prd: "cli-distribution-v1"
-phase: 0
+phase: 4
 title: "CLI Distribution & Packaging - All Phases"
-status: "planning"
+status: "completed"
 started: "2026-01-18"
-completed: null
+completed: "2026-01-25"
 
-overall_progress: 0
-completion_estimate: "on-track"
+overall_progress: 100
+completion_estimate: "completed"
 
 total_tasks: 24
-completed_tasks: 0
+completed_tasks: 24
 in_progress_tasks: 0
 blocked_tasks: 0
 at_risk_tasks: 0
@@ -25,256 +25,290 @@ contributors: ["documentation-writer"]
 # === PHASE 1: npm Publishing Foundation (8 pts) ===
 phase_1:
   title: "npm Publishing Foundation"
-  status: "pending"
-  progress: 0
+  status: "completed"
+  progress: 100
+  completed_date: "2026-01-21"
   tasks:
     - id: "PKG-001"
       description: "Package.json publishing config (files, exports, type, engines)"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: []
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "npm pack produces 58.6KB tarball with correct files"
 
     - id: "PKG-002"
       description: "Build script audit - verify publishable output"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: []
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: "Shebang present, 755 permissions, CLI executes correctly"
 
     - id: "PKG-003"
       description: "npm scope decision - check @meatycapture availability"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: []
       estimated_effort: "1 pt"
       priority: "high"
+      notes: "ADR-001 created; decided on unscoped 'meatycapture'"
 
     - id: "PKG-004"
       description: "Changesets setup for version management"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: []
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "@changesets/cli installed, config created, scripts added"
 
     - id: "PKG-005"
       description: "Version bump workflow - GitHub Action"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["PKG-004"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: ".github/workflows/version-bump.yml created"
 
 # === PHASE 2: npm Publish Workflow (6.5 pts) ===
 phase_2:
   title: "npm Publish Workflow"
-  status: "pending"
-  progress: 0
+  status: "completed"
+  progress: 100
+  completed_date: "2026-01-21"
   tasks:
     - id: "NPM-001"
       description: "Add NPM_TOKEN to GitHub Secrets"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["PKG-005"]
       estimated_effort: "0.5 pt"
       priority: "high"
+      notes: "docs/setup/npm-publishing-setup.md created with setup instructions"
 
     - id: "NPM-002"
       description: "Publish workflow - GitHub Action triggered on v* tags"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["NPM-001"]
       estimated_effort: "3 pts"
       priority: "critical"
+      notes: ".github/workflows/npm-publish.yml with provenance support"
 
     - id: "NPM-003"
       description: "Publish dry run flag for PRs"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["NPM-002"]
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: ".github/workflows/publish-check.yml for PR validation"
 
     - id: "NPM-004"
       description: "npm README display on package page"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["NPM-002"]
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: "README.md updated for npm package page"
 
     - id: "NPM-005"
       description: "First publish test - v0.1.0-beta"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["NPM-002"]
       estimated_effort: "1 pt"
       priority: "high"
+      notes: "Changeset created, checklist documented, local pack verified"
 
 # === PHASE 3: Standalone Binary Generation (12.5 pts) ===
 phase_3:
   title: "Standalone Binary Generation"
-  status: "pending"
-  progress: 0
+  status: "completed"
+  progress: 100
+  completed_date: "2026-01-22"
   tasks:
     - id: "BIN-001"
       description: "Bundler evaluation - test Bun compile with CLI"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: ["PKG-002"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "Bun compile chosen over pkg/nexe. ADR-002 documents decision. Binary sizes: 60MB (macOS), 105MB (Linux), 116MB (Windows)"
 
     - id: "BIN-002"
       description: "Local binary build script"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: ["BIN-001"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "build-binary.ts created with cross-compilation support. Scripts: pnpm build:binary, pnpm build:binary:all"
 
     - id: "BIN-003"
       description: "Build matrix config - 5 platforms"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["BIN-002"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: ".github/workflows/build-binaries.yml created with 5-platform matrix"
 
     - id: "BIN-004"
       description: "macOS builds (darwin-arm64, darwin-x64)"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["BIN-003"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "macos-latest (ARM64) and macos-13 (Intel) runners configured"
 
     - id: "BIN-005"
       description: "Linux builds (linux-x64, linux-arm64)"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["BIN-003"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "ubuntu-latest for x64, cross-compilation for arm64"
 
     - id: "BIN-006"
       description: "Windows build (win32-x64)"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["BIN-003"]
       estimated_effort: "2 pts"
       priority: "medium"
+      notes: "windows-latest runner configured"
 
     - id: "BIN-007"
       description: "Binary naming convention"
-      status: "pending"
+      status: "completed"
       assigned_to: ["backend-typescript-architect"]
       dependencies: ["BIN-004"]
       estimated_effort: "0.5 pt"
       priority: "low"
+      notes: "Naming: meatycapture-{os}-{arch}[.exe]. Documented in ADR-002"
 
 # === PHASE 4: GitHub Releases & Homebrew (12 pts) ===
 phase_4:
   title: "GitHub Releases & Homebrew"
-  status: "pending"
-  progress: 0
+  status: "completed"
+  progress: 100
+  started_date: "2026-01-25"
+  completed_date: "2026-01-25"
   tasks:
     - id: "REL-001"
       description: "Release workflow - GitHub Action creates release on tag"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["NPM-002"]
       estimated_effort: "3 pts"
       priority: "critical"
+      notes: ".github/workflows/release.yml - triggers on Build Binaries completion, creates release with assets"
 
     - id: "REL-002"
       description: "Asset upload - attach binaries to release"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["REL-001", "BIN-006"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "Implemented in release.yml - downloads artifacts and attaches all 5 binaries"
 
     - id: "REL-003"
       description: "Release notes generation from changesets"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["REL-001"]
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: "Implemented in release.yml - generates notes with install instructions and commit history"
 
     - id: "REL-004"
       description: "Homebrew tap repository creation"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: []
       estimated_effort: "1 pt"
       priority: "high"
+      notes: "docs/setup/homebrew-tap-setup.md created with setup guide"
 
     - id: "REL-005"
       description: "Formula creation - meatycapture.rb"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["REL-004"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "homebrew/Formula/meatycapture.rb - supports macOS/Linux ARM64/x64 with SHA256 placeholders"
 
     - id: "REL-006"
       description: "Formula auto-update on release"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["REL-005"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: ".github/workflows/update-homebrew.yml - auto-updates formula on release publish"
 
     - id: "REL-007"
       description: "Brew install integration test"
-      status: "pending"
+      status: "completed"
       assigned_to: ["devops-architect"]
       dependencies: ["REL-006"]
       estimated_effort: "1 pt"
       priority: "high"
+      notes: "docs/testing/homebrew-testing.md - manual test procedures and checklist"
 
 # === DOCUMENTATION (4.5 pts) ===
 documentation:
   title: "Documentation"
-  status: "pending"
-  progress: 0
+  status: "completed"
+  progress: 100
+  completed_date: "2026-01-25"
   tasks:
     - id: "DOC-001"
       description: "Installation guide - all 4 methods"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["NPM-005"]
       estimated_effort: "2 pts"
       priority: "high"
+      notes: "docs/user/installation.md - comprehensive guide for npm, Homebrew, binary, and source"
 
     - id: "DOC-002"
       description: "Troubleshooting guide"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["REL-007"]
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: "docs/user/troubleshooting.md - comprehensive guide for all platforms"
 
     - id: "DOC-003"
       description: "Contributing guide - development and release"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["REL-007"]
       estimated_effort: "1 pt"
       priority: "medium"
+      notes: "CONTRIBUTING.md - development setup, workflow, and changesets"
 
     - id: "DOC-004"
       description: "Uninstall instructions per method"
-      status: "pending"
+      status: "completed"
       assigned_to: ["documentation-writer"]
       dependencies: ["DOC-001"]
       estimated_effort: "0.5 pt"
       priority: "low"
+      notes: "Added to docs/user/installation.md - uninstall for all methods"
 
 # Parallelization Strategy
 parallelization:

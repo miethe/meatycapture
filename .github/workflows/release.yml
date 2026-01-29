@@ -1,0 +1,161 @@
+name: Create GitHub Release
+
+on:
+  workflow_run:
+    workflows: ["Build Binaries"]
+    types:
+      - completed
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    # Only run if the build workflow succeeded and was triggered by a tag
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${{ github.event.workflow_run.head_branch }}"
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Releasing version: $VERSION (tag: $TAG)"
+
+      - name: Check if release already exists
+        id: check_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "${{ steps.version.outputs.tag }}" &>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Release ${{ steps.version.outputs.tag }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Release ${{ steps.version.outputs.tag }} does not exist, will create"
+          fi
+
+      - name: Download artifacts from build workflow
+        if: steps.check_release.outputs.exists == 'false'
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: binaries
+
+      - name: List downloaded artifacts
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          echo "=== Downloaded Artifacts ==="
+          find binaries -type f -exec ls -lh {} \; || echo "No binaries found"
+
+      - name: Prepare release assets
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          mkdir -p release-assets
+
+          # Move binaries to release-assets with proper names
+          # Each artifact is in its own directory with the same name
+          for artifact_dir in binaries/*/; do
+            artifact_name=$(basename "$artifact_dir")
+            if [ -f "${artifact_dir}${artifact_name}" ]; then
+              cp "${artifact_dir}${artifact_name}" "release-assets/${artifact_name}"
+              echo "Prepared: ${artifact_name}"
+            fi
+          done
+
+          echo ""
+          echo "=== Release Assets ==="
+          ls -lh release-assets/ || echo "No assets prepared"
+
+      - name: Generate release notes
+        if: steps.check_release.outputs.exists == 'false'
+        id: release_notes
+        run: |
+          # Try to get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -n "$LAST_TAG" ]; then
+            echo "Generating notes from commits since $LAST_TAG"
+            COMMITS=$(git log --pretty=format:"- %s" ${LAST_TAG}..HEAD 2>/dev/null || echo "")
+          else
+            echo "No previous tag found, using recent commits"
+            COMMITS=$(git log --pretty=format:"- %s" -10 2>/dev/null || echo "")
+          fi
+
+          # Create release notes file
+          cat > release-notes.md << 'NOTES_EOF'
+          ## Installation
+
+          ### npm (recommended)
+          ```bash
+          npm install -g meatycapture
+          ```
+
+          ### Standalone Binary
+          Download the appropriate binary for your platform:
+          - **macOS Apple Silicon**: `meatycapture-darwin-arm64`
+          - **macOS Intel**: `meatycapture-darwin-x64`
+          - **Linux x64**: `meatycapture-linux-x64`
+          - **Linux ARM64**: `meatycapture-linux-arm64`
+          - **Windows**: `meatycapture-windows-x64.exe`
+
+          Make the binary executable (macOS/Linux):
+          ```bash
+          chmod +x meatycapture-*
+          ```
+
+          ## Changes
+          NOTES_EOF
+
+          if [ -n "$COMMITS" ]; then
+            echo "$COMMITS" >> release-notes.md
+          else
+            echo "- Initial release" >> release-notes.md
+          fi
+
+          cat release-notes.md
+
+      - name: Create GitHub Release
+        if: steps.check_release.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: MeatyCapture v${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'rc') }}
+          files: release-assets/*
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release summary
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          echo "=== Release Created ==="
+          echo "Tag: ${{ steps.version.outputs.tag }}"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          echo "URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }}"
+
+      - name: Skip message (release exists)
+        if: steps.check_release.outputs.exists == 'true'
+        run: |
+          echo "=== Skipping ==="
+          echo "Release ${{ steps.version.outputs.tag }} already exists."
+          echo "URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }}"

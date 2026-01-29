@@ -11,7 +11,7 @@
  */
 
 import type { Command } from 'commander';
-import { resolve, basename } from 'node:path';
+import { basename } from 'node:path';
 import { promises as fs } from 'node:fs';
 import * as readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
@@ -23,6 +23,7 @@ import {
   UserInterruptError,
   isQuietMode,
   withErrorHandling,
+  resolveDocPath,
 } from '@cli/handlers';
 import { ExitCodes } from '@cli/handlers/exitCodes';
 
@@ -103,7 +104,9 @@ function output(message: string): void {
  * @param options - Command options
  */
 export async function deleteAction(docPath: string, options: DeleteOptions): Promise<void> {
-  const resolvedPath = resolve(docPath);
+  // Resolve the document path using centralized resolver
+  // Handles absolute paths, REQ patterns (with/without .md), and relative paths
+  const resolvedPath = await resolveDocPath(docPath);
   const { docStore } = await createAdapters();
 
   // Step 1: Read document (verifies existence and gets metadata for confirmation)

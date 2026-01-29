@@ -19,8 +19,6 @@
 
 import type { Command } from 'commander';
 import { promises as fs } from 'node:fs';
-import path, { join, resolve } from 'node:path';
-import { homedir } from 'node:os';
 import type { Note, NoteType, RequestLogDoc, RequestLogItem } from '@core/models';
 import { NOTE_TYPES, isNoteType, NOTE_TYPE_OPTIONS } from '@core/models';
 import { createAdapters } from '@adapters/factory';
@@ -33,7 +31,8 @@ import {
   FileNotFoundError,
   ParseError,
   ResourceNotFoundError,
-} from '@cli/handlers/errors.js';
+  resolveDocPath,
+} from '@cli/handlers';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 
 /**
@@ -71,54 +70,6 @@ function generateNoteId(): string {
     random += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return `NOTE-${timestamp}-${random}`;
-}
-
-/**
- * Gets the default document path for a project.
- *
- * Resolution order:
- * 1. Project's configured default_path
- * 2. MEATYCAPTURE_DEFAULT_PROJECT_PATH environment variable
- * 3. ~/.meatycapture/docs/<project-id>/
- */
-async function getProjectDocPath(projectSlug: string): Promise<string> {
-  const { projectStore } = await createAdapters();
-  const project = await projectStore.get(projectSlug);
-
-  if (project) {
-    return project.default_path;
-  }
-
-  const envPath = process.env['MEATYCAPTURE_DEFAULT_PROJECT_PATH'];
-  if (envPath) {
-    return join(envPath, projectSlug);
-  }
-
-  return join(homedir(), '.meatycapture', 'docs', projectSlug);
-}
-
-/**
- * Resolves a document path, handling both absolute paths and REQ pattern filenames.
- *
- * - Absolute paths are used directly
- * - REQ-YYYYMMDD-<slug> patterns extract the project slug for proper resolution
- * - Other relative paths resolve against CWD
- */
-async function resolveDocPath(docPath: string): Promise<string> {
-  if (path.isAbsolute(docPath)) {
-    return docPath;
-  }
-
-  // Extract project slug from filename if it matches REQ pattern
-  // Pattern: REQ-YYYYMMDD-<slug>.md or REQ-YYYYMMDD-<slug>-NN.md
-  const match = docPath.match(/^REQ-\d{8}-([^-]+?)(?:-\d+)?\.md$/);
-  if (match && match[1]) {
-    const projectSlug = match[1];
-    const projectPath = await getProjectDocPath(projectSlug);
-    return join(projectPath, docPath);
-  }
-
-  return resolve(docPath);
 }
 
 /**

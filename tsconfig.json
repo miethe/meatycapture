@@ -3,6 +3,7 @@
     /* Language and Environment */
     "target": "ES2022",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["bun-types"],
     "jsx": "react-jsx",
 
     /* Modules */
@@ -53,7 +54,8 @@
     "tests/**/*.ts",
     "vite.config.ts",
     "vitest.config.ts",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "build-binary.ts"
   ],
   "exclude": [
     "node_modules",

@@ -26,8 +26,8 @@ pnpm install -g @meaty/cli
 ```bash
 cd meatycapture
 pnpm install
-pnpm build
-pnpm link
+pnpm build:cli
+npm link
 ```
 
 ## Quick Start
