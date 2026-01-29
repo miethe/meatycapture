@@ -19,8 +19,6 @@
  */
 
 import { Command } from 'commander';
-import path, { join, resolve } from 'node:path';
-import { homedir } from 'node:os';
 import { promises as fs } from 'node:fs';
 import type { RequestLogDoc, RequestLogItem } from '@core/models';
 import { createAdapters } from '@adapters/factory';
@@ -37,7 +35,8 @@ import {
   FileNotFoundError,
   ResourceNotFoundError,
   ParseError,
-} from '@cli/handlers/errors.js';
+  resolveDocPath,
+} from '@cli/handlers';
 import { ExitCodes } from '@cli/handlers/exitCodes.js';
 import { updateIndexAfterWrite } from '@cli/indexing/auto-update.js';
 
@@ -73,54 +72,6 @@ export interface ItemUpdateOptions {
   quiet?: boolean;
   /** Skip backup creation */
   noBackup?: boolean;
-}
-
-/**
- * Gets the default document path for a project.
- *
- * Resolution order:
- * 1. Project's configured default_path
- * 2. MEATYCAPTURE_DEFAULT_PROJECT_PATH environment variable
- * 3. ~/.meatycapture/docs/<project-id>/
- */
-async function getProjectDocPath(projectSlug: string): Promise<string> {
-  const { projectStore } = await createAdapters();
-  const project = await projectStore.get(projectSlug);
-
-  if (project) {
-    return project.default_path;
-  }
-
-  const envPath = process.env['MEATYCAPTURE_DEFAULT_PROJECT_PATH'];
-  if (envPath) {
-    return join(envPath, projectSlug);
-  }
-
-  return join(homedir(), '.meatycapture', 'docs', projectSlug);
-}
-
-/**
- * Resolves the document path intelligently.
- *
- * - Absolute paths are used directly
- * - REQ-YYYYMMDD-<slug> patterns extract the project slug for proper resolution
- * - Other relative paths resolve against CWD (fallback)
- */
-async function resolveDocPath(docPath: string): Promise<string> {
-  if (path.isAbsolute(docPath)) {
-    return docPath;
-  }
-
-  // Extract project slug from filename if it matches REQ pattern
-  // Pattern: REQ-YYYYMMDD-<slug>.md or REQ-YYYYMMDD-<slug>-NN.md
-  const match = docPath.match(/^REQ-\d{8}-([^-]+?)(?:-\d+)?\.md$/);
-  if (match && match[1]) {
-    const projectSlug = match[1];
-    const projectPath = await getProjectDocPath(projectSlug);
-    return join(projectPath, docPath);
-  }
-
-  return resolve(docPath);
 }
 
 /**

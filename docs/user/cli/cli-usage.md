@@ -26,6 +26,27 @@ The CLI is available at `dist/cli/index.js` or via the `meatycapture` command wh
 
 Commands for managing request-log documents: creating, appending, viewing, searching, and deleting.
 
+#### Path Resolution
+
+Commands that accept `<doc-path>` support flexible path resolution:
+
+- **Absolute paths**: Used as-is (e.g., `/path/to/doc.md`)
+- **REQ pattern**: Automatically resolved to project directory (e.g., `REQ-20251215-myproject`)
+- **Relative paths**: Resolved against current directory
+
+**Extension normalization**: The `.md` extension is optional. Both forms work identically:
+
+```bash
+# These are equivalent:
+meatycapture log view REQ-20251215-myproject
+meatycapture log view REQ-20251215-myproject.md
+
+# Item references also work without extension:
+meatycapture log note add REQ-20251215-myproject-01 ITEM-ID -c "note"
+```
+
+---
+
 #### log create
 
 Create a new request-log document from JSON input.

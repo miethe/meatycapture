@@ -120,3 +120,14 @@ export {
   validatePathWritable,
   generateProjectIdFromName,
 } from './project.js';
+
+// ============================================================================
+// Path Resolution
+// ============================================================================
+
+export {
+  resolveDocPath,
+  getProjectDocPath,
+  normalizeExtension,
+  extractProjectSlug,
+} from './path-resolver.js';
