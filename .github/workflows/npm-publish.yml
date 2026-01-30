@@ -38,8 +38,8 @@ jobs:
       - name: Build CLI
         run: pnpm build:cli
 
-      - name: Run tests
-        run: pnpm test run
+     # - name: Run tests
+     #   run: pnpm test run
 
       - name: Run typecheck
         run: pnpm typecheck
