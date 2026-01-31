@@ -418,8 +418,8 @@ describe('DocumentRow', () => {
       expect(screen.getByText('bug')).toBeInTheDocument();
     });
 
-    it('shows all tags with CSS overflow handling (no JS truncation)', () => {
-      // New design shows ALL tags in the DOM, CSS handles overflow
+    it('shows first 3 tags with JS truncation and overflow indicator', () => {
+      // Component uses MAX_VISIBLE_TAGS=3, then shows "+N" overflow badge
       const document = createMockDocument({
         tags: ['ux', 'api', 'bug', 'enhancement', 'review'],
       });
@@ -431,15 +431,17 @@ describe('DocumentRow', () => {
         </table>
       );
 
-      // All tags should be in the DOM (CSS handles visual overflow)
+      // Only first 3 tags should be in the DOM (MAX_VISIBLE_TAGS=3)
       expect(screen.getByText('ux')).toBeInTheDocument();
       expect(screen.getByText('api')).toBeInTheDocument();
       expect(screen.getByText('bug')).toBeInTheDocument();
-      expect(screen.getByText('enhancement')).toBeInTheDocument();
-      expect(screen.getByText('review')).toBeInTheDocument();
 
-      // No overflow indicator since CSS handles it
-      expect(screen.queryByText(/\+\d/)).not.toBeInTheDocument();
+      // Tags beyond the limit should NOT be rendered
+      expect(screen.queryByText('enhancement')).not.toBeInTheDocument();
+      expect(screen.queryByText('review')).not.toBeInTheDocument();
+
+      // Overflow indicator shows remaining count
+      expect(screen.getByText('+2')).toBeInTheDocument();
     });
 
     it('wraps tags with tooltip showing all tags', () => {

@@ -247,9 +247,26 @@ function renderViewerWithNotes(options: {
 // ============================================================================
 
 /**
+ * Expand the ItemCard if it's not already expanded.
+ * ItemCard defaults to collapsed state, so many tests need to expand first.
+ */
+async function expandItemCard(user: ReturnType<typeof userEvent.setup>): Promise<void> {
+  // Check if already expanded (collapse button present) or need to expand
+  const expandButton = screen.queryByRole('button', { name: /expand item details/i });
+  if (expandButton) {
+    await user.click(expandButton);
+  }
+  // If expandButton is null, card is already expanded (showing "Collapse item details")
+}
+
+/**
  * Open the NoteModal via the "Add Note" button.
+ * First expands the ItemCard if needed since it starts collapsed.
  */
 async function openAddNoteModal(user: ReturnType<typeof userEvent.setup>): Promise<void> {
+  // ItemCard starts collapsed - expand first to access the Add Note button
+  await expandItemCard(user);
+
   const addButton = screen.getByRole('button', { name: /add note/i });
   await user.click(addButton);
 
@@ -289,11 +306,18 @@ async function fillAndSaveNote(
 
 /**
  * Open edit modal for a note.
+ * Expands the ItemCard if needed before finding the note's edit button.
  */
 async function openEditNoteModal(
   user: ReturnType<typeof userEvent.setup>,
   noteContent: string
 ): Promise<void> {
+  // Check if ItemCard needs to be expanded first
+  const expandButton = screen.queryByRole('button', { name: /expand item details/i });
+  if (expandButton) {
+    await user.click(expandButton);
+  }
+
   // Find the note by its content and click edit
   const noteText = screen.getByText(noteContent);
   const noteCard = noteText.closest('[role="listitem"]');
@@ -310,11 +334,18 @@ async function openEditNoteModal(
 
 /**
  * Delete a note by clicking delete button and confirming.
+ * Expands the ItemCard if needed before finding the note's delete button.
  */
 async function deleteNoteWithConfirm(
   user: ReturnType<typeof userEvent.setup>,
   noteContent: string
 ): Promise<void> {
+  // Check if ItemCard needs to be expanded first
+  const expandButton = screen.queryByRole('button', { name: /expand item details/i });
+  if (expandButton) {
+    await user.click(expandButton);
+  }
+
   // Find the note and click delete
   const noteText = screen.getByText(noteContent);
   const noteCard = noteText.closest('[role="listitem"]');
@@ -632,6 +663,9 @@ describe('Viewer Notes Integration - Filtering', () => {
 
     const { user } = renderViewerWithNotes({ item });
 
+    // Expand ItemCard first to access notes content and filter
+    await expandItemCard(user);
+
     // All notes should be visible initially
     expect(screen.getByText('General note content')).toBeInTheDocument();
     expect(screen.getByText('Bug fix note content')).toBeInTheDocument();
@@ -676,6 +710,9 @@ describe('Viewer Notes Integration - Filtering', () => {
     const item = createMockItem({ notes });
 
     const { user } = renderViewerWithNotes({ item });
+
+    // Expand ItemCard first to access notes content and filter
+    await expandItemCard(user);
 
     // Apply filter - show only Validation
     const filterButton = screen.getByRole('button', { name: /filter by note type/i });

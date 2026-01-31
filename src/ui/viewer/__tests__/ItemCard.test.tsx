@@ -370,7 +370,8 @@ describe('ItemCard', () => {
       expect(mockWriteText).toHaveBeenCalledWith('REQ-20251231-test-01');
       expect(onCopyId).not.toHaveBeenCalled();
       expect(screen.getByText('Failed to copy')).toBeInTheDocument();
-      expect(consoleSpy).toHaveBeenCalledWith('Failed to copy item ID:', expect.any(Error));
+      // The copyToClipboard utility logs this message when no copy method is available
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to copy to clipboard: no available method');
 
       consoleSpy.mockRestore();
       vi.unstubAllGlobals();
