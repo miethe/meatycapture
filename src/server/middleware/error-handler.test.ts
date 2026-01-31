@@ -235,7 +235,11 @@ describe('mapErrorToResponse', () => {
         message: 'An internal server error occurred. Please try again later.',
       });
 
-      process.env.NODE_ENV = originalEnv;
+      if (originalEnv === undefined) {
+        delete process.env.NODE_ENV;
+      } else {
+        process.env.NODE_ENV = originalEnv;
+      }
     });
 
     it('should NOT sanitize custom errors in production', () => {
@@ -251,7 +255,11 @@ describe('mapErrorToResponse', () => {
         message: 'Document not found', // Should preserve message
       });
 
-      process.env.NODE_ENV = originalEnv;
+      if (originalEnv === undefined) {
+        delete process.env.NODE_ENV;
+      } else {
+        process.env.NODE_ENV = originalEnv;
+      }
     });
   });
 });

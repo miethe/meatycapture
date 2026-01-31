@@ -144,8 +144,8 @@ describe('API Detection Module', () => {
 
   describe('pingApiHealth', () => {
     beforeEach(() => {
-      // Mock fetch globally
-      global.fetch = vi.fn();
+      // Mock fetch globally - cast to satisfy TypeScript's fetch type requirements
+      global.fetch = vi.fn() as unknown as typeof fetch;
     });
 
     it('should return true when health endpoint responds with 200 OK', async () => {
