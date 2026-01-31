@@ -1,5 +1,13 @@
 # MeatyCapture
 
+[![Version Bump](https://github.com/miethe/meatycapture/actions/workflows/version-bump.yml/badge.svg?branch=main)](https://github.com/miethe/meatycapture/actions/workflows/version-bump.yml)
+[![Publish Check](https://github.com/miethe/meatycapture/actions/workflows/publish-check.yml/badge.svg?branch=main)](https://github.com/miethe/meatycapture/actions/workflows/publish-check.yml)
+[![Publish to npm](https://github.com/miethe/meatycapture/actions/workflows/npm-publish.yml/badge.svg?branch=main)](https://github.com/miethe/meatycapture/actions/workflows/npm-publish.yml)
+
+[![Latest tag](https://img.shields.io/github/v/tag/miethe/meatycapture?label=latest)](https://github.com/miethe/meatycapture/releases)
+[![npm](https://img.shields.io/npm/v/@meatymedia/meatycapture?color=brightgreen)](https://www.npmjs.com/package/@meatymedia/meatycapture)
+[![npm downloads](https://img.shields.io/npm/dm/@meatymedia/meatycapture)](https://www.npmjs.com/package/@meatymedia/meatycapture)
+
 Lightweight CLI for logging enhancements, bugs, and ideas to structured markdown files with project-aware defaults and tag aggregation.
 
 Perfect for teams that track work in Git repositories, want searchable local markdown documents, or need headless batch capture for CI/CD pipelines.
