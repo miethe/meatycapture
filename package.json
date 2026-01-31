@@ -1,5 +1,5 @@
 {
-  "name": "meatycapture",
+  "name": "@meatymedia/meatycapture",
   "version": "0.2.0",
   "description": "Lightweight capture app for logging enhancements/bugs/ideas to request-log markdown files",
   "type": "module",
