@@ -30,6 +30,7 @@ import {
 import type { FilterState, FilterOptions, ArchiveStatus } from '@core/catalog';
 import { FilterDropdown } from './FilterDropdown';
 import { FilterBadge } from './FilterBadge';
+import { TagCloudFilter } from './TagCloudFilter';
 import { useDebounce } from '@ui/shared/hooks/useDebounce';
 import './viewer.css';
 
@@ -135,32 +136,7 @@ export function DocumentFilters({
     [onFilterChange]
   );
 
-  // Tags filter state with autocomplete
-  const [tagsInput, setTagsInput] = useState('');
-  const [showTagsSuggestions, setShowTagsSuggestions] = useState(false);
-
-  // Filter tags based on input
-  const filteredTags = useMemo(() => {
-    if (!tagsInput.trim()) {
-      return filterOptions.tags;
-    }
-    const search = tagsInput.toLowerCase();
-    return filterOptions.tags.filter((tag) => tag.toLowerCase().includes(search));
-  }, [tagsInput, filterOptions.tags]);
-
-  // Add tag from input or suggestion
-  const handleAddTag = useCallback(
-    (tag: string) => {
-      if (tag && !filterState.tags.includes(tag)) {
-        onFilterChange('tags', [...filterState.tags, tag]);
-      }
-      setTagsInput('');
-      setShowTagsSuggestions(false);
-    },
-    [filterState.tags, onFilterChange]
-  );
-
-  // Remove individual tag
+  // Remove individual tag (used by filter badges)
   const handleRemoveTag = useCallback(
     (tag: string) => {
       onFilterChange(
@@ -477,87 +453,12 @@ export function DocumentFilters({
 
       {/* Tags and Search Row */}
       <div className="viewer-filters-row">
-        {/* Tags Multi-Select with Autocomplete */}
-        <div className="filter-control filter-tags-control">
-          <div className="filter-tags-container">
-            {/* Selected tags as chips */}
-            {filterState.tags.length > 0 && (
-              <div className="filter-tags-chips" role="list" aria-label="Selected tags">
-                {filterState.tags.map((tag) => (
-                  <div key={tag} className="chip" role="listitem">
-                    <span>{tag}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      aria-label={`Remove tag: ${tag}`}
-                      title={`Remove tag: ${tag}`}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Tag input with autocomplete */}
-            <div className="filter-tags-input-wrapper">
-              <input
-                type="text"
-                className="viewer-filters-search input-base"
-                value={tagsInput}
-                onChange={(e) => setTagsInput(e.target.value)}
-                onFocus={() => setShowTagsSuggestions(true)}
-                onBlur={() => {
-                  // Delay to allow clicking suggestions
-                  setTimeout(() => setShowTagsSuggestions(false), 200);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && tagsInput.trim()) {
-                    e.preventDefault();
-                    handleAddTag(tagsInput.trim());
-                  }
-                }}
-                placeholder="Filter by tags..."
-                aria-label="Tag filter input"
-                aria-autocomplete="list"
-                aria-controls="tags-suggestions"
-                aria-expanded={showTagsSuggestions}
-              />
-
-              {/* Tag suggestions dropdown */}
-              {showTagsSuggestions && filteredTags.length > 0 && (
-                <div
-                  id="tags-suggestions"
-                  className="filter-tags-suggestions filter-dropdown-menu"
-                  role="listbox"
-                  aria-label="Tag suggestions"
-                >
-                  {filteredTags.slice(0, 10).map((tag) => {
-                    const isSelected = filterState.tags.includes(tag);
-                    return (
-                      <div
-                        key={tag}
-                        className={`filter-dropdown-option ${isSelected ? 'selected' : ''}`}
-                        role="option"
-                        aria-selected={isSelected}
-                        onClick={() => handleAddTag(tag)}
-                        onMouseDown={(e) => e.preventDefault()} // Prevent blur
-                      >
-                        <div
-                          className={`filter-dropdown-checkbox ${isSelected ? 'checked' : ''}`}
-                          aria-hidden="true"
-                        >
-                          {isSelected && '✓'}
-                        </div>
-                        <span>{tag}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Tags Cloud Filter */}
+        <TagCloudFilter
+          tags={filterOptions.tags}
+          selected={filterState.tags}
+          onChange={(values) => onFilterChange('tags', values)}
+        />
 
         {/* Text Search */}
         <div className="filter-control">
