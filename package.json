@@ -22,7 +22,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node build-cli.js",
     "build:cli": "node build-cli.js",
     "build:binary": "bun run build-binary.ts",
     "build:binary:all": "bun run build-binary.ts --all",
