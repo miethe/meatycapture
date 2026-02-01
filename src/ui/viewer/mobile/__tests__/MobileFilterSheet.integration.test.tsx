@@ -41,6 +41,8 @@ function createMockFilterOptions(): FilterOptions {
     ],
     types: ['bug', 'enhancement', 'idea', 'task'],
     domains: ['api', 'web', 'mobile', 'infra'],
+    subdomains: ['auth', 'ui', 'storage'],
+    features: ['login', 'dashboard', 'settings'],
     priorities: ['critical', 'high', 'medium', 'low'],
     statuses: ['triage', 'backlog', 'in-progress', 'done'],
     tags: ['ux', 'performance', 'security', 'documentation'],
@@ -574,13 +576,15 @@ describe('getActiveFilterCount', () => {
       project_id: 'test',
       types: ['bug', 'enhancement'],
       domains: ['web'],
+      subdomains: [],
+      features: [],
       priorities: ['high', 'critical'],
       statuses: ['triage'],
       tags: ['ux', 'api'],
       text: 'search',
       archiveStatus: 'all',
     };
-    // 1 project + 2 types + 1 domain + 2 priorities + 1 status + 2 tags + 1 text + 1 archiveStatus(all) = 11
+    // 1 project + 2 types + 1 domain + 0 subdomains + 0 features + 2 priorities + 1 status + 2 tags + 1 text + 1 archiveStatus(all) = 11
     expect(getActiveFilterCount(filter)).toBe(11);
   });
 });

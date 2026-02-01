@@ -9,6 +9,13 @@
 import React, { useState, useCallback, useRef, useEffect, type ReactNode } from 'react';
 import './viewer.css';
 
+/** Menu position for fixed positioning */
+interface MenuPosition {
+  top: number;
+  left: number;
+  width: number;
+}
+
 export interface FilterDropdownProps {
   /** Label for the dropdown button */
   label: string;
@@ -52,7 +59,9 @@ export function FilterDropdown({
   icon,
 }: FilterDropdownProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -95,6 +104,14 @@ export function FilterDropdown({
 
   const handleToggle = useCallback(() => {
     if (!disabled) {
+      if (!isOpen && triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        setMenuPosition({
+          top: rect.bottom + 4, // 4px gap below trigger
+          left: rect.left,
+          width: Math.max(rect.width, 160), // minimum width of 160px
+        });
+      }
       setIsOpen(!isOpen);
     }
   }, [disabled, isOpen]);
@@ -122,6 +139,7 @@ export function FilterDropdown({
   return (
     <div className="filter-dropdown-container" ref={containerRef}>
       <button
+        ref={triggerRef}
         type="button"
         className="filter-dropdown-trigger input-base select-base"
         onClick={handleToggle}
@@ -141,8 +159,17 @@ export function FilterDropdown({
         {selected.length > 0 && <span className="filter-dropdown-badge">{selected.length}</span>}
       </button>
 
-      {isOpen && (
-        <div className="filter-dropdown-menu" role="listbox" aria-label={`${label} options`}>
+      {isOpen && menuPosition && (
+        <div
+          className="filter-dropdown-menu"
+          role="listbox"
+          aria-label={`${label} options`}
+          style={{
+            top: menuPosition.top,
+            left: menuPosition.left,
+            minWidth: menuPosition.width,
+          }}
+        >
           {options.length === 0 ? (
             <div className="filter-dropdown-empty">No options available</div>
           ) : (

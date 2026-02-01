@@ -17,7 +17,7 @@
  */
 
 import type { DocStore, ProjectStore, DocMeta } from '@core/ports';
-import type { Project } from '@core/models';
+import type { Project, RequestLogDoc } from '@core/models';
 import type { CatalogEntry, FilterOptions, ProjectInfo } from './types';
 
 /**
@@ -122,40 +122,46 @@ export async function listAllDocuments(
 }
 
 /**
- * Extract available filter options from catalog entries and projects
+ * Extract available filter options from catalog entries, projects, and cached documents
  *
  * Builds FilterOptions structure for populating filter UI dropdowns.
- * Currently only populates projects array - other fields (types, domains, etc.)
- * will be populated in future phases when we have full document data.
+ * Extracts unique values from all items across all cached documents.
  *
  * Why projects come from Project[] not CatalogEntry[]:
  * - Projects can exist without documents (newly created, empty)
  * - Filter UI should show all projects for selection
  * - CatalogEntry[] only contains projects that have documents
  *
- * Future Enhancement (Phase 2+):
- * - Parse full document data to extract types, domains, priorities, statuses
- * - Aggregate unique tags across all documents
- * - This requires reading full RequestLogDoc, not just DocMeta
+ * Why documentCache is optional:
+ * - On initial load, cache may be empty
+ * - Filter options will be populated progressively as documents load
+ * - ViewerContainer should call this again after preloading completes
  *
- * @param _entries - Catalog entries (currently unused, reserved for future use)
+ * @param _entries - Catalog entries (reserved for future use - could extract doc-level tags)
  * @param projects - All projects for building project filter options
- * @returns FilterOptions with projects populated, other fields empty
+ * @param documentCache - Optional map of path -> RequestLogDoc for item-level extraction
+ * @returns FilterOptions with all fields populated from available data
  *
  * @example
  * ```typescript
- * const options = extractFilterOptions(entries, projects);
+ * const options = extractFilterOptions(entries, projects, documentCache);
  * // Returns: {
  * //   projects: [{ id: 'app', name: 'App' }, { id: 'api', name: 'API' }],
- * //   types: [],
- * //   domains: [],
- * //   priorities: [],
- * //   statuses: [],
- * //   tags: []
+ * //   types: ['bug', 'enhancement', 'idea'],
+ * //   domains: ['api', 'web'],
+ * //   subdomains: ['auth', 'ui'],
+ * //   features: ['login', 'dashboard'],
+ * //   priorities: ['high', 'medium', 'low'],
+ * //   statuses: ['backlog', 'in-progress', 'done'],
+ * //   tags: ['api', 'frontend', 'urgent']
  * // }
  * ```
  */
-export function extractFilterOptions(_entries: CatalogEntry[], projects: Project[]): FilterOptions {
+export function extractFilterOptions(
+  _entries: CatalogEntry[],
+  projects: Project[],
+  documentCache?: Map<string, RequestLogDoc>
+): FilterOptions {
   // Build project filter options
   // Sort by name for consistent UI display
   const projectOptions: ProjectInfo[] = projects
@@ -165,15 +171,77 @@ export function extractFilterOptions(_entries: CatalogEntry[], projects: Project
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // Other fields empty for now (DocMeta doesn't contain this info)
-  // Will be populated when we read full RequestLogDoc in future phases
+  // Collect unique values from all items across all cached documents
+  const typesSet = new Set<string>();
+  const domainsSet = new Set<string>();
+  const subdomainsSet = new Set<string>();
+  const featuresSet = new Set<string>();
+  const prioritiesSet = new Set<string>();
+  const statusesSet = new Set<string>();
+  const tagsSet = new Set<string>();
+
+  if (documentCache) {
+    for (const doc of documentCache.values()) {
+      // Aggregate document-level tags
+      for (const tag of doc.tags) {
+        tagsSet.add(tag);
+      }
+
+      // Aggregate item-level fields
+      for (const item of doc.items) {
+        if (item.type) {
+          typesSet.add(item.type);
+        }
+
+        // domain is string[] - add each value
+        if (item.domain && Array.isArray(item.domain)) {
+          for (const d of item.domain) {
+            domainsSet.add(d);
+          }
+        }
+
+        // subdomain is string[] - add each value
+        if (item.subdomain && Array.isArray(item.subdomain)) {
+          for (const s of item.subdomain) {
+            subdomainsSet.add(s);
+          }
+        }
+
+        // feature is string[] (optional) - add each value
+        if (item.feature && Array.isArray(item.feature)) {
+          for (const f of item.feature) {
+            featuresSet.add(f);
+          }
+        }
+
+        if (item.priority) {
+          prioritiesSet.add(item.priority);
+        }
+
+        if (item.status) {
+          statusesSet.add(item.status);
+        }
+
+        // item-level tags
+        if (item.tags && Array.isArray(item.tags)) {
+          for (const tag of item.tags) {
+            tagsSet.add(tag);
+          }
+        }
+      }
+    }
+  }
+
+  // Convert sets to sorted arrays for consistent UI display
   return {
     projects: projectOptions,
-    types: [],
-    domains: [],
-    priorities: [],
-    statuses: [],
-    tags: [],
+    types: Array.from(typesSet).sort(),
+    domains: Array.from(domainsSet).sort(),
+    subdomains: Array.from(subdomainsSet).sort(),
+    features: Array.from(featuresSet).sort(),
+    priorities: Array.from(prioritiesSet).sort(),
+    statuses: Array.from(statusesSet).sort(),
+    tags: Array.from(tagsSet).sort(),
   };
 }
 

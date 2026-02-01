@@ -24,6 +24,8 @@ import {
   ChevronDownIcon,
   MixerVerticalIcon,
   ArchiveIcon,
+  Component1Icon,
+  StackIcon,
 } from '@radix-ui/react-icons';
 import type { FilterState, FilterOptions, ArchiveStatus } from '@core/catalog';
 import { FilterDropdown } from './FilterDropdown';
@@ -124,7 +126,10 @@ export function DocumentFilters({
 
   // Handle multi-select filter changes
   const handleMultiSelectChange = useCallback(
-    (key: 'types' | 'domains' | 'priorities' | 'statuses' | 'tags', values: string[]) => {
+    (
+      key: 'types' | 'domains' | 'subdomains' | 'features' | 'priorities' | 'statuses' | 'tags',
+      values: string[]
+    ) => {
       onFilterChange(key, values);
     },
     [onFilterChange]
@@ -172,6 +177,8 @@ export function DocumentFilters({
       filterState.project_id !== undefined ||
       filterState.types.length > 0 ||
       filterState.domains.length > 0 ||
+      filterState.subdomains.length > 0 ||
+      filterState.features.length > 0 ||
       filterState.priorities.length > 0 ||
       filterState.statuses.length > 0 ||
       filterState.tags.length > 0 ||
@@ -230,6 +237,32 @@ export function DocumentFilters({
           onFilterChange(
             'domains',
             filterState.domains.filter((d) => d !== domain)
+          ),
+      });
+    });
+
+    filterState.subdomains.forEach((subdomain) => {
+      badges.push({
+        key: `subdomain-${subdomain}`,
+        label: 'Subdomain',
+        value: subdomain,
+        onRemove: () =>
+          onFilterChange(
+            'subdomains',
+            filterState.subdomains.filter((s) => s !== subdomain)
+          ),
+      });
+    });
+
+    filterState.features.forEach((feature) => {
+      badges.push({
+        key: `feature-${feature}`,
+        label: 'Feature',
+        value: feature,
+        onRemove: () =>
+          onFilterChange(
+            'features',
+            filterState.features.filter((f) => f !== feature)
           ),
       });
     });
@@ -369,15 +402,41 @@ export function DocumentFilters({
           placeholder="All Types"
         />
 
-        {/* Domain Multi-Select */}
-        <FilterDropdown
-          icon={<LayersIcon />}
-          label="Domain"
-          options={filterOptions.domains}
-          selected={filterState.domains}
-          onChange={(values) => handleMultiSelectChange('domains', values)}
-          placeholder="All Domains"
-        />
+        {/* Domain Multi-Select - only show when project selected */}
+        {filterState.project_id && (
+          <FilterDropdown
+            icon={<LayersIcon />}
+            label="Domain"
+            options={filterOptions.domains}
+            selected={filterState.domains}
+            onChange={(values) => handleMultiSelectChange('domains', values)}
+            placeholder="All Domains"
+          />
+        )}
+
+        {/* Subdomain Multi-Select - only show when project selected */}
+        {filterState.project_id && (
+          <FilterDropdown
+            icon={<Component1Icon />}
+            label="Subdomain"
+            options={filterOptions.subdomains}
+            selected={filterState.subdomains}
+            onChange={(values) => handleMultiSelectChange('subdomains', values)}
+            placeholder="All Subdomains"
+          />
+        )}
+
+        {/* Feature Multi-Select - only show when project selected */}
+        {filterState.project_id && (
+          <FilterDropdown
+            icon={<StackIcon />}
+            label="Feature"
+            options={filterOptions.features}
+            selected={filterState.features}
+            onChange={(values) => handleMultiSelectChange('features', values)}
+            placeholder="All Features"
+          />
+        )}
 
         {/* Priority Multi-Select */}
         <FilterDropdown

@@ -126,6 +126,8 @@ export function ViewerContainer({
     projects: [],
     types: [],
     domains: [],
+    subdomains: [],
+    features: [],
     priorities: [],
     statuses: [],
     tags: [],
@@ -258,6 +260,9 @@ export function ViewerContainer({
    *
    * Uses refs to prevent infinite loops from cache updates triggering re-renders.
    * Processes documents sequentially to avoid overwhelming the server.
+   *
+   * After preloading completes, re-extracts filter options from the now-populated
+   * document cache to populate filter dropdowns with actual item-level data.
    */
   useEffect(() => {
     if (loading || catalog.length === 0) {
@@ -299,6 +304,14 @@ export function ViewerContainer({
       }
 
       console.info(`[ViewerContainer] Preloaded ${preloadedCount} documents`);
+
+      // Re-extract filter options with populated document cache
+      // This populates types, domains, subdomains, features, priorities, statuses, tags
+      // from actual item-level data in the documents
+      const updatedOptions = extractFilterOptions(catalog, projects, documentCache.cache);
+      setFilterOptions(updatedOptions);
+      console.info('[ViewerContainer] Updated filter options from document cache');
+
       preloadingRef.current = false;
     };
 

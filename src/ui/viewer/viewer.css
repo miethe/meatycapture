@@ -116,20 +116,20 @@
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* Filter controls row - horizontal layout with even 0.75rem spacing */
+/* Filter controls row - horizontal layout with wrapping support */
 .viewer-filters-row {
   display: flex;
-  flex-wrap: nowrap;  /* Force single line - NO WRAPPING */
-  gap: 0.5rem;
+  flex-wrap: wrap;  /* Allow wrapping on small screens */
+  gap: 0.75rem;     /* Consistent spacing */
   align-items: center;
-  overflow-x: auto;  /* Allow horizontal scroll on very small screens */
+  /* No overflow-x: auto - it clips dropdown menus */
 }
 
 /* Individual filter control wrapper */
 .filter-control {
-  flex: 1 1 0;  /* Equal flex distribution */
-  min-width: 5rem;  /* Reduced to fit at 1024px viewport */
-  max-width: 8rem; /* Cap growth */
+  flex: 0 1 auto;   /* Don't force equal flex, natural sizing */
+  min-width: 8rem;  /* Increase from 5rem for better readability */
+  max-width: 12rem; /* Increase from 8rem to allow more content */
 }
 
 /* Filter row actions container (for Filter button, etc.) */
@@ -314,8 +314,8 @@
   color: var(--color-text-secondary);
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  min-width: 80px;  /* Reduced from 120px */
-  max-width: 150px;
+  min-width: 7rem;   /* Increased from 80px/5rem */
+  max-width: none;   /* Remove cap, let parent control */
 }
 
 .filter-dropdown-trigger:hover {
@@ -371,11 +371,9 @@
 
 /* Dropdown menu */
 .filter-dropdown-menu {
-  position: absolute;
-  top: calc(100% + var(--spacing-xs));
-  left: 0;
-  right: 0;
+  position: fixed;   /* Use fixed positioning to escape overflow containers */
   max-height: 20rem;
+  min-width: 10rem;  /* Ensure minimum readable width */
   overflow-y: auto;
   background: var(--color-bg-glass);
   backdrop-filter: blur(16px);
@@ -383,7 +381,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: 0 8px 16px var(--color-shadow);
-  z-index: 100;
+  z-index: 1000;     /* Higher z-index to appear above other content */
   animation: dropdownOpen var(--transition-fast);
 }
 
@@ -459,8 +457,8 @@
   color: var(--color-text-secondary);
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  min-width: 80px;  /* Reduced from 120px */
-  max-width: 150px;
+  min-width: 7rem;   /* Increased from 80px/5rem */
+  max-width: none;   /* Remove cap, let parent control */
 }
 
 .filter-select-trigger:hover {
@@ -533,8 +531,8 @@
 
 /* Tags control (takes more space) */
 .filter-tags-control {
-  flex: 2;
-  min-width: 15rem;
+  flex: 2 1 auto;    /* Take more space proportionally */
+  min-width: 12rem;  /* Reduced from 15rem for better fit */
 }
 
 .filter-tags-container {
@@ -1215,23 +1213,25 @@
     opacity: 1;
   }
 
-  /* Stack filter controls vertically on mobile */
+  /* Filter controls wrap to 2 per row on mobile, then stack */
   .viewer-filters-row {
-    flex-direction: column;
+    flex-wrap: wrap;
   }
 
   .filter-control {
-    width: 100%;
-    min-width: auto;
+    flex: 1 1 calc(50% - 0.75rem);  /* 2 per row on mobile */
+    min-width: 6rem;
+    max-width: none;
   }
 
   .filter-dropdown-trigger,
   .filter-select-trigger {
     width: 100%;
+    max-width: none;
   }
 
   .filter-tags-control {
-    width: 100%;
+    flex: 1 1 100%;   /* Tags takes full width on mobile */
     min-width: auto;
   }
 

@@ -156,6 +156,8 @@ function createMockFilterOptions(): FilterOptions {
     ],
     types: ['bug', 'enhancement', 'idea'],
     domains: ['api', 'web', 'mobile'],
+    subdomains: ['auth', 'ui'],
+    features: ['login', 'dashboard'],
     priorities: ['high', 'medium', 'low'],
     statuses: ['triage', 'backlog', 'in-progress', 'done'],
     tags: ['ux', 'performance', 'security'],

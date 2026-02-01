@@ -35,7 +35,7 @@ export type ArchiveStatus = 'all' | 'active' | 'archived';
  *
  * Supports multi-faceted filtering with different logic modes:
  * - Single-select: project_id (optional)
- * - Multi-select OR logic: types, domains, priorities, statuses (any match)
+ * - Multi-select OR logic: types, domains, subdomains, features, priorities, statuses (any match)
  * - Multi-select AND logic: tags (all must match - intersection)
  * - Text search: case-insensitive on title/doc_id
  * - Archive status: all/active/archived
@@ -51,6 +51,12 @@ export interface FilterState {
 
   /** Domains to include (OR logic: match any) */
   domains: string[];
+
+  /** Subdomains to include (OR logic: match any) */
+  subdomains: string[];
+
+  /** Features to include (OR logic: match any) */
+  features: string[];
 
   /** Priorities to include (OR logic: match any) */
   priorities: string[];
@@ -154,6 +160,12 @@ export interface FilterOptions {
   /** Available domains across all documents */
   domains: string[];
 
+  /** Available subdomains across all documents */
+  subdomains: string[];
+
+  /** Available features across all documents */
+  features: string[];
+
   /** Available priorities across all documents */
   priorities: string[];
 
@@ -223,6 +235,8 @@ export function isFilterEmpty(filter: FilterState): boolean {
     filter.project_id === undefined &&
     filter.types.length === 0 &&
     filter.domains.length === 0 &&
+    filter.subdomains.length === 0 &&
+    filter.features.length === 0 &&
     filter.priorities.length === 0 &&
     filter.statuses.length === 0 &&
     filter.tags.length === 0 &&
@@ -275,6 +289,10 @@ export function isFilterState(obj: unknown): obj is FilterState {
     filter.types.every((t) => typeof t === 'string') &&
     Array.isArray(filter.domains) &&
     filter.domains.every((d) => typeof d === 'string') &&
+    Array.isArray(filter.subdomains) &&
+    filter.subdomains.every((s) => typeof s === 'string') &&
+    Array.isArray(filter.features) &&
+    filter.features.every((f) => typeof f === 'string') &&
     Array.isArray(filter.priorities) &&
     filter.priorities.every((p) => typeof p === 'string') &&
     Array.isArray(filter.statuses) &&
@@ -339,6 +357,8 @@ export function createEmptyFilter(): FilterState {
   return {
     types: [],
     domains: [],
+    subdomains: [],
+    features: [],
     priorities: [],
     statuses: [],
     tags: [],
@@ -375,6 +395,8 @@ export function createEmptyFilterOptions(): FilterOptions {
     projects: [],
     types: [],
     domains: [],
+    subdomains: [],
+    features: [],
     priorities: [],
     statuses: [],
     tags: [],
@@ -430,7 +452,7 @@ export function createCatalogEntry(
  *
  * Counts each active filter facet:
  * - project_id: 1 if set
- * - types, domains, priorities, statuses, tags: count of selected values
+ * - types, domains, subdomains, features, priorities, statuses, tags: count of selected values
  * - text: 1 if non-empty
  * - archiveStatus: 1 if not 'active' (non-default)
  *
@@ -450,6 +472,8 @@ export function getActiveFilterCount(filter: FilterState): number {
   // Multi-select filters (count each selected value)
   count += filter.types.length;
   count += filter.domains.length;
+  count += filter.subdomains.length;
+  count += filter.features.length;
   count += filter.priorities.length;
   count += filter.statuses.length;
   count += filter.tags.length;
