@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import './viewer.css';
 
 /** Menu position for fixed positioning */
@@ -62,11 +63,17 @@ export function FilterDropdown({
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
+  // Must check both container and menu refs since menu is rendered via portal
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedInsideContainer = containerRef.current?.contains(target);
+      const clickedInsideMenu = menuRef.current?.contains(target);
+
+      if (!clickedInsideContainer && !clickedInsideMenu) {
         setIsOpen(false);
       }
     };
@@ -159,8 +166,9 @@ export function FilterDropdown({
         {selected.length > 0 && <span className="filter-dropdown-badge">{selected.length}</span>}
       </button>
 
-      {isOpen && menuPosition && (
+      {isOpen && menuPosition && createPortal(
         <div
+          ref={menuRef}
           className="filter-dropdown-menu"
           role="listbox"
           aria-label={`${label} options`}
@@ -202,7 +210,8 @@ export function FilterDropdown({
               );
             })
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

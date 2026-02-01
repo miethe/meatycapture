@@ -277,6 +277,11 @@ export function ViewerContainer({
     const preloadDocuments = async () => {
       preloadingRef.current = true;
       console.info('[ViewerContainer] Preloading all documents for indicators...');
+
+      // Accumulate documents in a local map first to avoid stale closure issues
+      // documentCache.set() creates a new Map each time, but documentCache.cache
+      // in this closure points to the old Map reference
+      const preloadedDocs = new Map<string, RequestLogDoc>();
       let preloadedCount = 0;
 
       for (const entry of catalog) {
@@ -285,14 +290,17 @@ export function ViewerContainer({
           continue;
         }
 
-        // Skip if already in cache
-        if (documentCache.has(entry.path)) {
+        // Check if already in cache (use current cache value)
+        const existing = documentCache.get(entry.path);
+        if (existing) {
+          preloadedDocs.set(entry.path, existing);
           preloadedPathsRef.current.add(entry.path);
           continue;
         }
 
         try {
           const doc = await docStore.read(entry.path);
+          preloadedDocs.set(entry.path, doc);
           documentCache.set(entry.path, doc);
           preloadedPathsRef.current.add(entry.path);
           preloadedCount++;
@@ -305,10 +313,9 @@ export function ViewerContainer({
 
       console.info(`[ViewerContainer] Preloaded ${preloadedCount} documents`);
 
-      // Re-extract filter options with populated document cache
-      // This populates types, domains, subdomains, features, priorities, statuses, tags
-      // from actual item-level data in the documents
-      const updatedOptions = extractFilterOptions(catalog, projects, documentCache.cache);
+      // Re-extract filter options using the accumulated local map which has all docs
+      // This avoids the stale closure issue with documentCache.cache
+      const updatedOptions = extractFilterOptions(catalog, projects, preloadedDocs);
       setFilterOptions(updatedOptions);
       console.info('[ViewerContainer] Updated filter options from document cache');
 
