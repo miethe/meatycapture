@@ -111,7 +111,10 @@ const createMockDocStore = (existingDocs: RequestLogDoc[] = []): DocStore => ({
   ),
   read: vi.fn().mockImplementation((path: string) => {
     const doc = existingDocs.find((d) => path.includes(d.doc_id));
-    return Promise.resolve(doc || mockDocument);
+    if (!doc) {
+      return Promise.reject(new Error(`Document not found: ${path}`));
+    }
+    return Promise.resolve(doc);
   }),
   write: vi.fn().mockResolvedValue(undefined),
   append: vi.fn().mockResolvedValue({ item_id: 'REQ-20251231-test-project-02' }),

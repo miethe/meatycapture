@@ -10,6 +10,7 @@
  * - isValidDocId: Document ID validation
  * - isValidItemId: Item ID validation
  * - getNextItemNumber: Next item number calculation
+ * - resolveUniqueDocId: Document ID collision resolution
  */
 
 import { describe, it, expect } from 'vitest';
@@ -22,6 +23,7 @@ import {
   isValidDocId,
   isValidItemId,
   getNextItemNumber,
+  resolveUniqueDocId,
 } from './index';
 
 describe('generateDocId', () => {
@@ -458,5 +460,96 @@ describe('getNextItemNumber', () => {
   it('should return 1 for non-array input', () => {
     // @ts-expect-error Testing runtime validation
     expect(getNextItemNumber(null)).toBe(1);
+  });
+});
+
+describe('resolveUniqueDocId', () => {
+  const baseDocId = 'REQ-20260207-meatycapture';
+  const basePath = '/docs/meatycapture/REQ-20260207-meatycapture.md';
+
+  it('should return base path when no collision exists', async () => {
+    const exists = async () => false;
+
+    const result = await resolveUniqueDocId(baseDocId, basePath, exists);
+
+    expect(result.docId).toBe('REQ-20260207-meatycapture');
+    expect(result.path).toBe('/docs/meatycapture/REQ-20260207-meatycapture.md');
+  });
+
+  it('should return -a suffix when base path exists', async () => {
+    const exists = async (p: string) => p === basePath;
+
+    const result = await resolveUniqueDocId(baseDocId, basePath, exists);
+
+    expect(result.docId).toBe('REQ-20260207-meatycapture-a');
+    expect(result.path).toBe('/docs/meatycapture/REQ-20260207-meatycapture-a.md');
+  });
+
+  it('should return -b suffix when base and -a both exist', async () => {
+    const occupied = new Set([
+      basePath,
+      '/docs/meatycapture/REQ-20260207-meatycapture-a.md',
+    ]);
+    const exists = async (p: string) => occupied.has(p);
+
+    const result = await resolveUniqueDocId(baseDocId, basePath, exists);
+
+    expect(result.docId).toBe('REQ-20260207-meatycapture-b');
+    expect(result.path).toBe('/docs/meatycapture/REQ-20260207-meatycapture-b.md');
+  });
+
+  it('should skip occupied slots and find next available', async () => {
+    // Base, -a, -b, -c occupied; -d should be returned
+    const occupied = new Set([
+      basePath,
+      '/docs/meatycapture/REQ-20260207-meatycapture-a.md',
+      '/docs/meatycapture/REQ-20260207-meatycapture-b.md',
+      '/docs/meatycapture/REQ-20260207-meatycapture-c.md',
+    ]);
+    const exists = async (p: string) => occupied.has(p);
+
+    const result = await resolveUniqueDocId(baseDocId, basePath, exists);
+
+    expect(result.docId).toBe('REQ-20260207-meatycapture-d');
+    expect(result.path).toBe('/docs/meatycapture/REQ-20260207-meatycapture-d.md');
+  });
+
+  it('should throw after exhausting all 26 letter suffixes', async () => {
+    // Every candidate exists: base + a-z = 27 paths
+    const exists = async () => true;
+
+    await expect(resolveUniqueDocId(baseDocId, basePath, exists)).rejects.toThrow(
+      'Could not find unique document ID after 26 attempts'
+    );
+  });
+
+  it('should generate docId that matches the filename in path', async () => {
+    const occupied = new Set([basePath]);
+    const exists = async (p: string) => occupied.has(p);
+
+    const result = await resolveUniqueDocId(baseDocId, basePath, exists);
+
+    // Extract filename without extension from path
+    const filename = result.path.split('/').pop()?.replace('.md', '');
+    expect(filename).toBe(result.docId);
+  });
+
+  it('should produce a valid doc ID (parseable by existing validation)', async () => {
+    const exists = async (p: string) => p === basePath;
+
+    const result = await resolveUniqueDocId(baseDocId, basePath, exists);
+
+    // The suffixed docId should still be valid — the suffix becomes part of the slug
+    expect(isValidDocId(result.docId)).toBe(true);
+  });
+
+  it('should produce item IDs that work with suffixed doc IDs', async () => {
+    const exists = async (p: string) => p === basePath;
+
+    const result = await resolveUniqueDocId(baseDocId, basePath, exists);
+
+    // Item ID derived from suffixed doc ID should be valid
+    const itemId = `${result.docId}-01`;
+    expect(isValidItemId(itemId)).toBe(true);
   });
 });

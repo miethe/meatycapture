@@ -18,7 +18,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Project, ItemDraft, RequestLogDoc, FieldOption, FieldName, Note } from '@core/models';
 import type { ProjectStore, FieldCatalogStore, DocStore, Clock } from '@core/ports';
-import { generateDocId, slugify } from '@core/validation';
+import { generateDocId, slugify, resolveUniqueDocId } from '@core/validation';
 import { ProjectStep } from './ProjectStep';
 import { DocStep } from './DocStep';
 import { ItemStep } from './ItemStep';
@@ -438,9 +438,26 @@ export function WizardFlow({
       if (isNewDoc) {
         // Create new document with first item
         const slug = slugify(selectedProject.name);
-        const docId = generateDocId(slug, clock.now());
-        const itemId = `${docId}-01`;
         const now = clock.now();
+        const baseDocId = generateDocId(slug, now);
+
+        // Resolve collisions: if docPath already exists, try -a, -b, etc.
+        const fileExists = async (p: string): Promise<boolean> => {
+          try {
+            await docStore.read(p);
+            return true;
+          } catch {
+            return false;
+          }
+        };
+
+        const { docId, path: resolvedPath } = await resolveUniqueDocId(
+          baseDocId,
+          docPath,
+          fileExists
+        );
+
+        const itemId = `${docId}-01`;
         const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
 
         // Regenerate proper note IDs at submit time (replaces temp UUIDs from capture)
@@ -482,7 +499,9 @@ export function WizardFlow({
           archived: false,
         };
 
-        await docStore.write(docPath, newDoc);
+        // Write to the collision-resolved path and update local state
+        setDocPath(resolvedPath);
+        await docStore.write(resolvedPath, newDoc);
       } else {
         // Append to existing document
         await docStore.append(docPath, draft, clock);

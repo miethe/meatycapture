@@ -26,7 +26,7 @@ import { promises as fs } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import type { ItemDraft, RequestLogDoc } from '@core/models';
-import { generateDocId } from '@core/validation';
+import { generateDocId, resolveUniqueDocId } from '@core/validation';
 import { aggregateTags, updateItemsIndex } from '@core/serializer';
 import { createAdapters } from '@adapters/factory';
 import { realClock } from '@adapters/clock';
@@ -347,20 +347,37 @@ async function createActionImpl(
     input = await readCliInput(inputPath);
   }
 
-  // Determine output path
+  // Generate base document ID and resolve output path with collision handling
+  const now = realClock.now();
+  const baseDocId = generateDocId(input.project, now);
   let outputPath: string;
+  let docId: string;
+
   if (options.output) {
+    // Explicit output path — no collision resolution, user takes responsibility
     outputPath = resolve(options.output);
+    docId = baseDocId;
   } else {
     const projectPath = await getProjectDocPath(input.project);
-    const now = realClock.now();
-    const docId = generateDocId(input.project, now);
-    outputPath = join(projectPath, `${docId}.md`);
-  }
+    const basePath = join(projectPath, `${baseDocId}.md`);
 
-  // Generate document
-  const now = realClock.now();
-  const docId = generateDocId(input.project, now);
+    // Resolve collisions: base.md -> base-a.md -> base-b.md -> ... base-z.md
+    const resolved = await resolveUniqueDocId(
+      baseDocId,
+      basePath,
+      async (p) => {
+        try {
+          await fs.access(p);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+    );
+
+    outputPath = resolved.path;
+    docId = resolved.docId;
+  }
 
   const items = input.items.map((itemDraft, index) => {
     const itemNumber = String(index + 1).padStart(2, '0');

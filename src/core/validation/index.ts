@@ -83,6 +83,51 @@ export function generateDocId(projectSlug: string, date: Date = new Date()): str
 }
 
 /**
+ * Resolves a unique doc_id and path by checking for collisions.
+ *
+ * When the base path already exists, appends a single-letter suffix (-a through -z)
+ * to both the doc_id and filename until an unused slot is found. The suffix becomes
+ * part of the slug from a parsing perspective, so existing validation patterns
+ * continue to work without modification.
+ *
+ * @param baseDocId - Base document ID (e.g., REQ-20260207-meatycapture)
+ * @param basePath - Base file path (e.g., /path/to/REQ-20260207-meatycapture.md)
+ * @param exists - Async predicate that returns true if a path is already occupied
+ * @returns Resolved unique docId and path, guaranteed to not collide
+ * @throws Error if all 27 candidates (base + a-z) are exhausted
+ */
+export async function resolveUniqueDocId(
+  baseDocId: string,
+  basePath: string,
+  exists: (path: string) => Promise<boolean>
+): Promise<{ docId: string; path: string }> {
+  // Try the base path first
+  if (!(await exists(basePath))) {
+    return { docId: baseDocId, path: basePath };
+  }
+
+  // Base path exists — try suffixed versions: -a through -z
+  const ext = '.md';
+  const lastSlashIndex = basePath.lastIndexOf('/');
+  const dir = lastSlashIndex >= 0 ? basePath.substring(0, lastSlashIndex) : '.';
+
+  for (let i = 0; i < 26; i++) {
+    const suffix = String.fromCharCode(97 + i); // a-z
+    const candidateDocId = `${baseDocId}-${suffix}`;
+    const candidatePath = `${dir}/${candidateDocId}${ext}`;
+
+    if (!(await exists(candidatePath))) {
+      return { docId: candidateDocId, path: candidatePath };
+    }
+  }
+
+  throw new Error(
+    `Could not find unique document ID after 26 attempts for ${baseDocId}. ` +
+      'Consider using a different date or project slug.'
+  );
+}
+
+/**
  * Generates an item ID from a document ID and item number.
  *
  * Format: REQ-YYYYMMDD-<project-slug>-XX
