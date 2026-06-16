@@ -79,10 +79,11 @@ RUN if [ -z "$MEATYCAPTURE_API_URL" ]; then \
       exit 1; \
     fi
 
-# Build the application
-# Vite will embed MEATYCAPTURE_API_URL into the bundle
+# Build the web bundle only (tsc + vite build).
+# The full "build" script also runs build-cli.js, which is not part of this
+# build context — use the dedicated build:web script to avoid that failure.
 RUN echo "Building with API URL: ${MEATYCAPTURE_API_URL}" && \
-    pnpm build
+    pnpm run build:web
 
 # Verify build output exists
 RUN ls -la /app/dist && \
