@@ -40,8 +40,178 @@ deployed_at = "2026-02-20T10:40:53.751744"
 artifact_path = "agents/agent-expert.md"
 content_hash = "b5493f41cc4f99ccf743d3e191770aee68e4faba0fb3e5b391713de0594ed05b"
 local_modifications = false
+version_lineage = [
+    "b5493f41cc4f99ccf743d3e191770aee68e4faba0fb3e5b391713de0594ed05b",
+]
 merge_base_snapshot = "b5493f41cc4f99ccf743d3e191770aee68e4faba0fb3e5b391713de0594ed05b"
 deployment_profile_id = "claude_code"
 platform = "claude_code"
 profile_root_dir = ".claude"
 collection_sha = "b5493f41cc4f99ccf743d3e191770aee68e4faba0fb3e5b391713de0594ed05b"
+
+[[deployed]]
+artifact_name = "managing-readmes"
+artifact_type = "skill"
+from_collection = "default"
+deployed_at = "2026-03-12T23:21:12.482167"
+artifact_path = "skills/managing-readmes"
+content_hash = "f3dc7ebaa051abc6f833c01661f2837d16499e5b74ab202e0e5501b1f1b4d852"
+local_modifications = false
+version_lineage = [
+    "f3dc7ebaa051abc6f833c01661f2837d16499e5b74ab202e0e5501b1f1b4d852",
+]
+merge_base_snapshot = "f3dc7ebaa051abc6f833c01661f2837d16499e5b74ab202e0e5501b1f1b4d852"
+deployment_profile_id = "claude_code"
+platform = "claude_code"
+profile_root_dir = ".claude"
+collection_sha = "f3dc7ebaa051abc6f833c01661f2837d16499e5b74ab202e0e5501b1f1b4d852"
+
+[[deployed]]
+artifact_name = "supabase-realtime-optimizer"
+artifact_type = "agent"
+from_collection = "default"
+deployed_at = "2026-03-23T21:06:42.915542"
+artifact_path = "agents/supabase-realtime-optimizer.md"
+content_hash = "8f4a5f1d157cd92b3d66e54b636cc9e47a29b3df73358f89c2cb73761aa77fb8"
+local_modifications = false
+version_lineage = [
+    "8f4a5f1d157cd92b3d66e54b636cc9e47a29b3df73358f89c2cb73761aa77fb8",
+]
+merge_base_snapshot = "8f4a5f1d157cd92b3d66e54b636cc9e47a29b3df73358f89c2cb73761aa77fb8"
+deployment_profile_id = "claude_code"
+platform = "claude_code"
+profile_root_dir = ".claude"
+collection_sha = "8f4a5f1d157cd92b3d66e54b636cc9e47a29b3df73358f89c2cb73761aa77fb8"
+
+[[deployed]]
+artifact_name = "add-authentication-system"
+artifact_type = "command"
+from_collection = "default"
+deployed_at = "2026-03-23T23:21:50.885406"
+artifact_path = "commands/add-authentication-system.md"
+content_hash = "4f8a4f05f419f8ae6ec7bf07078658c3c0951a5dcde48868daaa44fc6dba319b"
+local_modifications = false
+version_lineage = [
+    "4f8a4f05f419f8ae6ec7bf07078658c3c0951a5dcde48868daaa44fc6dba319b",
+]
+merge_base_snapshot = "4f8a4f05f419f8ae6ec7bf07078658c3c0951a5dcde48868daaa44fc6dba319b"
+deployment_profile_id = "claude_code"
+platform = "claude_code"
+profile_root_dir = ".claude"
+collection_sha = "4f8a4f05f419f8ae6ec7bf07078658c3c0951a5dcde48868daaa44fc6dba319b"
+
+[[deployed]]
+artifact_name = "better-auth"
+artifact_type = "skill"
+from_collection = "default"
+deployed_at = "2026-03-23T23:21:52.824645"
+artifact_path = "skills/better-auth"
+content_hash = "8fb3fa95f5ba8577a23f65b26f4d1fd1ac4260348d8885e476ef4590c48afb49"
+local_modifications = false
+version_lineage = [
+    "8fb3fa95f5ba8577a23f65b26f4d1fd1ac4260348d8885e476ef4590c48afb49",
+]
+merge_base_snapshot = "8fb3fa95f5ba8577a23f65b26f4d1fd1ac4260348d8885e476ef4590c48afb49"
+deployment_profile_id = "claude_code"
+platform = "claude_code"
+profile_root_dir = ".claude"
+collection_sha = "8fb3fa95f5ba8577a23f65b26f4d1fd1ac4260348d8885e476ef4590c48afb49"
+
+[[deployed]]
+artifact_name = "clerk-install-auth"
+artifact_type = "skill"
+from_collection = "default"
+deployed_at = "2026-03-23T23:21:54.410213"
+artifact_path = "skills/clerk-install-auth"
+content_hash = "a8d9918602c9bbd67d8acb348ad2e95627f699b1537cd1f3f6f1277760476402"
+local_modifications = false
+version_lineage = [
+    "a8d9918602c9bbd67d8acb348ad2e95627f699b1537cd1f3f6f1277760476402",
+]
+merge_base_snapshot = "a8d9918602c9bbd67d8acb348ad2e95627f699b1537cd1f3f6f1277760476402"
+deployment_profile_id = "claude_code"
+platform = "claude_code"
+profile_root_dir = ".claude"
+collection_sha = "a8d9918602c9bbd67d8acb348ad2e95627f699b1537cd1f3f6f1277760476402"
+
+[[deployed]]
+artifact_name = "nano-banana-pro"
+artifact_type = "skill"
+from_collection = "default"
+deployed_at = "2026-03-27T14:54:16.609786"
+artifact_path = "skills/nano-banana-pro"
+content_hash = "9bae3a55758cbe7ca937077a6e90ee55ab0b0883fe99c698a5ecc0e7fecbc791"
+local_modifications = false
+version_lineage = [
+    "9bae3a55758cbe7ca937077a6e90ee55ab0b0883fe99c698a5ecc0e7fecbc791",
+]
+merge_base_snapshot = "9bae3a55758cbe7ca937077a6e90ee55ab0b0883fe99c698a5ecc0e7fecbc791"
+deployment_profile_id = "claude_code"
+platform = "claude_code"
+profile_root_dir = ".claude"
+collection_sha = "9bae3a55758cbe7ca937077a6e90ee55ab0b0883fe99c698a5ecc0e7fecbc791"
+
+[[deployed]]
+artifact_name = "api-designer"
+artifact_type = "agent"
+from_collection = "default"
+deployed_at = "2026-03-28T17:01:53.544928"
+artifact_path = "agents/api-designer.md"
+content_hash = "dc8547318598b6abecfad8d3c5709c9bb21fc38c2e5f5b4f452bb02f668df1be"
+local_modifications = false
+version_lineage = [
+    "dc8547318598b6abecfad8d3c5709c9bb21fc38c2e5f5b4f452bb02f668df1be",
+]
+merge_base_snapshot = "dc8547318598b6abecfad8d3c5709c9bb21fc38c2e5f5b4f452bb02f668df1be"
+deployment_profile_id = "claude_code"
+platform = "claude_code"
+profile_root_dir = ".claude"
+collection_sha = "dc8547318598b6abecfad8d3c5709c9bb21fc38c2e5f5b4f452bb02f668df1be"
+
+[[deployed]]
+artifact_name = "codex"
+artifact_type = "skill"
+from_collection = "default"
+deployed_at = "2026-03-28T17:29:55.679303"
+artifact_path = "skills/codex"
+content_hash = "4b7e8695807b567a7a7d467ab15b3da330aa0a847827067d79c654c540a72fe9"
+local_modifications = false
+version_lineage = [
+    "4b7e8695807b567a7a7d467ab15b3da330aa0a847827067d79c654c540a72fe9",
+]
+merge_base_snapshot = "4b7e8695807b567a7a7d467ab15b3da330aa0a847827067d79c654c540a72fe9"
+deployment_profile_id = "claude_code"
+platform = "claude_code"
+profile_root_dir = ".claude"
+collection_sha = "4b7e8695807b567a7a7d467ab15b3da330aa0a847827067d79c654c540a72fe9"
+
+[[deployed]]
+artifact_name = "planning"
+artifact_type = "skill"
+from_collection = "default"
+deployed_at = "2026-06-25T15:40:51.500178"
+artifact_path = "skills/planning"
+content_hash = "bfc2b00dccb71a4eca3e7369439b6c045c0965c20520ede6d11ac028372f1a71"
+local_modifications = false
+version_lineage = [
+    "bfc2b00dccb71a4eca3e7369439b6c045c0965c20520ede6d11ac028372f1a71",
+]
+merge_base_snapshot = "bfc2b00dccb71a4eca3e7369439b6c045c0965c20520ede6d11ac028372f1a71"
+deployment_profile_id = "claude_code"
+platform = "claude_code"
+profile_root_dir = ".claude"
+collection_sha = "bfc2b00dccb71a4eca3e7369439b6c045c0965c20520ede6d11ac028372f1a71"
+
+[[deployed]]
+artifact_name = "dev-execution"
+artifact_type = "skill"
+from_collection = "default"
+deployed_at = "2026-06-25T15:40:56.328606"
+artifact_path = "skills/dev-execution"
+content_hash = "ba6479916fa6fa76bbcefe72b00544557e7c642d923e194e42bda129e0c0e48d"
+local_modifications = false
+merge_base_snapshot = "ba6479916fa6fa76bbcefe72b00544557e7c642d923e194e42bda129e0c0e48d"
+deployment_profile_id = "claude_code"
+platform = "claude_code"
+profile_root_dir = ".claude"
+collection_sha = "ba6479916fa6fa76bbcefe72b00544557e7c642d923e194e42bda129e0c0e48d"

@@ -220,6 +220,30 @@ This reference helps assign the appropriate specialist subagents to implementati
 
 ---
 
+## Platform Engineering Tasks
+
+Use `platform-engineer` (Opus model) for tasks involving Backstage/RHDH, Internal Developer Portals (IDPs), golden path templates, and self-service infrastructure tooling.
+
+| Task Type | Primary Subagent(s) | Secondary Subagent(s) | Notes |
+|-----------|-------------------|---------------------|-------|
+| Backstage Plugin Development | platform-engineer | python-backend-engineer | Custom scaffolder actions, backend plugins |
+| RHDH Integration | platform-engineer | - | Red Hat Developer Hub configuration |
+| Golden Path Template Authoring | platform-engineer | documentation-writer | Backstage template.yaml, scaffolder steps |
+| IDP Plugin Development | platform-engineer | backend-architect | Custom Backstage frontend/backend plugins |
+| Service Catalog Configuration | platform-engineer | - | catalog-info.yaml, entity definitions |
+| Docker Compose Demo Environments | platform-engineer | python-backend-engineer | Platform tool demo stacks |
+| Backstage Scaffolder Actions | platform-engineer | python-backend-engineer | Custom action authoring with @backstage/plugin-scaffolder-node |
+| Developer Portal Configuration | platform-engineer | - | Backstage app-config.yaml, auth providers |
+| Self-Service Infrastructure | platform-engineer | backend-architect | Scaffolded repo templates, onboarding automation |
+
+**Example**:
+```markdown
+- [ ] IDP-004: Backstage Plugin Scaffolder Action (3 pts)
+      Assigned Subagent(s): platform-engineer, python-backend-engineer
+```
+
+---
+
 ## Refactoring Tasks
 
 | Task Type | Primary Subagent(s) | Secondary Subagent(s) | Notes |
@@ -291,6 +315,21 @@ This reference helps assign the appropriate specialist subagents to implementati
 - [ ] REVIEW-001: Code Review (1 pt)
       Assigned Subagent(s): code-reviewer
 ```
+
+---
+
+## External Models
+
+| Task Type | Model | Effort Default | When to Use |
+|-----------|-------|----------------|-------------|
+| Image/asset generation | nano-banana-pro | standard | Icons, sprites, UI assets, marketing images |
+| UI wireframing/SVG | gemini-3.1-pro | medium | Multi-element visual tasks, design exploration |
+| Web research | gemini-3.1-pro | medium | Current documentation, API references, trend analysis |
+| Debug escalation | gpt-5.3-codex | high | After 2+ failed Claude debugging cycles |
+| Plan review (second opinion) | gpt-5.3-codex | medium | Opt-in checkpoint for architecture decisions |
+| PR cross-validation | gemini-3.1-pro | medium | Opt-in checkpoint for code review |
+
+**Note**: External models are opt-in supplements. Configuration: `.claude/config/multi-model.toml`. Routing guidance: `references/multi-model-guidance.md`
 
 ---
 
@@ -408,3 +447,6 @@ May not be all-inclusive; refer to subagent registry in context for full list.
 
 ### DevOps
 - DevOps (not a subagent, but role reference)
+
+### Platform Engineering
+- platform-engineer
