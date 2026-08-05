@@ -6,12 +6,20 @@
 
 # Metadata: Identification and Classification
 type: progress
+schema_version: 2                        # CCDash schema version (aliases existing progress format)
+doc_type: progress                       # CCDash doc type alias for `type: progress`
 prd: "[PRD_ID]"                          # e.g., "advanced-editing-v2", "artifact-flow-modal-redesign"
+feature_slug: "[PRD_ID]"                 # Mirrors `prd` for CCDash feature linking
+prd_ref: null                            # Optional path to parent PRD markdown file
+plan_ref: null                           # Optional path to parent implementation plan
+execution_model: batch-parallel          # batch-parallel|sequential|agent-team — how tasks in this phase are executed
 phase: [PHASE_NUMBER]                    # e.g., 1, 2, 3 (integer, not string)
 title: "[PHASE_TITLE]"                   # e.g., "3-Panel Sync Status Redesign"
 status: "planning"                       # planning|in-progress|review|complete|blocked
 started: "[YYYY-MM-DD]"                  # Start date of this phase
 completed: null                          # "YYYY-MM-DD" when complete, null if in progress
+commit_refs: []                          # Commit SHAs captured as phase work lands
+pr_refs: []                              # Pull request refs captured after PR creation
 
 # Overall Progress: Status and Estimates
 overall_progress: [0-100]                # 0-100, e.g., 35 for 35% complete
@@ -28,6 +36,12 @@ at_risk_tasks: [COUNT]                   # At risk of missing deadline, e.g., 1
 owners: ["[AGENT_NAME]"]                 # Primary agent(s), e.g., ["ui-engineer-enhanced"]
 contributors: ["[AGENT_NAME]"]           # Secondary agents, e.g., ["code-reviewer"]
 
+# Model Usage: Optional task-level and summary model assignments
+# These fields enable multi-model orchestration (see .claude/config/multi-model.toml)
+model_usage:
+  primary: "sonnet"                      # Most tasks use this model (default)
+  external: []                           # Optional: list any external models used, e.g., ["gemini-3.1-pro-preview"]
+
 # === TASKS (SOURCE OF TRUTH) ===
 # Machine-readable task definitions with assignments and dependencies
 # Update using: python scripts/update-status.py -f FILE -t TASK-X -s [pending|in_progress|complete|blocked|at-risk]
@@ -40,6 +54,8 @@ tasks:
     dependencies: []                     # Empty if no dependencies, or ["TASK-1.0", "TASK-0.9"]
     estimated_effort: "2h"               # Optional: time estimate
     priority: "high"                     # Optional: low|medium|high|critical
+    assigned_model: "sonnet"             # Optional: model for this task (default: sonnet)
+    model_effort: "adaptive"             # Optional: effort level per multi-model.toml
 
   # Parallel tasks (no dependencies):
   - id: "TASK-1.2"
@@ -49,6 +65,8 @@ tasks:
     dependencies: []
     estimated_effort: "1.5h"
     priority: "medium"
+    assigned_model: "sonnet"             # Optional: model for this task
+    model_effort: "adaptive"             # Optional: effort level per multi-model.toml
 
   # Sequential task (depends on others):
   - id: "TASK-2.1"
@@ -58,6 +76,8 @@ tasks:
     dependencies: ["TASK-1.1", "TASK-1.2"]  # MUST wait for these to complete
     estimated_effort: "3h"
     priority: "high"
+    assigned_model: "sonnet"             # Optional: model for this task
+    model_effort: "adaptive"             # Optional: effort level per multi-model.toml
 
 # Parallelization Strategy (computed from dependencies)
 parallelization:
@@ -89,6 +109,13 @@ files_modified: [
   # "components/entity/sync-status/artifact-flow-banner.tsx",
   # "components/entity/unified-entity-modal.tsx"
 ]
+
+# === BACKWARD-COMPATIBILITY NOTE ===
+# Optional fields for multi-model orchestration:
+# - `assigned_model` and `model_effort` on tasks: optional, omit if not needed
+# - `model_usage` block: optional, omit if all tasks use default models
+# Existing progress files without these fields remain fully valid.
+# Schema version stays at 2 (no breaking change).
 ---
 
 # [PRD_ID] - Phase [PHASE_NUMBER]: [PHASE_TITLE]

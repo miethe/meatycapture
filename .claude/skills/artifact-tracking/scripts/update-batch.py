@@ -103,6 +103,7 @@ def recalculate_metrics(frontmatter: Dict[str, Any]) -> Dict[str, Any]:
     """
     tasks = frontmatter.get('tasks', [])
     if not tasks:
+        frontmatter['updated'] = datetime.now().strftime('%Y-%m-%d')
         return frontmatter
 
     # Count tasks by status
@@ -192,7 +193,8 @@ def update_batch_statuses(
         FileNotFoundError: If file doesn't exist
     """
     # Validate all statuses first
-    valid_statuses = ['pending', 'in_progress', 'completed', 'blocked', 'at_risk']
+    valid_statuses = ['pending', 'in_progress', 'completed', 'blocked', 'at_risk',
+                      'skipped', 'deferred', 'deviated', 'partial', 'superseded']
     for update in updates:
         status = update.get('status', '')
         if status not in valid_statuses:

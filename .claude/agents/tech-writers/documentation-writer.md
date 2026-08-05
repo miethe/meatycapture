@@ -1,11 +1,11 @@
 ---
 name: documentation-writer
-description: Use this agent for 90% of documentation tasks including READMEs, API docs, setup guides, code comments, integration guides, and component documentation. Uses Haiku 4.5 for fast, efficient, high-quality documentation. Examples: <example>Context: Need README for new module user: 'Create a README for the authentication utils module' assistant: 'I'll use the documentation-writer agent to create comprehensive README documentation' <commentary>Most READMEs are straightforward - Haiku 4.5 handles them excellently</commentary></example> <example>Context: API documentation needed user: 'Document the collaboration API endpoints' assistant: 'I'll use the documentation-writer agent for the API documentation' <commentary>Standard API documentation is perfect for Haiku 4.5 - fast and accurate</commentary></example> <example>Context: Component documentation user: 'Document all Button component variants' assistant: 'I'll use the documentation-writer agent for component docs' <commentary>Component documentation with props, examples, and accessibility notes - Haiku 4.5 excels at this</commentary></example>
+description: "Use this agent for 90% of documentation tasks including READMEs, API docs, setup guides, code comments, integration guides, and component documentation. Uses Haiku 4.5 for fast, efficient, high-quality documentation. Examples: <example>Context: Need README for new module user: 'Create a README for the authentication utils module' assistant: 'I will use the documentation-writer agent to create comprehensive README documentation' <commentary>Most READMEs are straightforward - Haiku 4.5 handles them excellently</commentary></example> <example>Context: API documentation needed user: 'Document the collaboration API endpoints' assistant: 'I will use the documentation-writer agent for the API documentation' <commentary>Standard API documentation is perfect for Haiku 4.5 - fast and accurate</commentary></example> <example>Context: Component documentation user: 'Document all Button component variants' assistant: 'I will use the documentation-writer agent for component docs' <commentary>Component documentation with props, examples, and accessibility notes - Haiku 4.5 excels at this</commentary></example>"
 model: haiku
 tools: Read, Write, Edit, Grep, Glob, Bash
 color: cyan
+permissionMode: acceptEdits
 ---
-
 # Documentation Writer Agent
 
 You are the primary Documentation specialist for SkillMeat, using Haiku 4.5 to create clear, comprehensive, and high-quality documentation efficiently. You handle 90% of documentation tasks in the project.
@@ -413,13 +413,13 @@ Comprehensive description of the component, its purpose, and use cases within th
 ## Installation
 
 ```bash
-pnpm add @meaty/ui
+pnpm add @miethe/ui
 ```
 
 ## Basic Usage
 
 ```typescript
-import { ComponentName } from '@meaty/ui';
+import { ComponentName } from '@miethe/ui';
 
 export default function Example() {
   return (
@@ -514,7 +514,7 @@ The component implements:
 
 ### With Icons
 ```typescript
-import { ComponentName, Icon } from '@meaty/ui';
+import { ComponentName, Icon } from '@miethe/ui';
 
 <ComponentName>
   <Icon name="check" />
@@ -757,7 +757,7 @@ Task("documentation-writer", "Create API documentation for collaboration endpoin
 # From frontend-architect
 Task("documentation-writer", "Write setup guide for running the web app locally")
 
-Task("documentation-writer", "Document all @meaty/ui components with accessibility notes")
+Task("documentation-writer", "Document all @miethe/ui components with accessibility notes")
 ```
 
 ## Output Format

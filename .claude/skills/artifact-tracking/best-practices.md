@@ -200,6 +200,12 @@ python scripts/update-batch.py -f FILE --updates "TASK-1.1:completed,TASK-1.2:co
 
 Don't wait until end of session.
 
+## Task Granularity
+
+### Split Local/Enterprise Deliverables
+
+When a task covers both local and enterprise deliverables, split into `-local` / `-enterprise` sub-tasks to prevent false completion signals (e.g., `TASK-3.2-local` and `TASK-3.2-enterprise`).
+
 ## Anti-Patterns to Avoid
 
 ### Creating Multiple Files Per Phase
